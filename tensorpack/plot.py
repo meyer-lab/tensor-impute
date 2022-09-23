@@ -4,13 +4,12 @@ This file makes all standard plots for tensor analysis. Requires a Decomposition
 
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from matplotlib.ticker import ScalarFormatter
 from .decomposition import Decomposition
 from tensorpack import perform_CP
-import seaborn as sns
 import time
 import copy
-
 
 def tfacr2x(ax, decomp:Decomposition):
     """
