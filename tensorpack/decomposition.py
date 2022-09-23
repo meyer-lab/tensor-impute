@@ -10,7 +10,7 @@ from .impute import create_missingness, entry_drop, joint_entry_drop, chord_drop
 class Decomposition():
     def __init__(self, data, matrix=[0], max_rr=5, method=perform_CP):
         """
-        Decomposition object designed for plotting. Capable of handling a single tensor and matrix jointly.
+        Decomposition object designed for plotting. Capable of handling a single tensor.
 
         Parameters
         ----------
