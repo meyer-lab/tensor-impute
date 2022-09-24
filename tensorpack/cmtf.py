@@ -159,35 +159,6 @@ def cp_normalize(tFac):
     return tFac
 
 
-def initialize_cmtf(tensor: np.ndarray, matrix: np.ndarray, rank: int):
-    r"""Initialize factors used in `parafac`.
-    Parameters
-    ----------
-    tensor : ndarray
-    rank : int
-    Returns
-    -------
-    factors : CPTensor
-        An initial cp tensor.
-    """
-    factors = [np.ones((tensor.shape[i], rank)) for i in range(tensor.ndim)]
-
-    # SVD init mode 0
-    unfold = tl.unfold(tensor, 0)
-    unfold = np.hstack((unfold, matrix))
-
-    if np.sum(~np.isfinite(unfold)) > 0:
-        si = IterativeSVD(rank=rank, random_state=1)
-        unfold = si.fit_transform(unfold)
-        factors[0] = si.U
-    else:
-        factors[0] = np.linalg.svd(unfold)[0][:, :rank]
-
-    unfold = tl.unfold(tensor, 1)
-    unfold = unfold[:, np.all(np.isfinite(unfold), axis=0)]
-    factors[1] = np.linalg.svd(unfold)[0]
-    factors[1] = factors[1].take(range(rank), axis=1, mode="wrap")
-    return tl.cp_tensor.CPTensor((None, factors))
 
 
 def initialize_cp(tensor: np.ndarray, rank: int):
@@ -252,53 +223,5 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
 
     if r > 1:
         tFac = sort_factors(tFac)
-    
-    return tFac
-
-
-def perform_CMTF(tOrig, mOrig, r=9, tol=1e-6, maxiter=50, progress=True, callback=None):
-    """ Perform CMTF decomposition. """
-    assert tOrig.dtype == float
-    assert mOrig.dtype == float
-    if callback: callback.begin()
-    tFac = initialize_cmtf(tOrig, mOrig, r)
-
-    # Pre-unfold
-    unfolded = np.hstack((tl.unfold(tOrig, 0), mOrig))
-    missingM = np.all(np.isfinite(mOrig), axis=1)
-    assert np.sum(missingM) >= 1, "mOrig must contain at least one complete row"
-    R2X = -np.inf
-
-    # Precalculate the missingness patterns
-    uniqueInfo = np.unique(np.isfinite(unfolded.T), axis=1, return_inverse=True)
-
-    tq = tqdm(range(maxiter), disable=(not progress))
-    for _ in tq:
-        for m in [1, 2]:
-            kr = khatri_rao(tFac.factors, skip_matrix=m)
-            tFac.factors[m] = censored_lstsq(kr, tl.unfold(tOrig, m).T)
-
-        # Solve for the glycan matrix fit
-        tFac.mFactor = np.linalg.lstsq(tFac.factors[0][missingM, :], mOrig[missingM, :], rcond=-1)[0].T
-
-        # Solve for subjects factors
-        kr = khatri_rao(tFac.factors, skip_matrix=0)
-        kr = np.vstack((kr, tFac.mFactor))
-        tFac.factors[0] = censored_lstsq(kr, unfolded.T, uniqueInfo)
-
-        R2X_last = R2X
-        R2X = calcR2X(tFac, tOrig, mOrig)
-        tq.set_postfix(R2X=R2X, delta=R2X - R2X_last, refresh=False)
-        assert R2X > 0.0
-        if callback: callback(tFac)
-
-        if R2X - R2X_last < tol:
-            break
-
-    assert not np.all(tFac.mFactor == 0.0)
-    tFac = cp_normalize(tFac)
-    tFac = reorient_factors(tFac)
-    tFac = sort_factors(tFac)
-    tFac.R2X = R2X
 
     return tFac
