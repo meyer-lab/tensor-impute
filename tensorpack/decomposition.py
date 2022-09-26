@@ -4,7 +4,6 @@ import numpy as np
 from .cmtf import perform_CP, calcR2X
 from tensorly import partial_svd
 from .SVD_impute import IterativeSVD
-from .tucker import tucker_decomp
 from .impute import entry_drop, chord_drop
 
 class Decomposition():
@@ -48,10 +47,6 @@ class Decomposition():
         self.tfac.append(self.method(self.data, r=max(self.rrs), callback=callback))
         self.TR2X = [calcR2X(c, tIn=self.data) for c in self.tfac]
         self.sizeT = [rr * sum(self.tfac[0].shape) for rr in self.rrs]
-
-    def perform_tucker(self):
-        """ Try out Tucker for up to a specific number of ranks. """
-        self.Tucker, self.TuckErr, self.TuckRank = tucker_decomp(self.data, max(self.rrs)+1)
 
     def perform_PCA(self, flattenon=0):
         dataShape = self.data.shape
