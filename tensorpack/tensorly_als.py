@@ -192,7 +192,8 @@ def parafac(tensor, rank, n_iter_max=100, init='svd', svd='numpy_svd',
             cvg_criterion='abs_rec_error',
             fixed_modes=None,
             svd_mask_repeats=5,
-            linesearch=False):
+            linesearch=False,
+            callback=None):
     """CANDECOMP/PARAFAC decomposition via alternating least squares (ALS)
     Computes a rank-`rank` decomposition of `tensor` [1]_ such that::
         tensor = [|weights; factors[0], ..., factors[-1] |].
@@ -258,6 +259,9 @@ def parafac(tensor, rank, n_iter_max=100, init='svd', svd='numpy_svd',
     .. [3] R. Bro, "Multi-Way Analysis in the Food Industry: Models, Algorithms, and
            Applications", PhD., University of Amsterdam, 1998
     """
+
+    if callback: callback.begin() # Begin callback timer 
+
     rank = validate_cp_rank(tl.shape(tensor), rank=rank)
 
     if orthogonalise and not isinstance(orthogonalise, int):
@@ -410,6 +414,9 @@ def parafac(tensor, rank, n_iter_max=100, init='svd', svd='numpy_svd',
                     print('reconstruction error={}'.format(rec_errors[-1]))
         if normalize_factors:
             weights, factors = cp_normalize((weights, factors))
+
+        if callback: callback(CPTensor((weights, factors))) # Save tensor for iteration
+
     cp_tensor = CPTensor((weights, factors))
 
     if sparsity:
