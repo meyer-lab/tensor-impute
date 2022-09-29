@@ -10,6 +10,11 @@ class tracker():
         self.metric = entry_type
         self.track_runtime = track_runtime
 
+    def __call__(self, tFac):
+        self.array = np.append(self.array, 1 - tFac.R2X)
+        if self.track_runtime:
+            self.time_array = np.append(self.time_array, time.time() - self.start)
+
     def begin(self):
         """ Must run to track runtime """
         self.start = time.time()
@@ -20,6 +25,7 @@ class tracker():
             self.time_array = np.full((1, 1), time.time() - self.start)
 
     def update(self, tFac):
+        """ synonymous to class call """
         self.array = np.append(self.array, 1 - tFac.R2X)
         if self.track_runtime:
             self.time_array = np.append(self.time_array, time.time() - self.start)
