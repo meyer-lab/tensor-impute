@@ -8,8 +8,9 @@ from jax.config import config
 from scipy.optimize import minimize
 import tensorly as tl
 from tensorly.decomposition import parafac
-from tensorly.kruskal_tensor import KruskalTensor, kruskal_normalise
-from .dataImport import createCube
+from tensorly import kruskal_to_tensor # KruskalTensor, kruskal_normalise
+from tensorly.cp_tensor import CPTensor
+from .test.test_cmtf import createCube
 
 tl.set_backend('numpy')
 config.update("jax_enable_x64", True)
@@ -47,7 +48,8 @@ def buildTensors(pIn, tensor, matrix, tmask, r):
     selPat = np.all(np.isfinite(matrix), axis=1)
     G = jnp.linalg.lstsq(A[selPat, :], matrix[selPat, :])[0]
 
-    return KruskalTensor((None, [A, B, C])), KruskalTensor((None, [A, G.T]))
+    return CPTensor((None, [A, B, C])), KruskalTensor((None, [A, G.T]))
+    # reformat to CP_tensor
 
 
 def cost(pIn, tensor, matrix, tmask, r):
