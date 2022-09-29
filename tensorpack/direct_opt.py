@@ -9,7 +9,7 @@ from scipy.optimize import minimize
 import tensorly as tl
 from tensorly.decomposition import parafac
 from tensorly.kruskal_tensor import KruskalTensor, kruskal_normalise
-from .dataImport import createCube
+from test.test_cmtf import createCube
 
 tl.set_backend('numpy')
 config.update("jax_enable_x64", True)
