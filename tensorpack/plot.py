@@ -7,6 +7,9 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.ticker import ScalarFormatter
 from .decomposition import Decomposition
+from tensorpack import perform_CP
+import time
+import copy
 
 def tfacr2x(ax, decomp:Decomposition):
     """
@@ -224,3 +227,50 @@ def plot_weight_mode(ax, factor, labels=False, title = ""):
     ax.set_xlabel("Components")
     ax.set_title(title)
 
+class tracker():
+    """
+    Creates an array of R2X/Q2X values, tracks next unfilled entry when updating runtime/iteration, holds axis titles for plotting
+    """
+
+    def __init__(self, entry_type = 'R2X', track_runtime = False) :
+        self.metric = entry_type
+        self.track_runtime = track_runtime
+        self.array = []
+        if self.track_runtime:
+            self.time_array = []
+    
+    def __call__(self, object):
+        """ Previous update(), call to add a value to self.array and self.track_runtime if applicable """
+        self.array.append(copy.deepcopy(object))
+        if self.track_runtime:
+            self.time_array.append(time.time() - self.start)
+    
+    def begin(self):
+        """ Must run to track runtime """
+        self.start = time.time()
+
+    def findR2X(self):
+        self.R2X_array = [tFac.R2X for tFac in self.array]
+
+    def vectorFoo(self):
+        """ Take vector object and extract relevant values """ # For Enio
+        pass
+    
+def plot_iteration(ax, callback:tracker):
+    """ Plots R2X over iteration """
+    callback.findR2X()
+    ax.plot(range(1,len(callback.R2X_array)+1), callback.R2X_array)
+    ax.set_ylim((0.0, 1.0))
+    ax.set_xlim(0, len(callback.R2X_array)+1)
+    ax.set_xlabel('Iteration')
+    ax.set_ylabel(callback.metric)
+
+def plot_runtime(ax, callback:tracker):
+    """ Plots R2X over runtime """
+    assert callback.track_runtime
+    callback.findR2X()
+    ax.plot(callback.time_array, callback.R2X_array)
+    ax.set_ylim((0.0, 1.0))
+    ax.set_xlim((np.min(callback.time_array), np.max(callback.time_array)))
+    ax.set_xlabel('Runtime')
+    ax.set_ylabel(callback.metric)
