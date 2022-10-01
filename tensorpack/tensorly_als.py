@@ -2,7 +2,7 @@ import numpy as np
 import warnings
 
 import tensorly as tl
-from tensorly.decomposition._base_decomposition import DecompositionMixin
+from tensorly import DecompositionMixin
 from tensorly.random import random_cp
 from tensorly.base import unfold
 from tensorly.cp_tensor import (cp_to_tensor, CPTensor,
