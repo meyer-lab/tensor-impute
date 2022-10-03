@@ -6,7 +6,7 @@ import tensorly as tl
 import warnings
 from tensorly.cp_tensor import _validate_cp_tensor
 from tensorly.random import random_cp
-from ..cmtf import perform_CMTF, delete_component, calcR2X, buildMat, sort_factors, perform_CP
+from ..cmtf import delete_component, calcR2X, buildMat, sort_factors, perform_CP
 from tensordata.alter import data as alter
 
 
@@ -16,28 +16,7 @@ def createCube(missing=0.0, size=(10, 20, 25)):
     if missing > 0.0:
         tensor[np.random.rand(*size) < missing] = np.nan
     return tensor
-
-
-def test_cmtf_R2X():
-    """ Test to ensure R2X for higher components is larger. """
-    arr = []
-    d = alter()
-    tensor, matrix = d.tensor, d.matrix
-    for i in range(1, 5):
-        facT = perform_CMTF(tensor, matrix, r=i)
-        assert np.all(np.isfinite(facT.factors[0]))
-        assert np.all(np.isfinite(facT.factors[1]))
-        assert np.all(np.isfinite(facT.factors[2]))
-        assert np.all(np.isfinite(facT.mFactor))
-        arr.append(facT.R2X)
-    for j in range(len(arr) - 1):
-        assert arr[j] < arr[j + 1]
-    # confirm R2X is >= 0 and <=1
-    assert np.min(arr) >= 0
-    assert np.max(arr) <= 1
-    if arr[2] < 0.87:
-        warnings.warn("CMTF (r=3) on Alter dataset, R2X = " + str(arr[2]) + " < 0.87 (expected)")
-
+    
 
 def test_cp():
     # Test that the CP decomposition code works.
