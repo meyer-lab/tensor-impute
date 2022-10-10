@@ -51,8 +51,8 @@ def cost(pIn, tensor, tmask, r):
     return cost
 
 
-def perform_CMTF(tensorOrig=None, r=6):
-    """ Perform CMTF decomposition. """
+def perform_CP_DO(tensorOrig=None, r=6):
+    """ Perform CP decomposition. """
     if tensorOrig is None:
         tensorOrig = createCube()
 
@@ -60,8 +60,8 @@ def perform_CMTF(tensorOrig=None, r=6):
     tmask = np.isnan(tensorIn)
     tensorIn[tmask] = 0.0
 
-    cost_jax = jit(cost, static_argnums=(1, 2, 3, 4))
-    cost_grad = jit(grad(cost, 0), static_argnums=(1, 2, 3, 4))
+    cost_jax = jit(cost, static_argnums=(1, 2, 3))
+    cost_grad = jit(grad(cost, 0), static_argnums=(1, 2, 3))
 
     def costt(*args):
         return np.array(cost_jax(*args))
