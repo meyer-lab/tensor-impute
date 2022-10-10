@@ -178,3 +178,10 @@ def chord_drop(tensor, drop, seed=None):
         for i in range(chordlen):
             tensor[dropidxs[i]] = np.nan
 
+
+def createCube(missing=0.0, size=(10, 20, 25)):
+    s = np.random.gamma(2, 2, np.prod(size))
+    tensor = s.reshape(*size)
+    if missing > 0.0:
+        tensor[np.random.rand(*size) < missing] = np.nan
+    return tensor
