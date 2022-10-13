@@ -1,8 +1,8 @@
 import numpy as np
 import warnings
 
+from .cmtf import calcR2X
 import tensorly as tl
-from tensorly import DecompositionMixin
 from tensorly.random import random_cp
 from tensorly.base import unfold
 from tensorly.cp_tensor import (cp_to_tensor, CPTensor,
@@ -183,7 +183,7 @@ def error_calc(tensor, norm_tensor, weights, factors, sparsity, mask, mttkrp=Non
     return unnorml_rec_error, tensor, norm_tensor
 
 
-def parafac(tensor, rank, n_iter_max=100, init='svd', svd='numpy_svd',
+def parafac(tensor, r, n_iter_max=100, init='svd', svd='numpy_svd',
             normalize_factors=False, orthogonalise=False,
             tol=1e-8, random_state=None,
             verbose=0, return_errors=False,
@@ -262,7 +262,10 @@ def parafac(tensor, rank, n_iter_max=100, init='svd', svd='numpy_svd',
 
     if callback: callback.begin() # Begin callback timer 
 
-    rank = validate_cp_rank(tl.shape(tensor), rank=rank)
+    origTensor = np.copy(tensor)
+    tensor[~mask] = 0
+
+    r = validate_cp_rank(tl.shape(tensor), rank=r)
 
     if orthogonalise and not isinstance(orthogonalise, int):
         orthogonalise = n_iter_max
@@ -272,20 +275,28 @@ def parafac(tensor, rank, n_iter_max=100, init='svd', svd='numpy_svd',
         acc_fail = 0  # How many times acceleration have failed
         max_fail = 4  # Increase acc_pow with one after max_fail failure
 
-    weights, factors = initialize_cp(tensor, rank, init=init, svd=svd,
+    weights, factors = initialize_cp(tensor, r, init=init, svd=svd,
                                      random_state=random_state,
                                      normalize_factors=normalize_factors)
+
+    
+    if callback: # First entry after initialization
+        tfac = CPTensor((weights, factors))
+        tensorImp = np.copy(origTensor) 
+        tensorImp[mask] = np.nan # Mask non imputed values
+        tfac.R2X = calcR2X(tfac, tensorImp)
+        callback.first_entry(tfac) 
 
     if mask is not None and init == "svd":
         for _ in range(svd_mask_repeats):
             tensor = tensor * mask + tl.cp_to_tensor((weights, factors), mask=1 - mask)
 
-            weights, factors = initialize_cp(tensor, rank, init=init, svd=svd, random_state=random_state,
+            weights, factors = initialize_cp(tensor, r, init=init, svd=svd, random_state=random_state,
                                              normalize_factors=normalize_factors)
 
     rec_errors = []
     norm_tensor = tl.norm(tensor, 2)
-    Id = tl.eye(rank, **tl.context(tensor)) * l2_reg
+    Id = tl.eye(r, **tl.context(tensor)) * l2_reg
 
     if fixed_modes is None:
         fixed_modes = []
@@ -310,7 +321,7 @@ def parafac(tensor, rank, n_iter_max=100, init='svd', svd='numpy_svd',
 
     for iteration in range(n_iter_max):
         if orthogonalise and iteration <= orthogonalise:
-            factors = [tl.qr(f)[0] if min(tl.shape(f)) >= rank else f for i, f in enumerate(factors)]
+            factors = [tl.qr(f)[0] if min(tl.shape(f)) >= r else f for i, f in enumerate(factors)]
 
         if linesearch and iteration % 2 == 0:
             factors_last = [tl.copy(f) for f in factors]
@@ -322,7 +333,7 @@ def parafac(tensor, rank, n_iter_max=100, init='svd', svd='numpy_svd',
             if verbose > 1:
                 print("Mode", mode, "of", tl.ndim(tensor))
 
-            pseudo_inverse = tl.tensor(np.ones((rank, rank)), **tl.context(tensor))
+            pseudo_inverse = tl.tensor(np.ones((r, r)), **tl.context(tensor))
             for i, factor in enumerate(factors):
                 if i != mode:
                     pseudo_inverse = pseudo_inverse * tl.dot(tl.transpose(factor), factor)
@@ -415,7 +426,11 @@ def parafac(tensor, rank, n_iter_max=100, init='svd', svd='numpy_svd',
         if normalize_factors:
             weights, factors = cp_normalize((weights, factors))
 
-        if callback: callback(CPTensor((weights, factors))) # Save tensor for iteration
+        
+        if callback: # Save tensor q2x for iteration
+            tfac = CPTensor((weights, factors))
+            tfac.R2X = calcR2X(tfac, tensorImp)
+            callback(tfac) 
 
     cp_tensor = CPTensor((weights, factors))
 
@@ -476,7 +491,7 @@ def sample_khatri_rao(matrices, n_samples, skip_matrix=None, indices_list=None,
             rng = random_state
         indices_list = [rng.randint(0, tl.shape(m)[0], size=n_samples, dtype=int) for m in matrices]
 
-    rank = tl.shape(matrices[0])[1]
+    r = tl.shape(matrices[0])[1]
     sizes = [tl.shape(m)[0] for m in matrices]
 
     if return_sampled_rows:
@@ -486,7 +501,7 @@ def sample_khatri_rao(matrices, n_samples, skip_matrix=None, indices_list=None,
             indices_kr = indices_kr * size + indices
 
     # Compute the Khatri-Rao product for the chosen indices
-    sampled_kr = tl.ones((n_samples, rank), **tl.context(matrices[0]))
+    sampled_kr = tl.ones((n_samples, r), **tl.context(matrices[0]))
     for indices, matrix in zip(indices_list, matrices):
         sampled_kr = sampled_kr * matrix[indices, :]
 
