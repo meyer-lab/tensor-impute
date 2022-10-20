@@ -1,23 +1,28 @@
 import numpy as np
 import time
+from tensorpack.cmtf import calcR2X
 
 class tracker():
     """
     Creates an array, tracks next unfilled entry & runtime, holds tracked name for plotting
     """
 
-    def __init__(self, entry_type='R2X', track_runtime=False):
+    def __init__(self, data, entry_type='R2X', track_runtime=False):
+        self.data = data
         self.metric = entry_type
         self.track_runtime = track_runtime
+        self.array = np.full((1, 0), 0)
 
     def __call__(self, tFac):
-        self.array = np.append(self.array, 1 - tFac.R2X)
+        self.array = np.append(self.array, calcR2X(tFac, self.data))
         if self.track_runtime:
             self.time_array = np.append(self.time_array, time.time() - self.start)
 
     def begin(self):
         """ Must run to track runtime """
         self.start = time.time()
+        if self.track_runtime:
+            self.time_array = np.full((1, 0), 0)
 
     def first_entry(self, tFac):
         self.array = np.full((1, 1), 1 - tFac.R2X)
