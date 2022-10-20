@@ -314,6 +314,19 @@ minimum-jaxlib = ["jaxlib (==0.3.15)"]
 tpu = ["jaxlib (==0.3.22)", "libtpu-nightly (==0.1.dev20221011)", "requests"]
 
 [[package]]
+name = "jaxlib"
+version = "0.3.22"
+description = "XLA library for JAX"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+absl-py = "*"
+numpy = ">=1.20"
+scipy = ">=1.5"
+
+[[package]]
 name = "jedi"
 version = "0.18.1"
 description = "An autocompletion tool for Python that can be used for text editors."
@@ -915,7 +928,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "flake8 
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "15b3348a7f55849dbd20ddf912f8f6e26de2383f3d2ace7f8b9ba63c5eac3fd0"
+content-hash = "b9dd11081a5cfef58739cc19c9108d6e663acc302215e547f5ebad4e6e28e743"
 
 [metadata.files]
 absl-py = []
@@ -958,6 +971,7 @@ iniconfig = [
 ipykernel = []
 ipython = []
 jax = []
+jaxlib = []
 jedi = [
     {file = "jedi-0.18.1-py2.py3-none-any.whl", hash = "sha256:637c9635fcf47945ceb91cd7f320234a7be540ded6f3e99a50cb6febdfd1ba8d"},
     {file = "jedi-0.18.1.tar.gz", hash = "sha256:74137626a64a99c8eb6ae5832d99b3bdd7d29a3850fe2aa80a4126b2a7d949ab"},
