@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from tensorpack.cmtf import calcR2X
+from .cmtf import calcR2X
 
 class tracker():
     """
