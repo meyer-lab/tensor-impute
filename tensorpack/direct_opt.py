@@ -60,8 +60,8 @@ def perform_CP_DO(tensorOrig=None, r=6):
     tmask = np.isnan(tensorIn)
     tensorIn[tmask] = 0.0
 
-    cost_jax = jit(cost, static_argnums=(1, 2, 3))
-    cost_grad = jit(grad(cost, 0), static_argnums=(1, 2, 3))
+    cost_jax = jit(cost)
+    cost_grad = jit(grad(cost, 0))
 
     def costt(*args):
         return np.array(cost_jax(*args))
@@ -86,12 +86,3 @@ def perform_CP_DO(tensorOrig=None, r=6):
         tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
 
     return tensorFac, R2X
-
-
-"""
-NOTES
-- unsure about what rgs is used for in lines 76-77
-- tmask in buildTensors()?
-- line 62, replace 0 with np.nan?
-- will later
-"""
