@@ -32,22 +32,37 @@ def reorient_factors(tensorFac):
     return tensorFac
 
 
-def buildTensors(pIn, tensor, tmask, r):
+def khatri_rao2(a, b):
+    a = jnp.asarray(a)
+    b = jnp.asarray(b)
+
+    assert (a.ndim == 2 and b.ndim == 2)
+    assert a.shape[1] == b.shape[1]
+
+    c = a[..., :, jnp.newaxis, :] * b[..., jnp.newaxis, :, :]
+    return c.reshape((-1,) + c.shape[2:])
+
+def khatri_rao(mats):
+    if len(mats) == 1:
+        return mats[0]
+    if len(mats) >= 2:
+        return khatri_rao2(mats[0], khatri_rao(mats[1:]))
+
+def factors_to_tensor(factors):
+    shape = [ff.shape[0] for ff in factors]
+    unfold = jnp.dot(factors[0], khatri_rao(factors[1:]).T)
+    return unfold.reshape(shape)
+
+
+def buildTensors(pIn, r, tshape):
     """ Use parameter vector to build CP tensors. """
-    nn = np.cumsum(tensor.shape) * r
-    A = jnp.reshape(pIn[:nn[0]], (tensor.shape[0], r))
-    B = jnp.reshape(pIn[nn[0]:nn[1]], (tensor.shape[1], r))
-    C = jnp.reshape(pIn[nn[1]:], (tensor.shape[2], r))
-
-    return CPTensor((None, [A, B, C]))
-
+    nn = np.cumsum(tshape) * r
+    return [x.reshape(tshape[i], r) for i, x in enumerate(jnp.split(pIn, nn)) if i < len(nn)]
 
 def cost(pIn, tensor, tmask, r):
-    tl.set_backend('jax')
-    tensF = buildTensors(pIn, tensor, tmask, r)
-    cost = jnp.linalg.norm(tl.cp_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
+    tensF = buildTensors(pIn, r, tensor.shape)
+    cost = jnp.linalg.norm((factors_to_tensor(tensF) - tensor) * (1-tmask)) # Tensor cost
     cost += 1e-9 * jnp.linalg.norm(pIn)
-    tl.set_backend('numpy')
     return cost
 
 
@@ -60,8 +75,8 @@ def perform_CP_DO(tensorOrig=None, r=6):
     tmask = np.isnan(tensorIn)
     tensorIn[tmask] = 0.0
 
-    cost_jax = jit(cost)
-    cost_grad = jit(grad(cost, 0))
+    cost_jax = jit(cost, static_argnums=(3))
+    cost_grad = jit(grad(cost, 0), static_argnums=(3))
 
     def costt(*args):
         return np.array(cost_jax(*args))
@@ -74,7 +89,7 @@ def perform_CP_DO(tensorOrig=None, r=6):
 
     rgs = (tensorIn, tmask, r)
     res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter": 50000})
-    tensorFac = buildTensors(res.x, tensorIn, tmask, r)
+    tensorFac = CPTensor((None, buildTensors(res.x, r, tensorIn.shape)))
     tensorFac = cp_normalize(tensorFac)
 
     # Reorient the later tensor factors
