@@ -24,7 +24,7 @@ def reorient_factors(tensorFac):
     return tensorFac
 
 
-def buildTensors(pIn, tensor, tmask, r):
+def buildTensors(pIn, tensor, r):
     """ Use parameter vector to build CP tensors. """
     nn = np.cumsum(tensor.shape) * r
     A = np.reshape(pIn[:nn[0]], (tensor.shape[0], r))
@@ -35,11 +35,9 @@ def buildTensors(pIn, tensor, tmask, r):
 
 
 def cost(pIn, tensor, tmask, r):
-    tl.set_backend('jax')
-    tensF = buildTensors(pIn, tensor, tmask, r)
+    tensF = buildTensors(pIn, tensor, r)
     cost = np.linalg.norm(tl.cp_to_tensor(tensF, mask=1 - tmask) - tensor) # Tensor cost
     cost += 1e-9 * np.linalg.norm(pIn)
-    tl.set_backend('numpy')
     return cost
 
 
