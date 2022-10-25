@@ -10,12 +10,12 @@ import tensorly as tl
 from tensorly.decomposition import parafac
 from tensorly.cp_tensor import CPTensor, cp_normalize
 from .impute_helper import createCube
-from .cmtf import calcR2X
 
 tl.set_backend('numpy')
 config.update("jax_enable_x64", True)
 
-def khatri_rao_double(a, b):
+
+def do_khatri_rao(a, b):
     a = jnp.asarray(a)
     b = jnp.asarray(b)
 
@@ -29,7 +29,8 @@ def khatri_rao(mats):
     if len(mats) == 1:
         return mats[0]
     if len(mats) >= 2:
-        return khatri_rao_double(mats[0], khatri_rao(mats[1:]))
+        return do_khatri_rao(mats[0], khatri_rao(mats[1:]))
+
 
 def factors_to_tensor(factors):
     shape = [ff.shape[0] for ff in factors]
@@ -91,9 +92,7 @@ def perform_CP_DO(tensorOrig=None, r=6):
     # Reorient the later tensor factors
     tensorFac.factors = reorient_factors(tensorFac.factors)
 
-    R2X = calcR2X(tensorOrig, tensorFac)
-
     for ii in range(3):
         tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
 
-    return tensorFac, R2X
+    return tensorFac
