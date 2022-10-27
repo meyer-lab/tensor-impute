@@ -188,9 +188,14 @@ def initialize_cp(tensor: np.ndarray, rank: int):
     return tl.cp_tensor.CPTensor((None, factors))
 
 
-def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
+def perform_CP(tOrig, r=6, mask=None, tol=1e-6, maxiter=50, progress=False, callback=None):
     """ Perform CP decomposition. """
+    # Mask: 0 when missing, 1 when finite 
+
     if callback: callback.begin()
+    tensorImp = np.copy(tOrig) 
+    if mask is not None: tOrig = tOrig * mask 
+
     tFac = initialize_cp(tOrig, r)
 
     # Pre-unfold
@@ -202,18 +207,28 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
     # Precalculate the missingness patterns
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
+    if callback: # First entry after initialization
+        tensorImp[mask] = np.nan # Mask non imputed values
+        tFac.R2X = calcR2X(tFac, tensorImp)
+        callback.first_entry(tFac) 
+
     tq = tqdm(range(maxiter), disable=(not progress))
     for i in tq:
         # Solve on each mode
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
             tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
-
+        
         R2X_last = tFac.R2X
+        
+        if callback: # Update imputation error 
+            tFac.R2X = calcR2X(tFac, tensorImp)
+            callback(tFac)
+
         tFac.R2X = calcR2X(tFac, tOrig)
         tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
         assert tFac.R2X > 0.0
-        if callback: callback(tFac)
+        
 
         if tFac.R2X - R2X_last < tol:
             break
