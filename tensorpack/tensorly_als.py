@@ -261,7 +261,8 @@ def parafac(tensor, r, n_iter_max=100, init='svd', svd='numpy_svd',
     """
 
     if callback: callback.begin() # Begin callback timer 
-
+    tensorImp = np.copy(tensor) 
+    
     r = validate_cp_rank(tl.shape(tensor), rank=r)
 
     if orthogonalise and not isinstance(orthogonalise, int):
@@ -276,20 +277,18 @@ def parafac(tensor, r, n_iter_max=100, init='svd', svd='numpy_svd',
                                      random_state=random_state,
                                      normalize_factors=normalize_factors)
 
-    
-    if callback: # First entry after initialization
-        tfac = CPTensor((weights, factors))
-        tensorImp = np.copy(tensor) 
-        tensorImp[mask] = np.nan # Mask non imputed values
-        tfac.R2X = calcR2X(tfac, tensorImp)
-        callback.first_entry(tfac) 
-
     if mask is not None and init == "svd":
         for _ in range(svd_mask_repeats):
             tensor = tensor * mask + tl.cp_to_tensor((weights, factors), mask=1 - mask)
 
             weights, factors = initialize_cp(tensor, r, init=init, svd=svd, random_state=random_state,
                                              normalize_factors=normalize_factors)
+
+    if callback: # First entry after initialization
+            tfac = CPTensor((weights, factors))
+            tensorImp[mask] = np.nan # Mask non imputed values
+            tfac.R2X = calcR2X(tfac, tensorImp)
+            callback.first_entry(tfac) 
 
     rec_errors = []
     norm_tensor = tl.norm(tensor, 2)
