@@ -262,6 +262,7 @@ def parafac(tensor, r, n_iter_max=100, init='svd', svd='numpy_svd',
 
     if callback: callback.begin() # Begin callback timer 
     tensorImp = np.copy(tensor) 
+    #tensor[~mask] = 0
     
     r = validate_cp_rank(tl.shape(tensor), rank=r)
 

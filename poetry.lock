@@ -48,7 +48,7 @@ python-versions = ">=3.5"
 dev = ["cloudpickle", "coverage[toml] (>=5.0.2)", "furo", "hypothesis", "mypy (>=0.900,!=0.940)", "pre-commit", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "sphinx", "sphinx-notfound-page", "zope.interface"]
 docs = ["furo", "sphinx", "sphinx-notfound-page", "zope.interface"]
 tests = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy (>=0.900,!=0.940)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins", "zope.interface"]
-tests_no_zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy (>=0.900,!=0.940)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins"]
+tests-no-zope = ["cloudpickle", "coverage[toml] (>=5.0.2)", "hypothesis", "mypy (>=0.900,!=0.940)", "pympler", "pytest (>=4.3.0)", "pytest-mypy-plugins"]
 
 [[package]]
 name = "backcall"
@@ -164,7 +164,7 @@ enp = ["etils[epy]", "numpy"]
 epath = ["etils[epy]", "importlib_resources", "typing_extensions", "zipp"]
 epy = ["typing_extensions"]
 etqdm = ["absl-py", "etils[epy]", "tqdm"]
-etree = ["etils[array_types]", "etils[enp]", "etils[epy]", "etils[etqdm]"]
+etree = ["etils[array-types]", "etils[enp]", "etils[epy]", "etils[etqdm]"]
 etree-dm = ["dm-tree", "etils[etree]"]
 etree-jax = ["etils[etree]", "jax[cpu]"]
 etree-tf = ["etils[etree]", "tf-nightly"]
@@ -283,7 +283,7 @@ notebook = ["ipywidgets", "notebook"]
 parallel = ["ipyparallel"]
 qtconsole = ["qtconsole"]
 test = ["pytest (<7.1)", "pytest-asyncio", "testpath"]
-test_extra = ["curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.19)", "pandas", "pytest (<7.1)", "pytest-asyncio", "testpath", "trio"]
+test-extra = ["curio", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.19)", "pandas", "pytest (<7.1)", "pytest-asyncio", "testpath", "trio"]
 
 [[package]]
 name = "jax"
@@ -306,8 +306,8 @@ australis = ["protobuf (>=3.13,<4)"]
 ci = ["jaxlib (==0.3.15)"]
 cpu = ["jaxlib (==0.3.15)"]
 cuda = ["jaxlib (==0.3.15+cuda11.cudnn82)"]
-cuda11_cudnn805 = ["jaxlib (==0.3.15+cuda11.cudnn805)"]
-cuda11_cudnn82 = ["jaxlib (==0.3.15+cuda11.cudnn82)"]
+cuda11-cudnn805 = ["jaxlib (==0.3.15+cuda11.cudnn805)"]
+cuda11-cudnn82 = ["jaxlib (==0.3.15+cuda11.cudnn82)"]
 minimum-jaxlib = ["jaxlib (==0.3.15)"]
 tpu = ["jaxlib (==0.3.15)", "libtpu-nightly (==0.1.dev20220926)", "requests"]
 
@@ -422,14 +422,6 @@ description = "Patch asyncio to allow nested event loops"
 category = "main"
 optional = false
 python-versions = ">=3.5"
-
-[[package]]
-name = "nose"
-version = "1.3.7"
-description = "nose extends unittest to make testing easier"
-category = "main"
-optional = false
-python-versions = "*"
 
 [[package]]
 name = "numpy"
@@ -786,7 +778,7 @@ lxml = "*"
 
 [[package]]
 name = "tensordata"
-version = "0.0.6"
+version = "0.0.7"
 description = "A common repository for tensor structured datasets."
 category = "dev"
 optional = false
@@ -796,13 +788,14 @@ develop = false
 [package.dependencies]
 numpy = "^1.22.1"
 pandas = "^1.4.0"
+tensorly = {git = "https://github.com/tensorly/tensorly.git", branch = "main"}
 xarray = "^2022.3.0"
 
 [package.source]
 type = "git"
 url = "https://github.com/meyer-lab/tensordata.git"
 reference = "main"
-resolved_reference = "bd06b8e55ecda8c8896c54883d4272ebf9cdcbea"
+resolved_reference = "92cfe9d07f6e09814088ca46d648977adf27176f"
 
 [[package]]
 name = "tensorly"
@@ -811,11 +804,17 @@ description = "Tensor learning in Python."
 category = "main"
 optional = false
 python-versions = "*"
+develop = false
 
 [package.dependencies]
-nose = "*"
 numpy = "*"
 scipy = "*"
+
+[package.source]
+type = "git"
+url = "https://github.com/tensorly/tensorly.git"
+reference = "HEAD"
+resolved_reference = "0499bc530447977c056c4adb572a8aef803afd9c"
 
 [[package]]
 name = "toml"
@@ -921,7 +920,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "15b3348a7f55849dbd20ddf912f8f6e26de2383f3d2ace7f8b9ba63c5eac3fd0"
+content-hash = "f484ad0f85f983361df37da2c93cd70d06c9d7fe6a2463610044e1556ae936ca"
 
 [metadata.files]
 absl-py = [
@@ -1408,11 +1407,6 @@ nest-asyncio = [
     {file = "nest_asyncio-1.5.5-py3-none-any.whl", hash = "sha256:b98e3ec1b246135e4642eceffa5a6c23a3ab12c82ff816a92c612d68205813b2"},
     {file = "nest_asyncio-1.5.5.tar.gz", hash = "sha256:e442291cd942698be619823a17a86a5759eabe1f8613084790de189fe9e16d65"},
 ]
-nose = [
-    {file = "nose-1.3.7-py2-none-any.whl", hash = "sha256:dadcddc0aefbf99eea214e0f1232b94f2fa9bd98fa8353711dacb112bfcbbb2a"},
-    {file = "nose-1.3.7-py3-none-any.whl", hash = "sha256:9ff7c6cc443f8c51994b34a667bbcf45afd6d945be7477b52e97516fd17c53ac"},
-    {file = "nose-1.3.7.tar.gz", hash = "sha256:f1bffef9cbc82628f6e7d7b40d7e255aefaa1adb6a1b1d26c69a8b79e6208a98"},
-]
 numpy = [
     {file = "numpy-1.23.3-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:c9f707b5bb73bf277d812ded9896f9512a43edff72712f31667d0a8c2f8e71ee"},
     {file = "numpy-1.23.3-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:ffcf105ecdd9396e05a8e58e81faaaf34d3f9875f137c7372450baa5d77c9a54"},
@@ -1776,10 +1770,7 @@ svgutils = [
     {file = "svgutils-0.3.4.tar.gz", hash = "sha256:9ef48f44cb1d460a7747dd02694200fda25eb9faf6dea392118def2695e0e053"},
 ]
 tensordata = []
-tensorly = [
-    {file = "tensorly-0.7.0-py3-none-any.whl", hash = "sha256:484c6da50c34f23b3428d0d59b9dcbe5ff904d52f644ab4d62425f4fea3fa670"},
-    {file = "tensorly-0.7.0.tar.gz", hash = "sha256:fbfca8d0499f1b07530f5a2566a9a9f61ca3a31cfdec9f05155ad3f08332b3cc"},
-]
+tensorly = []
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
     {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
