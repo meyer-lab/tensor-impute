@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "tensorpack"
+name = "tensor-impute"
 version = "0.1.0"
-description = "A collection of tensor methods from the Meyer lab."
+description = "Examining various imputation methods for tensor decomposition."
 authors = ["Your Name <you@example.com>"]
 license = "MIT"
 
@@ -16,6 +16,7 @@ svgutils = "^0.3.4"
 xarray = "^2022.6.0"
 ipykernel = "^6.16.0"
 jax = "^0.3.19"
+jaxlib = "^0.3.22"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
