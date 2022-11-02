@@ -12,23 +12,23 @@ class tracker():
         self.metric = entry_type
         self.track_runtime = track_runtime
         self.array = np.full((1, 0), 0)
+        if self.track_runtime:
+            self.time_array = np.full((1, 0), 0)
 
     def __call__(self, tFac):
         self.array = np.append(self.array, calcR2X(tFac, self.data))
         if self.track_runtime:
+            assert self.start
             self.time_array = np.append(self.time_array, time.time() - self.start)
 
     def begin(self):
         """ Must run to track runtime """
         self.start = time.time()
+    
+    def reset(self):
+        self.array = np.full((1, 0), 0)
         if self.track_runtime:
             self.time_array = np.full((1, 0), 0)
-
-    def update(self, tFac):
-        """ synonymous to class call """
-        self.array = np.append(self.array, 1 - tFac.R2X)
-        if self.track_runtime:
-            self.time_array = np.append(self.time_array, time.time() - self.start)
 
     def plot_iteration(self, ax, methodname):
         ax.plot(range(1, self.array.size + 1), self.array, label=methodname)
