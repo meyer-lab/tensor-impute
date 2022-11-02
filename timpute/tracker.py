@@ -24,11 +24,6 @@ class tracker():
         if self.track_runtime:
             self.time_array = np.full((1, 0), 0)
 
-    def first_entry(self, tFac):
-        self.array = np.full((1, 1), 1 - tFac.R2X)
-        if self.track_runtime:
-            self.time_array = np.full((1, 1), time.time() - self.start)
-
     def update(self, tFac):
         """ synonymous to class call """
         self.array = np.append(self.array, 1 - tFac.R2X)
