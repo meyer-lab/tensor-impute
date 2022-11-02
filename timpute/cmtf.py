@@ -3,13 +3,13 @@ Coupled Matrix Tensor Factorization
 """
 
 import numpy as np
-#from tensorly import partial_svd
+from tensorly import partial_svd
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
 from copy import deepcopy
 from tensorly.decomposition._cp import initialize_cp
 from tqdm import tqdm
-#from .SVD_impute import IterativeSVD
+from .SVD_impute import IterativeSVD
 
 tl.set_backend('numpy')
 
