@@ -63,7 +63,7 @@ def cost(pIn, tensor, tmask, r):
     return cost
 
 
-def perform_CP_DO(tensorOrig=None, r=6):
+def perform_CP_DO(tensorOrig=None, r=6, callback=None):
     """ Perform CP decomposition. """
     if tensorOrig is None:
         tensorOrig = createCube()
@@ -85,7 +85,7 @@ def perform_CP_DO(tensorOrig=None, r=6):
     x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
 
     rgs = (tensorIn, tmask, r)
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter": 50000})
+    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter": 50000}, callback=callback)
     tensorFac = CPTensor((None, buildTensors(res.x, r, tensorIn.shape)))
     tensorFac = cp_normalize(tensorFac)
 

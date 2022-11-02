@@ -35,18 +35,20 @@ class tracker():
         if self.track_runtime:
             self.time_array = np.append(self.time_array, time.time() - self.start)
 
-    def plot_iteration(self, ax):
-        ax.plot(range(1, self.array.size + 1), self.array)
+    def plot_iteration(self, ax, methodname):
+        ax.plot(range(1, self.array.size + 1), self.array, label=methodname)
         ax.set_ylim((0.0, 1.0))
-        ax.set_xlim((0, self.array.size))
+        ax.set_xlim((1, self.array.size))
         ax.set_xlabel('Iteration')
         ax.set_ylabel(self.metric)
+        ax.legend(loc=4)
 
-    def plot_runtime(self, ax):
+    def plot_runtime(self, ax, methodname):
         assert self.track_runtime
         self.time_array
-        ax.plot(self.time_array, self.array)
+        ax.plot(self.time_array, self.array, label=methodname)
         ax.set_ylim((0.0, 1.0))
         ax.set_xlim((0, np.max(self.time_array) * 1.2))
         ax.set_xlabel('Runtime')
         ax.set_ylabel(self.metric)
+        ax.legend(loc=4)
