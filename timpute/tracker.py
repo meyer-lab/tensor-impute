@@ -8,6 +8,7 @@ class tracker():
     """
 
     def __init__(self, data, entry_type='R2X', track_runtime=False):
+        """ self.data should be the original tensor (e.g. prior to running imputation) """
         self.data = data
         self.metric = entry_type
         self.track_runtime = track_runtime
@@ -16,13 +17,14 @@ class tracker():
             self.time_array = np.full((1, 0), 0)
 
     def __call__(self, tFac):
+        """ Takes a CP tensor object """
         self.array = np.append(self.array, calcR2X(tFac, self.data))
         if self.track_runtime:
             assert self.start
             self.time_array = np.append(self.time_array, time.time() - self.start)
 
     def begin(self):
-        """ Must run to track runtime """
+        """ Must call to track runtime """
         self.start = time.time()
     
     def reset(self):
