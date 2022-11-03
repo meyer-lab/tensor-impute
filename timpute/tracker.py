@@ -7,9 +7,9 @@ class tracker():
     Creates an array, tracks next unfilled entry & runtime, holds tracked name for plotting
     """
 
-    def __init__(self, data, entry_type='R2X', track_runtime=False):
+    def __init__(self, tOrig, entry_type='R2X', track_runtime=False):
         """ self.data should be the original tensor (e.g. prior to running imputation) """
-        self.data = data
+        self.data = tOrig
         self.metric = entry_type
         self.track_runtime = track_runtime
         self.array = np.full((1, 0), 0)
@@ -18,7 +18,7 @@ class tracker():
 
     def __call__(self, tFac):
         """ Takes a CP tensor object """
-        self.array = np.append(self.array, calcR2X(tFac, self.data))
+        self.array = np.append(self.array, calcR2X(np.copy(tFac), self.data))
         if self.track_runtime:
             assert self.start
             self.time_array = np.append(self.time_array, time.time() - self.start)
@@ -32,8 +32,12 @@ class tracker():
         if self.track_runtime:
             self.time_array = np.full((1, 0), 0)
 
+    
+    """ Plots are designed to track the R2X of the method for the highest rank imputation of tOrig """
+
     def plot_iteration(self, ax, methodname):
         ax.plot(range(1, self.array.size + 1), self.array, label=methodname)
+        ax.legend(loc='upper right')
         ax.set_ylim((0.0, 1.0))
         ax.set_xlim((1, self.array.size))
         ax.set_xlabel('Iteration')
@@ -44,6 +48,7 @@ class tracker():
         assert self.track_runtime
         self.time_array
         ax.plot(self.time_array, self.array, label=methodname)
+        ax.legend(loc='upper right')
         ax.set_ylim((0.0, 1.0))
         ax.set_xlim((0, np.max(self.time_array) * 1.2))
         ax.set_xlabel('Runtime')
