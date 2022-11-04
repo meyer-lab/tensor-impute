@@ -1,5 +1,5 @@
 import numpy as np
-from tensorpack.cmtf import calcR2X
+from timpute.cmtf import calcR2X
 import time
 
 class tracker():
@@ -7,26 +7,31 @@ class tracker():
     Creates an array, tracks next unfilled entry & runtime, holds tracked name for plotting
     """
 
-    def __init__(self, tOrig, mask, entry_type='R2X', track_runtime=False):
+    def __init__(self, tOrig, mask=None, entry_type='R2X', track_runtime=False):
+
         self.tensor = tOrig
         self.mask = mask
         self.metric = entry_type
         self.track_runtime = track_runtime
-        self.array = []
-        self.impute_array = []
-        self.time_array = []
+
+        self.array = []           # Array containing fit error  
+        self.impute_array = []    # Array containing impute error
+        self.time_array = []      # Array containing time points 
 
     def __call__(self, tFac, error):
-        impute_error = self.calc_impute_error(tFac)
         self.array = np.append(self.array, 1 - error)
-        self.impute_array = np.append(self.impute_array, 1 - impute_error)
+        self.impute_array = np.append(self.impute_array, 1 - self.calc_impute_error(tFac))
         if self.track_runtime:
             self.time_array = np.append(self.time_array, time.time() - self.start)
 
     def calc_impute_error(self, tFac):
-        tensorImp = np.copy(self.tensor)
-        tensorImp[self.mask] = np.nan
-        return calcR2X(tFac, tensorImp)
+        if self.mask is not None:
+            assert self.mask.all() == False
+            tensorImp = np.copy(self.tensor)
+            tensorImp[self.mask] = np.nan
+            return calcR2X(tFac, tensorImp)
+        else:
+            return np.nan
 
     def begin(self):
         """ Must run to track runtime """

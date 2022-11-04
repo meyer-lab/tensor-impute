@@ -9,7 +9,7 @@ from tensordata.zohar import data as zohar
 
 def test_impute_alter():
     np.random.seed(5)
-    test = Decomposition(alter().tensor)
+    test = Decomposition(alter().data)
     test.Q2X_chord(drop=30, repeat=1)
     assert max(test.chordQ2X[0]) >= .8
     test.Q2X_entry(drop=9000,repeat=3)
@@ -20,7 +20,7 @@ def test_impute_alter():
 
 def test_impute_zohar():
     np.random.seed(5)
-    test = Decomposition(zohar().tensor)
+    test = Decomposition(zohar().data)
     test.Q2X_chord(drop=5, repeat=1)
     assert max(test.chordQ2X[0]) >= .4
     test.Q2X_entry(drop=3000,repeat=1)

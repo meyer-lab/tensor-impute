@@ -10,6 +10,7 @@ from copy import deepcopy
 from tensorly.decomposition._cp import initialize_cp
 from tqdm import tqdm
 from .SVD_impute import IterativeSVD
+from tensorly.tenalg import svd_interface
 
 tl.set_backend('numpy')
 
@@ -181,7 +182,9 @@ def initialize_cp(tensor: np.ndarray, rank: int):
                 si = IterativeSVD(rank)
                 unfold = si.fit_transform(unfold)
 
-            factors[mode] = partial_svd(unfold, rank, flip=True)[0]
+            #factors[mode] = partial_svd(unfold, rank, flip=True)[0]
+            factors[mode] = svd_interface(unfold, method='truncated_svd', n_eigenvecs=rank, flip_sign=True)[0]
+
 
     return tl.cp_tensor.CPTensor((None, factors))
 
