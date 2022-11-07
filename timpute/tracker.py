@@ -24,7 +24,12 @@ class tracker():
     def __call__(self, tFac, error=None):
         """ Takes a CP tensor object """
         if error is None:
-            error = calcR2X(tFac, self.data)
+            if self.mask is not None: # Assure error is calcualted with non-removed values 
+                mask_data = np.copy(self.data)
+                mask_data[~self.mask] = np.nan
+                error = calcR2X(tFac, mask_data)
+            else:
+                error = calcR2X(tFac, self.data)
         self.array = np.append(self.array, error)
         self.impute_array = np.append(self.impute_array, self.calc_impute_error(tFac))
         if self.track_runtime:
