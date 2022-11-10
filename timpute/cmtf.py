@@ -40,7 +40,7 @@ def calcR2X(tFac, tIn=None, mIn=None):
         vTop += np.linalg.norm(recon * mMask - mIn)**2.0
         vBottom += np.linalg.norm(mIn)**2.0
 
-    return 1.0 - vTop / vBottom
+    return vTop / vBottom
 
 
 def tensor_degFreedom(tFac) -> int:
@@ -188,13 +188,10 @@ def initialize_cp(tensor: np.ndarray, rank: int):
     return tl.cp_tensor.CPTensor((None, factors))
 
 
-def perform_CP(tOrig, r=6, mask=None, tol=1e-6, maxiter=50, progress=False, callback=None):
+def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
     """ Perform CP decomposition. """
-    # Mask: 0 when missing, 1 when finite 
 
     if callback: callback.begin()
-    tensorImp = np.copy(tOrig) 
-    if mask is not None: tOrig = tOrig * mask 
 
     tFac = initialize_cp(tOrig, r)
 
@@ -208,9 +205,7 @@ def perform_CP(tOrig, r=6, mask=None, tol=1e-6, maxiter=50, progress=False, call
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
     if callback: # First entry after initialization
-        tensorImp[mask] = np.nan # Mask non imputed values
-        tFac.R2X = calcR2X(tFac, tensorImp)
-        callback.first_entry(tFac) 
+        callback(tFac, tFac.R2X)
 
     tq = tqdm(range(maxiter), disable=(not progress))
     for i in tq:
@@ -221,9 +216,8 @@ def perform_CP(tOrig, r=6, mask=None, tol=1e-6, maxiter=50, progress=False, call
         
         R2X_last = tFac.R2X
         
-        if callback: # Update imputation error 
-            tFac.R2X = calcR2X(tFac, tensorImp)
-            callback(tFac)
+        if callback: # First entry after initialization
+            callback(tFac, tFac.R2X)
 
         tFac.R2X = calcR2X(tFac, tOrig)
         tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
