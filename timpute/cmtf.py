@@ -40,7 +40,7 @@ def calcR2X(tFac, tIn=None, mIn=None):
         vTop += np.linalg.norm(recon * mMask - mIn)**2.0
         vBottom += np.linalg.norm(mIn)**2.0
 
-    return 1.0 - vTop / vBottom
+    return vTop / vBottom
 
 
 def tensor_degFreedom(tFac) -> int:
