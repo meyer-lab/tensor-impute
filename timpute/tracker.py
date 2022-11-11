@@ -1,47 +1,56 @@
 import numpy as np
 import time
+from .cmtf import calcR2X
 
 class tracker():
     """
     Creates an array, tracks next unfilled entry & runtime, holds tracked name for plotting
     """
 
-    def __init__(self, entry_type='R2X', track_runtime=False):
+    def __init__(self, tOrig, entry_type='R2X', track_runtime=False):
+        """ self.data should be the original tensor (e.g. prior to running imputation) """
+        self.data = tOrig
         self.metric = entry_type
         self.track_runtime = track_runtime
+        self.array = np.full((1, 0), 0)
+        if self.track_runtime:
+            self.time_array = np.full((1, 0), 0)
 
     def __call__(self, tFac):
-        self.array = np.append(self.array, 1 - tFac.R2X)
+        """ Takes a CP tensor object """
+        self.array = np.append(self.array, calcR2X(np.copy(tFac), self.data))
         if self.track_runtime:
+            assert self.start
             self.time_array = np.append(self.time_array, time.time() - self.start)
 
     def begin(self):
-        """ Must run to track runtime """
+        """ Must call to track runtime """
         self.start = time.time()
-
-    def first_entry(self, tFac):
-        self.array = np.full((1, 1), 1 - tFac.R2X)
+    
+    def reset(self):
+        self.array = np.full((1, 0), 0)
         if self.track_runtime:
-            self.time_array = np.full((1, 1), time.time() - self.start)
+            self.time_array = np.full((1, 0), 0)
 
-    def update(self, tFac):
-        """ synonymous to class call """
-        self.array = np.append(self.array, 1 - tFac.R2X)
-        if self.track_runtime:
-            self.time_array = np.append(self.time_array, time.time() - self.start)
+    
+    """ Plots are designed to track the R2X of the method for the highest rank imputation of tOrig """
 
-    def plot_iteration(self, ax):
-        ax.plot(range(1, self.array.size + 1), self.array)
+    def plot_iteration(self, ax, methodname):
+        ax.plot(range(1, self.array.size + 1), self.array, label=methodname)
+        ax.legend(loc='upper right')
         ax.set_ylim((0.0, 1.0))
-        ax.set_xlim((0, self.array.size))
+        ax.set_xlim((1, self.array.size))
         ax.set_xlabel('Iteration')
         ax.set_ylabel(self.metric)
+        ax.legend(loc=4)
 
-    def plot_runtime(self, ax):
+    def plot_runtime(self, ax, methodname):
         assert self.track_runtime
         self.time_array
-        ax.plot(self.time_array, self.array)
+        ax.plot(self.time_array, self.array, label=methodname)
+        ax.legend(loc='upper right')
         ax.set_ylim((0.0, 1.0))
         ax.set_xlim((0, np.max(self.time_array) * 1.2))
         ax.set_xlabel('Runtime')
         ax.set_ylabel(self.metric)
+        ax.legend(loc=4)

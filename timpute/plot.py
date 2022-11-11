@@ -7,7 +7,6 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.ticker import ScalarFormatter
 from .decomposition import Decomposition
-from tensorpack import perform_CP
 import time
 import copy
 
@@ -86,7 +85,7 @@ def q2xchord(ax, decomp):
     ax.set_ylim(bottom=0.0, top=1.0)
 
 
-def q2xentry(ax, decomp, methodname = "CP"):
+def q2xentry(ax, decomp, methodname = "CP", comparePCA = False):
     """
     Plots Q2X for tensor factorization versus PCA when removing entries for all components up to decomp.max_rr.
     Requires multiple runs to generate error bars.
@@ -101,24 +100,26 @@ def q2xentry(ax, decomp, methodname = "CP"):
         Allows for proper tensor method when naming graph axes. 
     """
     entry_df = pd.DataFrame(decomp.entryQ2X).T
-    entrypca_df = pd.DataFrame(decomp.entryQ2XPCA).T
     comps = decomp.rrs
 
     entry_df.index = comps
     entry_df['mean'] = entry_df.mean(axis=1)
     entry_df['sem'] = entry_df.sem(axis=1)
-    entrypca_df.index = comps
-    entrypca_df['mean'] = entrypca_df.mean(axis=1)
-    entrypca_df['sem'] = entrypca_df.sem(axis=1)
-
     TR2X = entry_df['mean']
     TErr = entry_df['sem']
-    PCAR2X = entrypca_df['mean']
-    PCAErr = entrypca_df['sem']
     ax.plot(comps - 0.05, TR2X, ".", label=methodname)
-    ax.plot(comps + 0.05, PCAR2X, ".", label="PCA")
     ax.errorbar(comps - 0.05, TR2X, yerr=TErr, fmt='none', ecolor='b')
-    ax.errorbar(comps + 0.05, PCAR2X, yerr=PCAErr, fmt='none', ecolor='darkorange')
+
+    if comparePCA:
+        entrypca_df = pd.DataFrame(decomp.entryQ2XPCA).T
+        entrypca_df.index = comps
+        entrypca_df['mean'] = entrypca_df.mean(axis=1)
+        entrypca_df['sem'] = entrypca_df.sem(axis=1)
+        PCAR2X = entrypca_df['mean']
+        PCAErr = entrypca_df['sem']
+        ax.plot(comps + 0.05, PCAR2X, ".", label="PCA")
+        ax.errorbar(comps + 0.05, PCAR2X, yerr=PCAErr, fmt='none', ecolor='darkorange')
+
     ax.set_ylabel("Q2X of Entry Imputation")
     ax.set_xlabel("Number of Components")
     ax.set_xticks([x for x in comps])
