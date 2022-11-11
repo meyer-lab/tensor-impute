@@ -9,7 +9,7 @@ class tracker():
     Creates an array, tracks next unfilled entry & runtime, holds tracked name for plotting
     """
         
-    def __init__(self, tOrig, tOrig, mask=None, entry_type='R2X', track_runtime=False):
+    def __init__(self, tOrig, mask=None, entry_type='R2X', track_runtime=False):
         """ self.data should be the original tensor (e.g. prior to running imputation) """
         self.data = tOrig
         """ self.data should be the original tensor (e.g. prior to running imputation) """
