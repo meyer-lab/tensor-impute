@@ -1,13 +1,13 @@
 import numpy as np
 import time
-from .cmtf import calcR2X, calcError
+from .cmtf import calcError
 
 class tracker():
     """
     Creates an fitted_array, tracks next unfilled entry & runtime, holds tracked name for plotting
     """
         
-    def __init__(self, tOrig, mask=None, entry_type='R2X', track_runtime=False):
+    def __init__(self, tOrig, mask=None, entry_type='Error', track_runtime=False):
         """ self.data should be the original tensor (e.g. prior to running imputation) """
 
         self.data = tOrig
