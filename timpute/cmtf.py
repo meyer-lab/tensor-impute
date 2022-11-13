@@ -22,7 +22,7 @@ def buildMat(tFac):
     return tFac.factors[0] @ tFac.mFactor.T
 
 
-def calcR2X(tFac, tIn=None, mIn=None):
+def calcError(tFac, tIn=None, mIn=None):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
     assert (tIn is not None) or (mIn is not None)
 
@@ -42,6 +42,8 @@ def calcR2X(tFac, tIn=None, mIn=None):
 
     return vTop / vBottom
 
+def calcR2X(tFac, tIn=None, mIn=None):
+    return 1 - calcError(tFac, tIn, mIn)
 
 def tensor_degFreedom(tFac) -> int:
     """ Calculate the degrees of freedom within a tensor factorization. """
@@ -213,7 +215,9 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
         tFac.R2X = calcR2X(tFac, tOrig)
         tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
         assert tFac.R2X > 0.0
-        if callback: callback(tFac)
+        if callback:
+            print("cmtf callback called")
+            callback(tFac)
 
         if tFac.R2X - R2X_last < tol:
             break
