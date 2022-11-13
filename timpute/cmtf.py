@@ -216,7 +216,6 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
         tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
         assert tFac.R2X > 0.0
         if callback:
-            print("cmtf callback called")
             callback(tFac)
 
         if tFac.R2X - R2X_last < tol:

@@ -1,28 +1,24 @@
 import numpy as np
-from timpute.cmtf import calcR2X
 import time
-from .cmtf import calcR2X
-from .cmtf import calcR2X
+from .cmtf import calcR2X, calcError
 
 class tracker():
     """
-    Creates an array, tracks next unfilled entry & runtime, holds tracked name for plotting
+    Creates an fitted_array, tracks next unfilled entry & runtime, holds tracked name for plotting
     """
         
     def __init__(self, tOrig, mask=None, entry_type='R2X', track_runtime=False):
-        """ self.data should be the original tensor (e.g. prior to running imputation) """
-        self.data = tOrig
         """ self.data should be the original tensor (e.g. prior to running imputation) """
 
         self.data = tOrig
         self.mask = mask
         self.metric = entry_type
         self.track_runtime = track_runtime
-        self.array = np.full((1, 0), 0)
+        self.fitted_array = np.full((1, 0), 0)
         if self.track_runtime:
             self.time_array = np.full((1, 0), 0)
 
-        self.array = np.full((1, 0), 0)
+        self.fitted_array = np.full((1, 0), 0)
         self.impute_array = np.full((1, 0), 0)
         if self.track_runtime:
             self.time_array = np.full((1, 0), 0)
@@ -33,10 +29,10 @@ class tracker():
             if self.mask is not None: # Assure error is calcualted with non-removed values 
                 mask_data = np.copy(self.data)
                 mask_data[~self.mask] = np.nan
-                error = calcR2X(tFac, mask_data)
+                error = calcError(tFac, mask_data)
             else:
-                error = calcR2X(tFac, self.data)
-        self.array = np.append(self.array, error)
+                error = calcError(tFac, self.data)
+        self.fitted_array = np.append(self.fitted_array, error)
         self.impute_array = np.append(self.impute_array, self.calc_impute_error(tFac))
         if self.track_runtime:
             assert self.start
@@ -47,7 +43,7 @@ class tracker():
             assert self.mask.all() == False, "Mask indicates no removed enteries"
             tensorImp = np.copy(self.data)
             tensorImp[self.mask] = np.nan
-            return calcR2X(tFac, tensorImp)
+            return calcError(tFac, tensorImp)
         else:
             return np.nan
 
@@ -56,17 +52,17 @@ class tracker():
         self.start = time.time()
     
     def reset(self):
-        self.array = np.full((1, 0), 0)
+        self.fitted_array = np.full((1, 0), 0)
         if self.track_runtime:
             self.time_array = np.full((1, 0), 0)
 
     """ Plots are designed to track the R2X of the method for the highest rank imputation of tOrig """
     def plot_iteration(self, ax):
-        ax.plot(range(1, self.array.size + 1), self.array, label='Fitted Error')
+        ax.plot(range(1, self.fitted_array.size + 1), self.fitted_array, label='Fitted Error')
         ax.plot(range(1, self.impute_array.size + 1), self.impute_array, label='Imputation Error')
         ax.legend(loc='upper right')
         ax.set_ylim((0.0, 1.0))
-        ax.set_xlim((1, self.array.size))
+        ax.set_xlim((1, self.fitted_array.size))
         ax.set_xlabel('Iteration')
         ax.set_ylabel(self.metric)
         ax.legend(loc=4)
@@ -74,7 +70,7 @@ class tracker():
     def plot_runtime(self, ax):
         assert self.track_runtime
         self.time_array
-        ax.plot(self.time_array, self.array, label='Fitted Error')
+        ax.plot(self.time_array, self.fitted_array, label='Fitted Error')
         ax.plot(self.time_array, self.impute_array, label='Imputation Error')
         ax.legend(loc='upper right')
         ax.set_ylim((0.0, 1.0))
