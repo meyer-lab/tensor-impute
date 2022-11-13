@@ -141,7 +141,6 @@ class Decomposition():
             # Calculate Q2X for each number of components
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
-                print(rr)
                 if callback and rr == max(self.rrs):
                     tFac = self.method(missingCube, r=rr, maxiter = maxiter, callback=callback)
                 else:

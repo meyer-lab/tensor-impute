@@ -107,8 +107,6 @@ def perform_CP_DO(tensorOrig=None, r=6, maxiter=50, callback=None):
 
     rgs = (tensorIn, tmask, r)
     res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter":maxiter}, callback=temp_callback)
-    if callback:
-        print(temp_callback.callback.array) # test
     tensorFac = CPTensor((None, buildTensors(res.x, r, tensorIn.shape)))
     tensorFac = cp_normalize(tensorFac)
 
