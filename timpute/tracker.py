@@ -26,7 +26,7 @@ class tracker():
     def __call__(self, tFac, error=None):
         """ Takes a CP tensor object """
         if error is None:
-            if self.mask is not None: # Assure error is calcualted with non-removed values 
+            if self.mask is not None: # Assure error is calculated with non-removed values 
                 mask_data = np.copy(self.data)
                 mask_data[~self.mask] = np.nan
                 error = calcError(tFac, mask_data)
@@ -40,7 +40,7 @@ class tracker():
 
     def calc_impute_error(self, tFac):
         if self.mask is not None:
-            assert self.mask.all() == False, "Mask indicates no removed enteries"
+            assert self.mask.all() == False, "Mask indicates no removed entries"
             tensorImp = np.copy(self.data)
             tensorImp[self.mask] = np.nan
             return calcError(tFac, tensorImp)
