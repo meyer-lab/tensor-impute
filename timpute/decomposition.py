@@ -104,7 +104,7 @@ class Decomposition():
 
         self.chordQ2X = Q2X
 
-    def Q2X_entry(self, drop=20, repeat=3, comparePCA=True, callback=None):
+    def Q2X_entry(self, drop=20, repeat=3, maxiter = 50, comparePCA=True, callback=None):
         """
         Calculates Q2X when dropping entries from the data using self.method for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -141,10 +141,11 @@ class Decomposition():
             # Calculate Q2X for each number of components
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
+                print(rr)
                 if callback and rr == max(self.rrs):
-                    tFac = self.method(missingCube, r=rr, callback=callback)
+                    tFac = self.method(missingCube, r=rr, maxiter = maxiter, callback=callback)
                 else:
-                    tFac = self.method(missingCube, r=rr)
+                    tFac = self.method(missingCube, r=rr, maxiter = maxiter)
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
 
             
