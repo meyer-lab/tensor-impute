@@ -62,11 +62,32 @@ def cost(pIn, tensor, tmask, r):
     cost += 1e-9 * jnp.linalg.norm(pIn)
     return cost
 
+class do_callback():
+    def __init__(self, callback, r, shape):
+        self.callback = callback
+        self.r = r
+        self.shape = shape
+        if self.callback.track_runtime:
+            self.callback.begin()
 
-def perform_CP_DO(tensorOrig=None, r=6, callback=None):
+    def __call__(self, x):
+        tensorFac = CPTensor((None, buildTensors(x, self.r, self.shape)))
+        tensorFac = cp_normalize(tensorFac)
+        tensorFac.factors = reorient_factors(tensorFac.factors)
+        for ii in range(3):
+            tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
+        self.callback(tensorFac)
+
+
+def perform_CP_DO(tensorOrig=None, r=6, maxiter=50, callback=None):
     """ Perform CP decomposition. """
     if tensorOrig is None:
         tensorOrig = createCube()
+    if callback:
+        temp_callback = do_callback(callback, r, tensorOrig.shape)
+        temp_callback
+    else:
+        temp_callback = None
 
     tensorIn = tensorOrig.copy()
     tmask = np.isnan(tensorIn)
@@ -85,7 +106,9 @@ def perform_CP_DO(tensorOrig=None, r=6, callback=None):
     x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
 
     rgs = (tensorIn, tmask, r)
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter": 50000}, callback=callback)
+    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter":maxiter}, callback=temp_callback)
+    if callback:
+        print(temp_callback.callback.array) # test
     tensorFac = CPTensor((None, buildTensors(res.x, r, tensorIn.shape)))
     tensorFac = cp_normalize(tensorFac)
 
