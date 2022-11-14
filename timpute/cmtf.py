@@ -22,7 +22,7 @@ def buildMat(tFac):
     return tFac.factors[0] @ tFac.mFactor.T
 
 
-def calcError(tFac, tIn=None, mIn=None):
+def calcR2X(tFac, tIn=None, mIn=None, calcError=False):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
     assert (tIn is not None) or (mIn is not None)
 
@@ -40,10 +40,8 @@ def calcError(tFac, tIn=None, mIn=None):
         vTop += np.linalg.norm(recon * mMask - mIn)**2.0
         vBottom += np.linalg.norm(mIn)**2.0
 
-    return vTop / vBottom
-
-def calcR2X(tFac, tIn=None, mIn=None):
-    return 1 - calcError(tFac, tIn, mIn)
+    if calcError: return vTop / vBottom
+    else: return 1 - vTop / vBottom
 
 def tensor_degFreedom(tFac) -> int:
     """ Calculate the degrees of freedom within a tensor factorization. """

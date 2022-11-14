@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from .cmtf import calcError
+from .cmtf import calcR2X
 
 class tracker():
     """
@@ -29,9 +29,9 @@ class tracker():
             if self.mask is not None: # Assure error is calculated with non-removed values 
                 mask_data = np.copy(self.data)
                 mask_data[~self.mask] = np.nan
-                error = calcError(tFac, mask_data)
+                error = calcR2X(tFac, mask_data, calcError=True)
             else:
-                error = calcError(tFac, self.data)
+                error = calcR2X(tFac, self.data, calcError=True)
         self.fitted_array = np.append(self.fitted_array, error)
         self.impute_array = np.append(self.impute_array, self.calc_impute_error(tFac))
         if self.track_runtime:
@@ -43,7 +43,7 @@ class tracker():
             assert self.mask.all() == False, "Mask indicates no removed entries"
             tensorImp = np.copy(self.data)
             tensorImp[self.mask] = np.nan
-            return calcError(tFac, tensorImp)
+            return calcR2X(tFac, tensorImp, calcError=True)
         else:
             return np.nan
 
@@ -56,7 +56,7 @@ class tracker():
         if self.track_runtime:
             self.time_array = np.full((1, 0), 0)
 
-    """ Plots are designed to track the R2X of the method for the highest rank imputation of tOrig """
+    """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
     def plot_iteration(self, ax):
         ax.plot(range(1, self.fitted_array.size + 1), self.fitted_array, label='Fitted Error')
         ax.plot(range(1, self.impute_array.size + 1), self.impute_array, label='Imputation Error')
