@@ -4,6 +4,7 @@ Coupled Matrix Tensor Factorization
 
 import numpy as np
 from tensorly import partial_svd
+from tensorly.tenalg import svd_interface
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
 from copy import deepcopy
@@ -183,7 +184,8 @@ def initialize_cp(tensor: np.ndarray, rank: int):
                 si = IterativeSVD(rank)
                 unfold = si.fit_transform(unfold)
 
-            factors[mode] = partial_svd(unfold, rank, flip=True)[0]
+            #factors[mode] = partial_svd(unfold, rank, flip=True)[0]
+            factors[mode] = svd_interface(unfold, method="truncated_svd", n_eigenvecs=rank, flip_sign=True)[0] 
 
     return tl.cp_tensor.CPTensor((None, factors))
 
@@ -216,15 +218,17 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
         
         R2X_last = tFac.R2X
         
-        if callback: # First entry after initialization
-            callback(tFac, tFac.R2X)
 
         tFac.R2X = calcR2X(tFac, tOrig)
         tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
+
+        if callback:
+            callback(tFac, tFac.R2X)
+            
         assert tFac.R2X > 0.0
         
 
-        if tFac.R2X - R2X_last < tol:
+        if R2X_last - tFac.R2X < tol:
             break
 
     tFac = cp_normalize(tFac)
