@@ -38,15 +38,6 @@ class tracker():
             assert self.start
             self.time_array = np.append(self.time_array, time.time() - self.start)
 
-    def calc_impute_error(self, tFac):
-        if self.mask is not None:
-            assert self.mask.all() == False, "Mask indicates no removed entries"
-            tensorImp = np.copy(self.data)
-            tensorImp[self.mask] = np.nan
-            return calcR2X(tFac, tensorImp, calcError=True)
-        else:
-            return np.nan
-
     def begin(self):
         """ Must call to track runtime """
         self.start = time.time()
@@ -55,6 +46,18 @@ class tracker():
         self.fitted_array = np.full((1, 0), 0)
         if self.track_runtime:
             self.time_array = np.full((1, 0), 0)
+
+    def set_mask(self, mask):
+        self.mask = mask    
+    
+    def calc_impute_error(self, tFac):
+        if self.mask is not None:
+            assert self.mask.all() == False, "Mask indicates no removed entries"
+            tensorImp = np.copy(self.data)
+            tensorImp[self.mask] = np.nan
+            return calcR2X(tFac, tensorImp, calcError=True)
+        else:
+            return np.nan
 
     """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
     def plot_iteration(self, ax):
