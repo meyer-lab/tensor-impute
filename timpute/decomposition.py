@@ -4,7 +4,7 @@ import numpy as np
 from .cmtf import perform_CP, calcR2X
 from tensorly import partial_svd
 from .SVD_impute import IterativeSVD
-from .impute import entry_drop, chord_drop
+from .impute_helper import entry_drop, chord_drop
 
 class Decomposition():
     def __init__(self, data, max_rr=5, method=perform_CP):
@@ -104,7 +104,7 @@ class Decomposition():
 
         self.chordQ2X = Q2X
 
-    def Q2X_entry(self, drop=20, repeat=3, comparePCA=True, callback=None):
+    def Q2X_entry(self, drop=20, repeat=3, maxiter = 50, comparePCA=True, callback=None):
         """
         Calculates Q2X when dropping entries from the data using self.method for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -136,15 +136,16 @@ class Decomposition():
         for x in range(repeat):
             missingCube = np.copy(self.data)
             tImp = np.copy(self.data)
-            entry_drop(missingCube, drop)
+            mask = entry_drop(missingCube, drop)
+            if callback: callback.set_mask(mask)
 
             # Calculate Q2X for each number of components
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
                 if callback and rr == max(self.rrs):
-                    tFac = self.method(missingCube, r=rr, callback=callback)
+                    tFac = self.method(missingCube, r=rr, maxiter = maxiter, callback=callback)
                 else:
-                    tFac = self.method(missingCube, r=rr)
+                    tFac = self.method(missingCube, r=rr, maxiter = maxiter)
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
 
             
