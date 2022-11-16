@@ -103,7 +103,8 @@ def perform_CP_DO(tensorOrig=None, r=6, maxiter=50, callback=None):
         return np.array(cost_grad(*args))
 
     CPinit = parafac(tensorIn.copy(), r, mask=tmask, n_iter_max=50, orthogonalise=10)
-    x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
+    # x0 = np.concatenate((np.ravel(CPinit.factors[0]), np.ravel(CPinit.factors[1]), np.ravel(CPinit.factors[2])))
+    x0 = np.concatenate(tuple([np.ravel(CPinit.factors[ii]) for ii in range(np.ndim(tensorIn))]))
 
     rgs = (tensorIn, tmask, r)
     res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter":maxiter}, callback=temp_callback)
@@ -113,7 +114,7 @@ def perform_CP_DO(tensorOrig=None, r=6, maxiter=50, callback=None):
     # Reorient the later tensor factors
     tensorFac.factors = reorient_factors(tensorFac.factors)
 
-    for ii in range(3):
+    for ii in range(np.ndim(tensorIn)):
         tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
 
     return tensorFac
