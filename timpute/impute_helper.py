@@ -53,14 +53,14 @@ def entry_drop(tensor, drop, seed=None):
     assert idxs.shape[0] >= drop
 
     # Drop values
-    drop_pattern = np.ones_like(tensor) # capture missingness pattern
+    data_pattern = np.ones_like(tensor) # capture missingness pattern
     dropidxs = idxs[np.random.choice(idxs.shape[0], drop, replace=False)]
     dropidxs = [tuple(dropidxs[i]) for i in range(drop)]
     for i in dropidxs:
         tensor[i] = np.nan
-        drop_pattern[i] = 0
+        data_pattern[i] = 0
     
-    return drop_pattern
+    return np.array(data_pattern, dtype=bool)
 
 
 # DO NOT USE
@@ -174,6 +174,8 @@ def chord_drop(tensor, drop, seed=None):
         np.random.seed(seed)
 
     # Drop chords based on random idxs
+    data_pattern = np.ones_like(tensor) # capture missingness pattern
+
     chordlen = tensor.shape[0]
     for _ in range(drop):
         idxs = np.argwhere(np.isfinite(tensor))
@@ -182,7 +184,12 @@ def chord_drop(tensor, drop, seed=None):
         for i in range(chordlen):
             dropidxs.append(tuple(np.insert(chordidx, 0, i).T))
         for i in range(chordlen):
-            tensor[dropidxs[i]] = np.nan
+            if tensor[dropidxs[i]] != np.nan:
+                tensor[dropidxs[i]] == np.nan
+                data_pattern[dropidxs[i]] = 0    
+
+    return np.array(data_pattern, dtype=bool)
+            
 
 
 def createCube(missing=0.0, size=(10, 20, 25)):
