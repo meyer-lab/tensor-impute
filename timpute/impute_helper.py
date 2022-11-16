@@ -53,11 +53,17 @@ def entry_drop(tensor, drop, seed=None):
     assert idxs.shape[0] >= drop
 
     # Drop values
+    drop_pattern = np.ones_like(tensor) # capture missingness pattern
     dropidxs = idxs[np.random.choice(idxs.shape[0], drop, replace=False)]
     dropidxs = [tuple(dropidxs[i]) for i in range(drop)]
-    for i in dropidxs: tensor[i] = np.nan
+    for i in dropidxs:
+        tensor[i] = np.nan
+        drop_pattern[i] = 0
+    
+    return drop_pattern
 
 
+# DO NOT USE
 def joint_entry_drop(big_tensor, small_tensor, drop, seed=None):
 
     if seed != None:

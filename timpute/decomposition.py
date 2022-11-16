@@ -136,7 +136,8 @@ class Decomposition():
         for x in range(repeat):
             missingCube = np.copy(self.data)
             tImp = np.copy(self.data)
-            entry_drop(missingCube, drop)
+            mask = entry_drop(missingCube, drop)
+            if callback: callback.set_mask(mask)
 
             # Calculate Q2X for each number of components
             tImp[np.isfinite(missingCube)] = np.nan
