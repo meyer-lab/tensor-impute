@@ -68,7 +68,6 @@ class tracker():
         ax.set_xlim((1, self.fitted_array.size))
         ax.set_xlabel('Iteration')
         ax.set_ylabel(self.metric)
-        ax.legend(loc=4)
 
     def plot_runtime(self, ax, methodname='Method'):
         assert self.track_runtime
@@ -80,4 +79,3 @@ class tracker():
         ax.set_xlim((0, np.max(self.time_array) * 1.2))
         ax.set_xlabel('Runtime')
         ax.set_ylabel(self.metric)
-        ax.legend(loc=4)
