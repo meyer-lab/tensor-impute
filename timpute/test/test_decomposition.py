@@ -11,6 +11,12 @@ from ..cmtf import perform_CP, calcR2X
 from tensordata.atyeo import data as atyeo
 from ..SVD_impute import IterativeSVD
 
+def createCube(missing=0.0, size=(10, 20, 25)):
+    s = np.random.gamma(2, 2, np.prod(size))
+    tensor = s.reshape(*size)
+    if missing > 0.0:
+        tensor[np.random.rand(*size) < missing] = np.nan
+    return tensor
 
 def test_impute_missing_mat():
     errs = []
