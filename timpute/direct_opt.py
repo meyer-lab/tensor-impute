@@ -74,7 +74,7 @@ class do_callback():
         tensorFac = CPTensor((None, buildTensors(x, self.r, self.shape)))
         tensorFac = cp_normalize(tensorFac)
         tensorFac.factors = reorient_factors(tensorFac.factors)
-        for ii in range(3):
+        for ii in range(len(self.shape)):
             tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
         self.callback(tensorFac)
 
