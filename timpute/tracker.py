@@ -60,24 +60,22 @@ class tracker():
             return np.nan
 
     """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
-    def plot_iteration(self, ax):
-        ax.plot(range(1, self.fitted_array.size + 1), self.fitted_array, label='Fitted Error')
-        ax.plot(range(1, self.impute_array.size + 1), self.impute_array, label='Imputation Error')
+    def plot_iteration(self, ax, methodname='Method'):
+        ax.plot(range(1, self.fitted_array.size + 1), self.fitted_array, label=methodname+' Fitted Error')
+        ax.plot(range(1, self.impute_array.size + 1), self.impute_array, label=methodname+' Imputation Error')
         ax.legend(loc='upper right')
         ax.set_ylim((0.0, 1.0))
         ax.set_xlim((1, self.fitted_array.size))
         ax.set_xlabel('Iteration')
         ax.set_ylabel(self.metric)
-        ax.legend(loc=4)
 
-    def plot_runtime(self, ax):
+    def plot_runtime(self, ax, methodname='Method'):
         assert self.track_runtime
         self.time_array
-        ax.plot(self.time_array, self.fitted_array, label='Fitted Error')
-        ax.plot(self.time_array, self.impute_array, label='Imputation Error')
+        ax.plot(self.time_array, self.fitted_array, label=methodname+' Fitted Error')
+        ax.plot(self.time_array, self.impute_array, label=methodname+' Imputation Error')
         ax.legend(loc='upper right')
         ax.set_ylim((0.0, 1.0))
         ax.set_xlim((0, np.max(self.time_array) * 1.2))
         ax.set_xlabel('Runtime')
         ax.set_ylabel(self.metric)
-        ax.legend(loc=4)
