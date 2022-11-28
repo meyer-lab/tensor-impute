@@ -40,15 +40,15 @@ def test_delete():
     """ Test deleting a component results in a valid tensor. """
     tOrig = createCube(missing=0.2, size=(10, 20, 25))
     mOrig = createCube(missing=0.05, size=(10, 15))
-    facT = perform_CMTF(tOrig, mOrig, r=4)
+    facT = perform_CP(tOrig, r=4)
 
-    fullR2X = calcR2X(facT, tOrig, mOrig)
+    fullR2X = calcR2X(facT, tOrig)
 
     for ii in range(facT.rank):
         facTdel = delete_component(facT, ii)
         _validate_cp_tensor(facTdel)
 
-        delR2X = calcR2X(facTdel, tOrig, mOrig)
+        delR2X = calcR2X(facTdel, tOrig)
 
         assert delR2X < fullR2X
 
