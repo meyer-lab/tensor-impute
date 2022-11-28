@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import pickle
 from .cmtf import calcR2X
 
 class tracker():
@@ -79,3 +80,12 @@ class tracker():
         ax.set_xlim((0, np.max(self.time_array) * 1.2))
         ax.set_xlabel('Runtime')
         ax.set_ylabel(self.metric)
+    
+    def save(self, pfile):
+        with open(pfile, "wb") as output_file:
+            pickle.dump(self.__dict__, output_file)
+
+    def load(self, pfile):
+        with open(pfile, "rb") as input_file:
+            tmp_dict = pickle.load(input_file)
+            self.__dict__.update(tmp_dict)
