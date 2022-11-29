@@ -184,6 +184,14 @@ def initialize_cp(tensor: np.ndarray, rank: int):
                 unfold = si.fit_transform(unfold)
 
             factors[mode] = svd_interface(matrix=unfold, n_eigenvecs=rank, flip=True)[0]
+        else: # tensor.shape[mode] < rank
+            unfold = tl.unfold(tensor, mode)
+            if contain_missing:
+                si = IterativeSVD(tensor.shape[mode])
+                unfold = si.fit_transform(unfold) # unfold (tensor.shape[mode] x ...)
+
+            svd_factor = svd_interface(matrix=unfold, n_eigenvecs=rank, flip=True)[0]
+            factors[mode][:,0:tensor.shape[mode]] = svd_factor
 
     return tl.cp_tensor.CPTensor((None, factors))
 
