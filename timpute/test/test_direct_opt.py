@@ -1,6 +1,7 @@
 from ..direct_opt import *
 
 def test_khatri_rao():
+    np.random.seed(5)
     a = np.random.rand(8, 4)
     b = np.random.rand(7, 4)
     factors_1 = [a,b]
@@ -16,9 +17,8 @@ def test_khatri_rao():
     assert (test_2.shape == (6*5*4,4))
     assert (test_2[6*5*4-1,3] == c[5,3]*d[4,3]*e[3,3])
 
-
-
 def test_factors_to_tensor():
+    np.random.seed(5)
     a = np.random.rand(8, 4)
     b = np.random.rand(7, 4)
     c = np.random.rand(6, 4)
