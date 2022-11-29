@@ -185,7 +185,7 @@ def chord_drop(tensor, drop, seed=None):
             dropidxs.append(tuple(np.insert(chordidx, 0, i).T))
         for i in range(chordlen):
             if tensor[dropidxs[i]] != np.nan:
-                tensor[dropidxs[i]] == np.nan
+                tensor[dropidxs[i]] = np.nan
                 data_pattern[dropidxs[i]] = 0    
 
     return np.array(data_pattern, dtype=bool)
