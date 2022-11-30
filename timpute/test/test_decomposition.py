@@ -31,7 +31,7 @@ def test_impute_missing_mat():
 
 
 def test_decomp_obj():
-    a = Decomposition(atyeo().tensor)
+    a = Decomposition(atyeo().to_numpy())
     a.perform_tfac()
     a.perform_PCA()
     assert len(a.PCAR2X) == len(a.sizePCA)
