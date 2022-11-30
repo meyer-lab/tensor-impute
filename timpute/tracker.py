@@ -71,6 +71,11 @@ class tracker():
                     self.impute_error[j] = np.append(self.impute_error[j], np.full((current-max), np.nan))
                     if self.track_runtime: self.timer[j] = np.append(self.timer[j], np.full((current-max), np.nan))
                 max = current
+            else:
+                self.fitted_error[i] = np.append(self.fitted_error[i], np.full((max-current), np.nan))
+                self.impute_error[i] = np.append(self.impute_error[i], np.full((max-current), np.nan))
+                if self.track_runtime: self.timer[i] = np.append(self.timer[i], np.full((max-current), np.nan))
+                
         
         self.fitted_array = np.vstack(tuple(self.fitted_error)) 
         self.impute_array = np.vstack(tuple(self.impute_error))    
@@ -102,7 +107,7 @@ class tracker():
         ax.plot(self.time_array[rep-1], self.impute_array[rep-1], label=methodname+' Imputation Error')
         ax.legend(loc='upper right')
         ax.set_ylim((0.0, 1.0))
-        ax.set_xlim((0, np.max(self.time_array) * 1.2))
+        ax.set_xlim((0, np.nanmax(self.time_array) * 1.2))
         ax.set_xlabel('Runtime')
         ax.set_ylabel('Error')
     
