@@ -101,13 +101,19 @@ class tracker():
         ax.set_xlabel('Iteration')
         ax.set_ylabel('Error')
 
-    def plot_runtime(self, ax, methodname='Method', rep = 1):
+    def plot_runtime(self, ax, methodname='Method', rep = None):
         assert self.track_runtime
-        ax.plot(self.time_array[rep-1], self.fitted_array[rep-1], label=methodname+' Fitted Error')
-        ax.plot(self.time_array[rep-1], self.impute_array[rep-1], label=methodname+' Imputation Error')
+        if rep == None:
+            for i in range(self.rep+1):
+                ax.plot(self.time_array[i], self.fitted_array[i], label=methodname+' Fitted Error '+str(i+1))
+                ax.plot(self.time_array[i], self.impute_array[i], label=methodname+' Imputation Error '+str(i+1))
+            ax.set_xlim((0, np.nanmax(self.time_array) * 1.2))
+        else:
+            ax.plot(self.time_array[rep-1], self.fitted_array[rep-1], label=methodname+' Fitted Error'+str(rep))
+            ax.plot(self.time_array[rep-1], self.impute_array[rep-1], label=methodname+' Imputation Error'+str(rep))
+            ax.set_xlim((0, np.nanmax(self.time_array[rep-1]) * 1.2))
         ax.legend(loc='upper right')
         ax.set_ylim((0.0, 1.0))
-        ax.set_xlim((0, np.nanmax(self.time_array) * 1.2))
         ax.set_xlabel('Runtime')
         ax.set_ylabel('Error')
     
