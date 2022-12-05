@@ -143,7 +143,7 @@ class Decomposition():
             # Calculate Q2X for each number of components
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
-                if callback and rr == max(self.rrs) and x == repeat-1:
+                if callback and rr == max(self.rrs):
                     tFac = self.method(missingCube, r=rr, maxiter=maxiter, callback=callback)
                 else:
                     tFac = self.method(missingCube, r=rr, maxiter=maxiter)
@@ -163,6 +163,8 @@ class Decomposition():
                 recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
                 Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
                 self.entryQ2XPCA = Q2XPCA
+            
+            if (x+1 < repeat): callback.new()
     
         self.entryQ2X = Q2X
     
