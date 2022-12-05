@@ -7,8 +7,7 @@ from jax import jit, grad
 from jax.config import config
 from scipy.optimize import minimize
 import tensorly as tl
-from tensorly.decomposition import parafac
-from initialize_fac import initialize_fac
+from .initialize_fac import initialize_fac
 from tensorly.cp_tensor import CPTensor, cp_normalize
 from .impute_helper import createCube
 
