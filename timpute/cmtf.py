@@ -1,15 +1,14 @@
 """
-Coupled Matrix Tensor Factorization
+Censored Least Squares
 """
 
 import numpy as np
 from tensorly import svd_interface
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
+from initialize_fac import initialize_fac
 from copy import deepcopy
-from tensorly.decomposition._cp import initialize_cp
 from tqdm import tqdm
-from .SVD_impute import IterativeSVD
 
 
 tl.set_backend('numpy')
@@ -158,41 +157,11 @@ def cp_normalize(tFac):
 
     return tFac
 
-
-
-
-def initialize_cp(tensor: np.ndarray, rank: int):
-    """Initialize factors used in `parafac`.
-    Parameters
-    ----------
-    tensor : ndarray
-    rank : int
-    Returns
-    -------
-    factors : CPTensor
-        An initial cp tensor.
-    """
-    factors = [np.ones((tensor.shape[i], rank)) for i in range(tensor.ndim)]
-    contain_missing = (np.sum(~np.isfinite(tensor)) > 0)
-
-    # SVD init mode whose size is larger than rank
-    for mode in range(tensor.ndim):
-        if tensor.shape[mode] >= rank:
-            unfold = tl.unfold(tensor, mode)
-            if contain_missing:
-                si = IterativeSVD(rank)
-                unfold = si.fit_transform(unfold)
-
-            factors[mode] = svd_interface(matrix=unfold, n_eigenvecs=rank, flip=True)[0]
-
-    return tl.cp_tensor.CPTensor((None, factors))
-
-
 def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
     """ Perform CP decomposition. """
 
     if callback: callback.begin()
-    tFac = initialize_cp(tOrig, r)
+    tFac = initialize_fac(tOrig.copy(), r)
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
@@ -215,7 +184,7 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
         tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
         assert tFac.R2X > 0.0
         if callback: callback(tFac)
-        
+
         if tFac.R2X - R2X_last < tol:
             break
 
