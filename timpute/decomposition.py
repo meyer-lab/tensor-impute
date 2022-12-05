@@ -166,7 +166,8 @@ class Decomposition():
                 Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
                 self.entryQ2XPCA = Q2XPCA
             
-            if (x+1 < repeat & callback): callback.new()
+            if callback:
+                if x+1 < repeat: print(x)
     
         self.entryQ2X = Q2X
     
