@@ -192,10 +192,12 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
     """ Perform CP decomposition. """
 
     if callback: callback.begin()
+
     tFac = initialize_cp(tOrig, r)
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
+
     R2X_last = -np.inf
     tFac.R2X = calcR2X(tFac, tOrig)
 
@@ -213,9 +215,14 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
             tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
         
         R2X_last = tFac.R2X
+        
+
         tFac.R2X = calcR2X(tFac, tOrig)
         tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
-        if callback: callback(tFac)
+        assert tFac.R2X > 0.0
+        if callback:
+            callback(tFac)
+
         if tFac.R2X - R2X_last < tol:
             break
 

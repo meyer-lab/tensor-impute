@@ -18,7 +18,7 @@ from tensorly.cp_tensor import (cp_to_tensor, CPTensor,
 # License: BSD 3 clause
 
 def initialize_cp(tensor, rank, init='svd', svd='numpy_svd', random_state=None, normalize_factors=False):
-    """Initialize factors used in `parafac`.
+    r"""Initialize factors used in `parafac`.
     The type of initialization is set using `init`. If `init == 'random'` then
     initialize factor matrices with uniform distribution using `random_state`. If `init == 'svd'` then
     initialize the `m`th factor matrix using the `rank` left singular vectors
