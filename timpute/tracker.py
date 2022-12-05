@@ -30,6 +30,7 @@ class tracker():
 
     def __call__(self, tFac, error=None):
         """ Takes a CP tensor object """
+        error = None # Issue with how error is currently calculated in tensorly
         if error is None:
             if self.mask is not None: # Assure error is calculated with non-removed values 
                 mask_data = np.copy(self.data)
