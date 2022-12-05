@@ -103,7 +103,8 @@ class Decomposition():
                     tFac = self.method(missingCube, r=rr, maxiter=maxiter)
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
 
-            if (x+1 < repeat & callback): callback.new()
+            if callback:
+                if x+1 < repeat: print(x)
             
         self.chordQ2X = Q2X
 
