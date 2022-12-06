@@ -104,7 +104,7 @@ class Decomposition():
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
 
             if callback:
-                if x+1 < repeat: print(x)
+                if x+1 < repeat: callback.new()
             
         self.chordQ2X = Q2X
 
@@ -168,7 +168,7 @@ class Decomposition():
                 self.entryQ2XPCA = Q2XPCA
             
             if callback:
-                if x+1 < repeat: print(x)
+                if x+1 < repeat: callback.new()
     
         self.entryQ2X = Q2X
     
