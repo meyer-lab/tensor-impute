@@ -79,12 +79,12 @@ class do_callback():
         self.callback(tensorFac)
 
 
-def perform_CP_DO(tensorOrig=None, r=6, maxiter=50, callback=None):
+def perform_CP_DO(tensorOrig=None, rank=6, maxiter=50, callback=None):
     """ Perform CP decomposition. """
     if tensorOrig is None:
         tensorOrig = createCube()
     if callback:
-        temp_callback = do_callback(callback, r, tensorOrig.shape)
+        temp_callback = do_callback(callback, rank, tensorOrig.shape)
         temp_callback
     else:
         temp_callback = None
@@ -102,12 +102,12 @@ def perform_CP_DO(tensorOrig=None, r=6, maxiter=50, callback=None):
     def gradd(*args):
         return np.array(cost_grad(*args))
 
-    CPinit = initialize_fac(tensorIn.copy(), r)
+    CPinit = initialize_fac(tensorIn.copy(), rank)
     x0 = np.concatenate(tuple([np.ravel(CPinit.factors[ii]) for ii in range(np.ndim(tensorIn))]))
 
-    rgs = (tensorIn, tmask, r)
+    rgs = (tensorIn, tmask, rank)
     res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter":maxiter}, callback=temp_callback)
-    tensorFac = CPTensor((None, buildTensors(res.x, r, tensorIn.shape)))
+    tensorFac = CPTensor((None, buildTensors(res.x, rank, tensorIn.shape)))
     tensorFac = cp_normalize(tensorFac)
 
     # Reorient the later tensor factors

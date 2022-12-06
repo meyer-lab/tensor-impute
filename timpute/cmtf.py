@@ -157,11 +157,11 @@ def cp_normalize(tFac):
 
     return tFac
 
-def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
+def perform_CP(tOrig, rank=6, tol=1e-6, maxiter=50, progress=False, callback=None):
     """ Perform CP decomposition. """
 
     if callback: callback.begin()
-    tFac = initialize_fac(tOrig.copy(), r)
+    tFac = initialize_fac(tOrig.copy(), rank)
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
@@ -191,7 +191,7 @@ def perform_CP(tOrig, r=6, tol=1e-6, maxiter=50, progress=False, callback=None):
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
 
-    if r > 1:
+    if rank > 1:
         tFac = sort_factors(tFac)
 
     return tFac
