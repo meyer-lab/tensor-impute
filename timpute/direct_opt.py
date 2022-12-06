@@ -9,7 +9,7 @@ from scipy.optimize import minimize
 import tensorly as tl
 from .initialize_fac import initialize_fac
 from tensorly.cp_tensor import CPTensor, cp_normalize
-from .impute_helper import createCube
+from .test.simulated_tensors import createCube
 
 tl.set_backend('numpy')
 config.update("jax_enable_x64", True)
