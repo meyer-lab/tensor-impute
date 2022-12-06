@@ -65,7 +65,7 @@ def test_known_rank():
     tOrig = tl.cp_to_tensor(tFacOrig)
     assert calcR2X(tFacOrig, tOrig) >= 1.0
 
-    newtFac = [calcR2X(perform_CP(tOrig, r=rr), tOrig) for rr in [1, 3, 5, 7, 9]]
+    newtFac = [calcR2X(perform_CP(tOrig, rank=rr), tOrig) for rr in [1, 3, 5, 7, 9]]
     assert np.all([newtFac[ii + 1] > newtFac[ii] for ii in range(len(newtFac) - 1)])
     assert newtFac[0] > 0.0
     assert newtFac[-1] < 1.0
