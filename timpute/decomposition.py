@@ -147,9 +147,9 @@ class Decomposition():
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
                 if callback and rr == max(self.rrs):
-                    tFac = self.method(missingCube, r=rr, maxiter=maxiter, callback=callback)
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, callback=callback)
                 else:
-                    tFac = self.method(missingCube, r=rr, maxiter=maxiter)
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter)
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
 
             
