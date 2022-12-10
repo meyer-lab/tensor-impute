@@ -103,6 +103,7 @@ def perform_CP_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None):
         return np.array(cost_grad(*args))
 
     CPinit = initialize_fac(tensorIn.copy(), rank)
+    if callback: callback(CPinit)
     x0 = np.concatenate(tuple([np.ravel(CPinit.factors[ii]) for ii in range(np.ndim(tensorIn))]))
 
     rgs = (tensorIn, tmask, rank)

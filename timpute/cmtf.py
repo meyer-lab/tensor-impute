@@ -162,6 +162,7 @@ def perform_CP(tOrig, rank=6, tol=1e-6, n_iter_max=50, progress=False, callback=
 
     if callback: callback.begin()
     tFac = initialize_fac(tOrig.copy(), rank)
+    if callback: callback(tFac)
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
@@ -170,7 +171,6 @@ def perform_CP(tOrig, rank=6, tol=1e-6, n_iter_max=50, progress=False, callback=
 
     # Precalculate the missingness patterns
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
-    if callback: callback(tFac, tFac.R2X)
 
     tq = tqdm(range(n_iter_max), disable=(not progress))
     for i in tq:
