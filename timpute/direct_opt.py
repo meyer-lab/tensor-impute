@@ -9,7 +9,7 @@ from scipy.optimize import minimize
 import tensorly as tl
 from .initialize_fac import initialize_fac
 from tensorly.cp_tensor import CPTensor, cp_normalize
-from .impute_helper import createCube
+from .test.simulated_tensors import createCube
 
 tl.set_backend('numpy')
 config.update("jax_enable_x64", True)
@@ -79,12 +79,12 @@ class do_callback():
         self.callback(tensorFac)
 
 
-def perform_CP_DO(tensorOrig=None, r=6, maxiter=50, callback=None):
+def perform_CP_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None):
     """ Perform CP decomposition. """
     if tensorOrig is None:
         tensorOrig = createCube()
     if callback:
-        temp_callback = do_callback(callback, r, tensorOrig.shape)
+        temp_callback = do_callback(callback, rank, tensorOrig.shape)
         temp_callback
     else:
         temp_callback = None
@@ -102,12 +102,13 @@ def perform_CP_DO(tensorOrig=None, r=6, maxiter=50, callback=None):
     def gradd(*args):
         return np.array(cost_grad(*args))
 
-    CPinit = initialize_fac(tensorIn.copy(), r)
+    CPinit = initialize_fac(tensorIn.copy(), rank)
+    if callback: callback(CPinit)
     x0 = np.concatenate(tuple([np.ravel(CPinit.factors[ii]) for ii in range(np.ndim(tensorIn))]))
 
-    rgs = (tensorIn, tmask, r)
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter":maxiter}, callback=temp_callback)
-    tensorFac = CPTensor((None, buildTensors(res.x, r, tensorIn.shape)))
+    rgs = (tensorIn, tmask, rank)
+    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter":n_iter_max}, callback=temp_callback)
+    tensorFac = CPTensor((None, buildTensors(res.x, rank, tensorIn.shape)))
     tensorFac = cp_normalize(tensorFac)
 
     # Reorient the later tensor factors
