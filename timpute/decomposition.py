@@ -43,8 +43,8 @@ class Decomposition():
         self.sizeT : list of length max_rr
             Each value represents the size of factorizations for components 1 to max_rr.
         """
-        self.tfac = [self.method(self.data, r=rr) for rr in np.delete(self.rrs, max(self.rrs)-1)]
-        self.tfac.append(self.method(self.data, r=max(self.rrs), callback=callback))
+        self.tfac = [self.method(self.data, rank=rr) for rr in np.delete(self.rrs, max(self.rrs)-1)]
+        self.tfac.append(self.method(self.data, rank=max(self.rrs), callback=callback))
         self.TR2X = [calcR2X(c, tIn=self.data) for c in self.tfac]
         self.sizeT = [rr * sum(self.tfac[0].shape) for rr in self.rrs]
 
@@ -98,13 +98,13 @@ class Decomposition():
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
                 if callback and rr == max(self.rrs) and x == repeat-1:
-                    tFac = self.method(missingCube, r=rr, maxiter=maxiter, callback=callback)
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, callback=callback)
                 else:
-                    tFac = self.method(missingCube, r=rr, maxiter=maxiter)
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter)
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
 
             if callback:
-                if x+1 < repeat: print(x)
+                if x+1 < repeat: callback.new()
             
         self.chordQ2X = Q2X
 
@@ -147,9 +147,9 @@ class Decomposition():
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
                 if callback and rr == max(self.rrs):
-                    tFac = self.method(missingCube, r=rr, maxiter=maxiter, callback=callback)
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, callback=callback)
                 else:
-                    tFac = self.method(missingCube, r=rr, maxiter=maxiter)
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter)
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
 
             
@@ -168,7 +168,7 @@ class Decomposition():
                 self.entryQ2XPCA = Q2XPCA
             
             if callback:
-                if x+1 < repeat: print(x)
+                if x+1 < repeat: callback.new()
     
         self.entryQ2X = Q2X
     

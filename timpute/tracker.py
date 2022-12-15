@@ -2,6 +2,7 @@ import numpy as np
 import time
 import pickle
 from .cmtf import calcR2X
+import matplotlib.patches as mpatches
 
 def calc_impute_error(mask, data, tFac):
     if mask is not None:
@@ -88,34 +89,50 @@ class tracker():
         if self.track_runtime: self.timer = [np.full((1, 0), 0)]
 
     """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
-    def plot_iteration(self, ax, methodname='Method', average=True):
+    def plot_iteration(self, ax, methodname='Method', average=True, rep=None):
         if average:
-            ax.plot(range(1, self.fitted_array.shape[1] + 1), np.nanmean(self.fitted_array,0), label=methodname+' Fitted Error')
-            ax.plot(range(1, self.impute_array.shape[1] + 1), np.nanmean(self.impute_array,0), label=methodname+' Imputation Error')
-        else:
+            ax.plot(range(self.fitted_array.shape[1]), np.nanmean(self.fitted_array,0), label=methodname+' Fitted Error')
+            ax.plot(range(self.impute_array.shape[1]), np.nanmean(self.impute_array,0), label=methodname+' Imputation Error')
+            ax.legend(loc='upper right')
+        elif rep == None:
             for i in range(self.rep+1):
-                ax.plot(range(1, self.fitted_array[i].size + 1), self.fitted_array[i], label=methodname+' Fitted Error '+str(i+1))
-                ax.plot(range(1, self.impute_array[i].size + 1), self.impute_array[i], label=methodname+' Imputation Error '+str(i+1))
-        ax.legend(loc='upper right')
+                ax.plot(range(self.fitted_array.shape[1]), self.fitted_array[i], color='blue')
+                ax.plot(range(self.impute_array.shape[1]), self.impute_array[i], color='green')
+            leg1 = mpatches.Patch(color='blue', label=methodname+'Fitted Error')
+            leg2 = mpatches.Patch(color='green', label=methodname+'Imputation Error')
+            ax.legend(loc='upper right', handles=[leg1, leg2])
+        else:
+            assert rep < self.rep + 1
+            ax.plot(range(self.fitted_array.shape[1]), self.fitted_array[rep-1], color='blue')
+            ax.plot(range(self.impute_array.shape[1]), self.impute_array[rep-1], color='green')
+            leg1 = mpatches.Patch(color='blue', label=methodname+'Fitted Error'+str(rep))
+            leg2 = mpatches.Patch(color='green', label=methodname+'Imputation Error'+str(rep))
+            ax.legend(loc='upper right', handles=[leg1, leg2])
         ax.set_ylim((0.0, 1.0))
-        ax.set_xlim((1, self.fitted_array.shape[1]))
+        ax.set_xlim((0, self.fitted_array.shape[1]))
         ax.set_xlabel('Iteration')
         ax.set_ylabel('Error')
 
-    def plot_runtime(self, ax, methodname='Method', rep = None):
+    def plot_runtime(self, ax, methodname='Method', rep=None):
         assert self.track_runtime
+        maxlen = self.fitted_array.shape[1]
         if rep == None:
             for i in range(self.rep+1):
-                ax.plot(self.time_array[i], self.fitted_array[i], label=methodname+' Fitted Error '+str(i+1))
-                ax.plot(self.time_array[i], self.impute_array[i], label=methodname+' Imputation Error '+str(i+1))
+                ax.plot(self.time_array[i,1:maxlen], self.fitted_array[i,1:maxlen], color='blue')
+                ax.plot(self.time_array[i,1:maxlen], self.impute_array[i,1:maxlen], color='green')
             ax.set_xlim((0, np.nanmax(self.time_array) * 1.2))
+            leg1 = mpatches.Patch(color='blue', label=methodname+' Fitted Error')
+            leg2 = mpatches.Patch(color='green', label=methodname+' Imputation Error')
         else:
-            ax.plot(self.time_array[rep-1], self.fitted_array[rep-1], label=methodname+' Fitted Error'+str(rep))
-            ax.plot(self.time_array[rep-1], self.impute_array[rep-1], label=methodname+' Imputation Error'+str(rep))
+            assert rep < self.rep + 1
+            ax.plot(self.time_array[rep-1,1:maxlen], self.fitted_array[rep-1,1:maxlen], color='blue')
+            ax.plot(self.time_array[rep-1,1:maxlen], self.impute_array[rep-1,1:maxlen], color='green')
             ax.set_xlim((0, np.nanmax(self.time_array[rep-1]) * 1.2))
-        ax.legend(loc='upper right')
+            leg1 = mpatches.Patch(color='blue', label=methodname+' Fitted Error'+str(rep))
+            leg2 = mpatches.Patch(color='green', label=methodname+' Imputation Error'+str(rep))
+        ax.legend(loc='upper right', handles=[leg1, leg2])
         ax.set_ylim((0.0, 1.0))
-        ax.set_xlabel('Runtime')
+        ax.set_xlabel('Runtime (s)')
         ax.set_ylabel('Error')
     
     def save(self, pfile):

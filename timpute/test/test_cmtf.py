@@ -24,17 +24,17 @@ def createCube(missing=0.0, size=(10, 20, 25)):
 def test_cp():
     # Test that the CP decomposition code works.
     tensor = createCube(missing=0.2, size=(10, 20, 25))
-    fac3 = perform_CP(tensor, r=3)
-    fac6 = perform_CP(tensor, r=6)
+    fac3 = perform_CP(tensor, rank=3)
+    fac6 = perform_CP(tensor, rank=6)
     assert fac3.R2X < fac6.R2X
     assert fac3.R2X > 0.0
     if fac3.R2X < 0.67:
-        warnings.warn("CP (r=3) with 20% missingness, R2X < 0.67 (expected)" + str(fac3.R2X))
+        warnings.warn("CP (rank=3) with 20% missingness, R2X < 0.67 (expected)" + str(fac3.R2X))
 
     # test case where mode size < rank
     tensor2 = createCube(missing=0.2, size=(10, 4, 50))
-    fac23 = perform_CP(tensor2, r=3)
-    fac26 = perform_CP(tensor2, r=6)
+    fac23 = perform_CP(tensor2, rank=3)
+    fac26 = perform_CP(tensor2, rank=6)
     assert fac23.R2X < fac26.R2X
     assert fac23.R2X > 0.0
 
