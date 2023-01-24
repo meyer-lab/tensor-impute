@@ -10,7 +10,7 @@ def createCube(missing=0.0, size=(10, 20, 25)):
         tensor[np.random.rand(*size) < missing] = np.nan
     return tensor
 
-def createTensor(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", scale=1, par=1):
+def createTensor(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", scale=1, par=1, noise=True):
     r"""
     Creates a random tensor following a set of possible distributions:
     "gamma", "chisquare", "logistic", "exponential", "uniform", "normal"
@@ -28,8 +28,9 @@ def createTensor(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", s
 
     if scale != 1:
         for i in factors: i = i * scale
-
-    tensor = tl.cp_to_tensor(CPTensor((None, factors)))
+    temp = tl.cp_to_tensor(CPTensor((None, factors)))
+    if noise: 
+        tensor = np.add(np.random.normal(0.5,0.15, size),temp)
     create_missingness(tensor, int(drop_perc*tensor.size))
     
     return tensor
