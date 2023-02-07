@@ -87,11 +87,9 @@ class Decomposition():
         Q2X = np.zeros((repeat,self.rrs[-1]))
 
         for x in range(repeat):
-            missingCube = np.copy(self.data)
-            np.moveaxis(missingCube,mode,0)
             tImp = np.copy(self.data)
             np.moveaxis(tImp,mode,0)
-            mask = chord_drop(missingCube, drop)
+            missingCube, mask = chord_drop(tImp, drop)
             if callback: callback.set_mask(mask)
 
             # Calculate Q2X for each number of components
@@ -138,18 +136,18 @@ class Decomposition():
         Q2XPCA = np.zeros((repeat,self.rrs[-1]))
         
         for x in range(repeat):
-            missingCube = np.copy(self.data)
             tImp = np.copy(self.data)
-            mask = entry_drop(missingCube, drop)
+            missingCube, mask = entry_drop(tImp, drop)
             if callback: callback.set_mask(mask)
 
             # Calculate Q2X for each number of components
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
                 if callback and rr == max(self.rrs):
-                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, callback=callback)
+                    if callback.track_runtime: callback.begin()
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback)
                 else:
-                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter)
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask)
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
 
             
