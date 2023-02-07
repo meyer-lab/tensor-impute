@@ -2,8 +2,6 @@ import numpy as np
 import warnings
 
 import tensorly as tl
-from tensorly.random import random_cp
-from tensorly.base import unfold
 from tensorly.cp_tensor import (
     cp_to_tensor,
     CPTensor,
@@ -11,9 +9,8 @@ from tensorly.cp_tensor import (
     cp_normalize,
     validate_cp_rank,
 )
-from tensorly.tenalg.svd import svd_interface
-from tensorly.tenalg import unfolding_dot_khatri_rao
-from .initialize_fac import initialize_fac as initialize_cp
+from tensorly.cp_tensor import unfolding_dot_khatri_rao
+from .initialize_fac import initialize_fac
 
 # Authors: Jean Kossaifi <jean.kossaifi+tensors@gmail.com>
 #          Chris Swierczewski <csw@amazon.com>
@@ -78,7 +75,7 @@ def error_calc(tensor, norm_tensor, weights, factors, mask, mttkrp=None):
     return unnorml_rec_error, tensor, norm_tensor
 
 
-def parafac(
+def perform_ALS(
     tensor,
     rank,
     n_iter_max=100,
@@ -176,8 +173,8 @@ def parafac(
         acc_fail = 0  # How many times acceleration have failed
         max_fail = 4  # Increase acc_pow with one after max_fail failure
 
-    weights, factors = initialize_cp(tensor, rank)
-
+    weights, factors = initialize_fac(tensor, rank)
+    
     rec_errors = []
     norm_tensor = tl.norm(tensor, 2)
     if l2_reg:
@@ -203,11 +200,7 @@ def parafac(
 
     if callback is not None:
         cp_tensor = CPTensor((weights, factors))
-        unnorml_rec_error, _, norm_tensor = error_calc(
-            tensor, norm_tensor, weights, factors, mask
-        )
-        callback_error = unnorml_rec_error / norm_tensor
-        callback(cp_tensor, callback_error)
+        callback(cp_tensor)
 
     for iteration in range(n_iter_max):
         if orthogonalise and iteration <= orthogonalise:
@@ -305,15 +298,6 @@ def parafac(
         if (tol or return_errors) and not line_iter:
             rec_error = unnorml_rec_error / norm_tensor
             rec_errors.append(rec_error)
-
-        if callback is not None:
-            cp_tensor = CPTensor((weights, factors))
-            retVal = callback(cp_tensor, rec_error)
-
-            if retVal is True:
-                if verbose:
-                    print("Received True from callback function. Exiting.")
-                break
 
         if tol:
             if iteration >= 1:
