@@ -157,7 +157,7 @@ def cp_normalize(tFac):
 
     return tFac
 
-def perform_CP(tOrig, rank=6, tol=1e-6, n_iter_max=50, progress=False, callback=None):
+def perform_CP(tOrig, rank=6, tol=1e-6, n_iter_max=50, mask=None, progress=False, callback=None):
     """ Perform CP decomposition. """
 
     if callback:

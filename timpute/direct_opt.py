@@ -79,7 +79,7 @@ class do_callback():
         self.callback(tensorFac)
 
 
-def perform_CP_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None):
+def perform_CP_DO(tensorOrig=None, rank=6, n_iter_max=50, mask=None, callback=None):
     """ Perform CP decomposition. """
     if tensorOrig is None:
         tensorOrig = createCube()
