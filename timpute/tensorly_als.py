@@ -2,6 +2,8 @@ import numpy as np
 import warnings
 
 import tensorly as tl
+from tensorly.random import random_cp
+from tensorly.base import unfold
 from tensorly.cp_tensor import (
     cp_to_tensor,
     CPTensor,
@@ -9,7 +11,9 @@ from tensorly.cp_tensor import (
     cp_normalize,
     validate_cp_rank,
 )
-from tensorly.cp_tensor import unfolding_dot_khatri_rao
+from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao
+
+from .cmtf import calcR2X
 from .initialize_fac import initialize_fac
 
 # Authors: Jean Kossaifi <jean.kossaifi+tensors@gmail.com>
@@ -20,7 +24,29 @@ from .initialize_fac import initialize_fac
 # License: BSD 3 clause
 
 
-def error_calc(tensor, norm_tensor, weights, factors, mask, mttkrp=None):
+def sparsify_tensor(tensor, card):
+    """Zeros out all elements in the `tensor` except `card` elements with maximum absolute values.
+
+    Parameters
+    ----------
+    tensor : ndarray
+    card : int
+        Desired number of non-zero elements in the `tensor`
+
+    Returns
+    -------
+    ndarray of shape tensor.shape
+    """
+    if card >= np.prod(tensor.shape):
+        return tensor
+    bound = tl.sort(tl.abs(tensor), axis=None)[-card]
+
+    return tl.where(
+        tl.abs(tensor) < bound, tl.zeros(tensor.shape, **tl.context(tensor)), tensor
+    )
+
+
+def error_calc(tensor, norm_tensor, weights, factors, sparsity, mask, mttkrp=None):
     r"""Perform the error calculation. Different forms are used here depending upon
     the available information. If `mttkrp=None` or masking is being performed, then the
     full tensor must be constructed. Otherwise, the mttkrp is used to reduce the calculation cost.
@@ -34,6 +60,8 @@ def error_calc(tensor, norm_tensor, weights, factors, mask, mttkrp=None):
         The current CP weights
     factors : tensor
         The current CP factors
+    sparsity : float or int
+        Whether we allow for a sparse component
     mask : bool
         Whether masking is being performed.
     mttkrp : tensor or None
@@ -58,19 +86,30 @@ def error_calc(tensor, norm_tensor, weights, factors, mask, mttkrp=None):
             tensor = tensor * mask + low_rank_component * (1 - mask)
             norm_tensor = tl.norm(tensor, 2)
 
-        sparse_component = 0.0
+        if sparsity:
+            sparse_component = sparsify_tensor(tensor - low_rank_component, sparsity)
+        else:
+            sparse_component = 0.0
 
         unnorml_rec_error = tl.norm(tensor - low_rank_component - sparse_component, 2)
     else:
-        # ||tensor - rec||^2 = ||tensor||^2 + ||rec||^2 - 2*<tensor, rec>
-        factors_norm = cp_norm((weights, factors))
+        if sparsity:
+            low_rank_component = cp_to_tensor((weights, factors))
+            sparse_component = sparsify_tensor(tensor - low_rank_component, sparsity)
 
-        # mttkrp and factor for the last mode. This is equivalent to the
-        # inner product <tensor, factorization>
-        iprod = tl.sum(tl.sum(mttkrp * tl.conj(factors[-1]), axis=0))
-        unnorml_rec_error = tl.sqrt(
-            tl.abs(norm_tensor**2 + factors_norm**2 - 2 * iprod)
-        )
+            unnorml_rec_error = tl.norm(
+                tensor - low_rank_component - sparse_component, 2
+            )
+        else:
+            # ||tensor - rec||^2 = ||tensor||^2 + ||rec||^2 - 2*<tensor, rec>
+            factors_norm = cp_norm((weights, factors))
+
+            # mttkrp and factor for the last mode. This is equivalent to the
+            # inner product <tensor, factorization>
+            iprod = tl.sum(tl.sum(mttkrp * tl.conj(factors[-1]), axis=0))
+            unnorml_rec_error = tl.sqrt(
+                tl.abs(norm_tensor**2 + factors_norm**2 - 2 * iprod)
+            )
 
     return unnorml_rec_error, tensor, norm_tensor
 
@@ -79,15 +118,20 @@ def perform_ALS(
     tensor,
     rank,
     n_iter_max=100,
+    init="svd",
+    svd="truncated_svd",
     normalize_factors=False,
     orthogonalise=False,
     tol=1e-8,
+    random_state=None,
     verbose=0,
     return_errors=False,
+    sparsity=None,
     l2_reg=0,
     mask=None,
     cvg_criterion="abs_rec_error",
     fixed_modes=None,
+    svd_mask_repeats=5,
     linesearch=False,
     callback=None,
 ):
@@ -129,6 +173,8 @@ def perform_ALS(
        Stopping criterion for ALS, works if `tol` is not None.
        If 'rec_error',  ALS stops at current iteration if ``(previous rec_error - current rec_error) < tol``.
        If 'abs_rec_error', ALS terminates when `|previous rec_error - current rec_error| < tol`.
+    sparsity : float or int
+        If `sparsity` is not None, we approximate tensor as a sum of low_rank_component and sparse_component, where low_rank_component = cp_to_tensor((weights, factors)). `sparsity` denotes desired fraction or number of non-zero elements in the sparse_component of the `tensor`.
     fixed_modes : list, default is None
         A list of modes for which the initial value is not modified.
         The last mode cannot be fixed due to error computation.
@@ -147,6 +193,7 @@ def perform_ALS(
           * weights of the (normalized) factors otherwise
 
         * factors : List of factors of the CP decomposition element `i` is of shape ``(tensor.shape[i], rank)``
+        * sparse_component : nD array of shape tensor.shape. Returns only if `sparsity` is not None.
 
     errors : list
         A list of reconstruction errors at each iteration of the algorithms.
@@ -163,7 +210,14 @@ def perform_ALS(
     if callback:
         if callback.track_runtime: callback.begin()
     
+    tensor = np.nan_to_num(tensor)
+
     rank = validate_cp_rank(tl.shape(tensor), rank=rank)
+
+    if return_errors:
+        DeprecationWarning(
+            "return_errors argument will be removed in the next version of TensorLy. Please use a callback function instead."
+        )
 
     if orthogonalise and not isinstance(orthogonalise, int):
         orthogonalise = n_iter_max
@@ -173,8 +227,8 @@ def perform_ALS(
         acc_fail = 0  # How many times acceleration have failed
         max_fail = 4  # Increase acc_pow with one after max_fail failure
 
-    weights, factors = initialize_fac(tensor, rank)
-    
+    weights, factors = initialize_fac(tensor,rank)
+
     rec_errors = []
     norm_tensor = tl.norm(tensor, 2)
     if l2_reg:
@@ -198,9 +252,27 @@ def perform_ALS(
         fixed_modes.remove(tl.ndim(tensor) - 1)
     modes_list = [mode for mode in range(tl.ndim(tensor)) if mode not in fixed_modes]
 
+    if sparsity:
+        sparse_component = tl.zeros_like(tensor)
+        if isinstance(sparsity, float):
+            sparsity = int(sparsity * np.prod(tensor.shape))
+        else:
+            sparsity = int(sparsity)
+
     if callback is not None:
         cp_tensor = CPTensor((weights, factors))
-        callback(cp_tensor)
+        unnorml_rec_error, _, norm_tensor = error_calc(
+            tensor, norm_tensor, weights, factors, sparsity, mask
+        )
+        callback_error = unnorml_rec_error / norm_tensor
+
+        if sparsity:
+            sparse_component = sparsify_tensor(
+                tensor - cp_to_tensor((weights, factors)), sparsity
+            )
+            callback((cp_tensor, sparse_component), callback_error)
+        else:
+            callback(cp_tensor, callback_error)
 
     for iteration in range(n_iter_max):
         if orthogonalise and iteration <= orthogonalise:
@@ -249,7 +321,7 @@ def perform_ALS(
         # Calculate the current unnormalized error if we need it
         if (tol or return_errors) and not line_iter:
             unnorml_rec_error, tensor, norm_tensor = error_calc(
-                tensor, norm_tensor, weights, factors, mask, mttkrp
+                tensor, norm_tensor, weights, factors, sparsity, mask, mttkrp
             )
         else:
             if mask is not None:
@@ -268,7 +340,7 @@ def perform_ALS(
             ]
 
             new_rec_error, new_tensor, new_norm_tensor = error_calc(
-                tensor, norm_tensor, new_weights, new_factors, mask
+                tensor, norm_tensor, new_weights, new_factors, sparsity, mask
             )
 
             if (new_rec_error / new_norm_tensor) < rec_errors[-1]:
@@ -281,7 +353,7 @@ def perform_ALS(
                     print(f"Accepted line search jump of {jump}.")
             else:
                 unnorml_rec_error, tensor, norm_tensor = error_calc(
-                    tensor, norm_tensor, weights, factors, mask, mttkrp
+                    tensor, norm_tensor, weights, factors, sparsity, mask, mttkrp
                 )
                 acc_fail += 1
 
@@ -299,7 +371,18 @@ def perform_ALS(
             rec_error = unnorml_rec_error / norm_tensor
             rec_errors.append(rec_error)
 
-        if tol:
+        if callback is not None:
+            cp_tensor = CPTensor((weights, factors))
+
+            if sparsity:
+                sparse_component = sparsify_tensor(
+                    tensor - cp_to_tensor((weights, factors)), sparsity
+                )
+                retVal = callback((cp_tensor, sparse_component), rec_error)
+            else:
+                retVal = callback(cp_tensor, rec_error)
+
+        if tol is not None:
             if iteration >= 1:
                 rec_error_decrease = rec_errors[-2] - rec_errors[-1]
 
@@ -327,6 +410,12 @@ def perform_ALS(
             weights, factors = cp_normalize((weights, factors))
 
     cp_tensor = CPTensor((weights, factors))
+
+    if sparsity:
+        sparse_component = sparsify_tensor(
+            tensor - cp_to_tensor((weights, factors)), sparsity
+        )
+        cp_tensor = (cp_tensor, sparse_component)
 
     if return_errors:
         return cp_tensor, rec_errors
