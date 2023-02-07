@@ -106,7 +106,7 @@ class Decomposition():
             
         self.chordQ2X = Q2X
 
-    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, comparePCA=False, callback=None):
+    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, comparePCA=False, callback=None, progress=False):
         """
         Calculates Q2X when dropping entries from the data using self.method for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -149,6 +149,7 @@ class Decomposition():
                 else:
                     tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask)
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
+            if progress: print("finished run")
 
             
             # Calculate Q2X for each number of principal components using PCA for factorization as comparison
