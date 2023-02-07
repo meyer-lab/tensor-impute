@@ -1,13 +1,13 @@
 import pickle
 from re import A
 import numpy as np
-from .cmtf import perform_CP, calcR2X
+from .cmtf import perform_CLS, calcR2X
 from tensorly.tenalg import svd_interface
 from .SVD_impute import IterativeSVD
 from .impute_helper import entry_drop, chord_drop
 
 class Decomposition():
-    def __init__(self, data, max_rr=5, method=perform_CP):
+    def __init__(self, data, max_rr=5, method=perform_CLS):
         """
         Decomposition object designed for plotting. Capable of handling a single tensor.
 
@@ -20,7 +20,7 @@ class Decomposition():
         max_rr : int
             Defines the maximum component to consider during factorization.
         method : function
-            Takes a factorization method. Default set to perform_CP() from cmtf.py
+            Takes a factorization method. Default set to perform_CLS() from cmtf.py
             other methods include: tucker_decomp
         """
         self.data = data
