@@ -3,14 +3,20 @@ import tensorly as tl
 from tensorly.cp_tensor import CPTensor
 from ..impute_helper import create_missingness
 
-def createCube(missing=0.0, size=(10, 20, 25)):
-    s = np.random.gamma(2, 2, np.prod(size))
-    tensor = s.reshape(*size)
-    if missing > 0.0:
-        tensor[np.random.rand(*size) < missing] = np.nan
+def createUnknownRank(drop_perc=0.0, size=(10, 20, 25), distribution="gamma", scale=1, par=1):
+    if distribution == "gamma": tensor = np.random.gamma(par, scale, np.prod(size))
+    if distribution == "chisquare": tensor = np.random.chisquare(size=size)
+    if distribution == "logistic": tensor = np.random.logistic(size=size)
+    if distribution == "exponential": tensor = np.random.exponential(size=size)
+    if distribution == "uniform": tensor = np.random.uniform(size=size)
+    if distribution == "normal": tensor = np.random.normal(size=size)
+
+    if scale != 1: tensor *= scale
+
+    create_missingness(tensor, int(drop_perc*tensor.size))
     return tensor
 
-def createTensor(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", scale=1, par=1):
+def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", scale=1, par=1):
     r"""
     Creates a random tensor following a set of possible distributions:
     "gamma", "chisquare", "logistic", "exponential", "uniform", "normal"
@@ -19,7 +25,7 @@ def createTensor(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", s
 
     factors = []
     for i in size:
-        if distribution == "gamma": factors.append(rng.gamma(par, scale=1, size=(i,rank)))
+        if distribution == "gamma": factors.append(rng.gamma(par, scale, size=(i,rank)))
         if distribution == "chisquare": factors.append(rng.chisquare(par, size=(i,rank)))
         if distribution == "logistic": factors.append(rng.logistic(size=(i,rank)))
         if distribution == "exponential": factors.append(rng.exponential(size=(i,rank)))
@@ -27,9 +33,8 @@ def createTensor(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", s
         if distribution == "normal": factors.append(rng.normal(size=(i,rank)))
 
     if scale != 1:
-        for i in factors: i = i * scale
+        for i in factors: i *= scale
 
     tensor = tl.cp_to_tensor(CPTensor((None, factors)))
     create_missingness(tensor, int(drop_perc*tensor.size))
-    
     return tensor
