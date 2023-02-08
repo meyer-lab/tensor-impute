@@ -3,6 +3,12 @@ import tensorly as tl
 from tensorly.cp_tensor import CPTensor
 from ..impute_helper import create_missingness
 
+def createNoise(tensor,scale=1.0):
+    noise = np.random.normal(0, scale, tensor.size)
+    noisyTensor = noise+np.copy(tensor)
+    return noisyTensor
+
+
 def createUnknownRank(drop_perc=0.0, size=(10, 20, 25), distribution="gamma", scale=1, par=1):
     if distribution == "gamma": tensor = np.random.gamma(par, scale, np.prod(size))
     if distribution == "chisquare": tensor = np.random.chisquare(size=size)
