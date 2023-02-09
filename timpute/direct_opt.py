@@ -9,7 +9,7 @@ from scipy.optimize import minimize
 import tensorly as tl
 from .initialize_fac import initialize_fac
 from tensorly.cp_tensor import CPTensor, cp_normalize
-from .test.simulated_tensors import createCube
+from .test.simulated_tensors import createUnknownRank
 
 tl.set_backend('numpy')
 config.update("jax_enable_x64", True)
@@ -82,7 +82,7 @@ class do_callback():
 def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, mask=None, callback=None):
     """ Perform CP decomposition. """
     if tensorOrig is None:
-        tensorOrig = createCube()
+        tensorOrig = createUnknownRank()
     if callback:
         temp_callback = do_callback(callback, rank, tensorOrig.shape)
         temp_callback
