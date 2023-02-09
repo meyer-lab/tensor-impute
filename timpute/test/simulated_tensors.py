@@ -4,7 +4,7 @@ from tensorly.cp_tensor import CPTensor
 from ..impute_helper import create_missingness
 
 def createNoise(tensor,scale=1.0):
-    noise = np.random.normal(0, scale, tensor.size)
+    noise = np.random.normal(0, scale, tensor.shape)
     noisyTensor = noise+np.copy(tensor)
     return noisyTensor
 
