@@ -24,7 +24,10 @@ def entry_drop(tensor, drop, seed=None):
 
     Returns
     -------
-    Data pattern
+    dropped_tensor : ndarray
+        tensor is modified with missing chords
+    mask : ndarray (boolean)
+        artificial missingness mask
     """
     # Track chords for each mode to ensure bare minimum cube covers each chord at least once
 
@@ -77,7 +80,10 @@ def chord_drop(tensor, drop, seed=None):
 
     Returns
     -------
-    None : tensor is modified with missing chords.
+    dropped_tensor : ndarray
+        tensor is modified with missing chords
+    mask : ndarray (boolean)
+        artificial missingness mask
     """
 
     if seed != None:
