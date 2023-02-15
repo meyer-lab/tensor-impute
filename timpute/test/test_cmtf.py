@@ -8,6 +8,9 @@ from tensorly.cp_tensor import _validate_cp_tensor
 from tensorly.random import random_cp
 from ..cmtf import delete_component, calcR2X, buildMat, sort_factors, perform_CLS
 from tensordata.alter import data as alter
+from tensorly.tenalg import khatri_rao
+from ..initialize_fac import initialize_fac
+from sklearn.linear_model import Ridge
 
 
 def createCube(missing=0.0, size=(10, 20, 25)):
@@ -57,3 +60,41 @@ def test_sort():
     np.testing.assert_allclose(R2X, sR2X)
     np.testing.assert_allclose(tRec, stRec)
     np.testing.assert_allclose(mRec, smRec)
+
+def test_ridge():
+    """Testing ridge solver is equal to numpy least squares"""
+    tOrig = createCube(missing=0.2)
+    tFac = initialize_fac(tOrig.copy(), 5)
+    unfolded = tl.unfold(tOrig, 0)
+    kr = khatri_rao(tFac.factors, skip_matrix=0)
+    
+    A = kr
+    B = unfolded.T
+
+    X1 = censored_lstsq(A, B)
+    X2 = censored_lstsq(A, B, alpha=0)
+
+    np.testing.assert_allclose(X1, X2)
+
+def test_colbycol():
+    """Testing solver is equal column by column and when unique grouping applied"""
+    tOrig = createCube(missing=0.2, size=(100,3,3))
+    tFac = initialize_fac(tOrig.copy(), 3)
+    unfolded = tl.unfold(tOrig, 0)
+    kr = khatri_rao(tFac.factors, skip_matrix=0)
+
+    A = kr
+    B = unfolded.T
+    X1 = np.empty((A.shape[1], B.shape[1]))
+
+    unique, uIDX = np.unique(np.isfinite(B), axis=1, return_inverse=True)
+    for i in range(0, B.shape[1]):
+        uu = np.squeeze(unique[:, uIDX[i]])
+        Bx = B[uu,:]
+        clf = Ridge(alpha=0, fit_intercept=False)
+        clf.fit(A[uu,:], Bx[:, i])
+        X1[:, i] = clf.coef_.T
+
+    X2 = censored_lstsq(A, B)
+
+    np.testing.assert_allclose(X1.T, X2)

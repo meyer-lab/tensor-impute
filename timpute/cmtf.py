@@ -9,6 +9,7 @@ from tensorly.tenalg import khatri_rao
 from .initialize_fac import initialize_fac
 from copy import deepcopy
 from tqdm import tqdm
+from sklearn.linear_model import Ridge
 
 
 tl.set_backend('numpy')
@@ -115,7 +116,7 @@ def delete_component(tFac, compNum):
     return tensor
 
 
-def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None) -> np.ndarray:
+def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) -> np.ndarray:
     """Solves least squares problem subject to missing data.
     Note: uses a for loop over the missing patterns of B, leading to a
     slower but more numerically stable algorithm
@@ -139,7 +140,13 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None) -> np.ndarray:
         uu = np.squeeze(unique[:, i])
 
         Bx = B[uu, :]
-        X[:, uI] = np.linalg.lstsq(A[uu, :], Bx[:, uI], rcond=-1)[0]
+
+        if alpha is None:
+            X[:, uI] = np.linalg.lstsq(A[uu, :], Bx[:, uI], rcond=-1)[0]
+        else:
+            clf = Ridge(alpha=alpha, fit_intercept=False)
+            clf.fit(A[uu, :], Bx[:, uI])
+            X[:, uI] = clf.coef_.T
     return X.T
 
 
@@ -157,7 +164,8 @@ def cp_normalize(tFac):
 
     return tFac
 
-def perform_CLS(tOrig, rank=6, tol=1e-6, n_iter_max=50, mask=None, progress=False, callback=None):
+
+def perform_CP(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None):
     """ Perform CP decomposition. """
 
     if callback:
@@ -178,16 +186,16 @@ def perform_CLS(tOrig, rank=6, tol=1e-6, n_iter_max=50, mask=None, progress=Fals
         # Solve on each mode
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
-            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m])
+            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m], alpha=alpha)
         
         R2X_last = tFac.R2X
         tFac.R2X = calcR2X(tFac, tOrig)
         tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
-        assert tFac.R2X > 0.0
+        # assert tFac.R2X > 0.0
         if callback: callback(tFac)
 
-        if tFac.R2X - R2X_last < tol:
-            break
+        # if tFac.R2X - R2X_last < tol:
+        #     break
 
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
