@@ -92,6 +92,15 @@ class Decomposition():
             missingCube, mask = chord_drop(tImp, drop)
             if callback: callback.set_mask(mask)
 
+            # Calculate Q2X for each number of components
+        
+        missingCube = np.copy(self.data)
+        np.moveaxis(missingCube,mode,0)
+        tImp = np.copy(self.data)
+        np.moveaxis(tImp,mode,0)
+        mask = chord_drop(missingCube, drop)
+        if callback: callback.set_mask(mask)
+
         if single:
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
@@ -159,7 +168,6 @@ class Decomposition():
                 else:
                     tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask)
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
-            if progress: print("finished run")
 
         else:
             for x in range(repeat):

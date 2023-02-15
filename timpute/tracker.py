@@ -95,8 +95,10 @@ class tracker():
             impute_errbar = [np.percentile(self.impute_array,25,0),np.percentile(self.impute_array,75,0)]
             print(fitted_errbar)
             print(impute_errbar)
-            ax.errorbar(np.arange(self.fitted_array.shape[1]), np.nanmean(self.fitted_array,0), yerr=fitted_errbar, label=methodname+' Fitted Error')
-            ax.errorbar(np.arange(self.impute_array.shape[1])+.1, np.nanmean(self.impute_array,0), yerr=impute_errbar, label=methodname+' Imputation Error')
+            e1 = ax.errorbar(np.arange(self.fitted_array.shape[1]), np.nanmean(self.fitted_array,0), yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
+            e2 = ax.errorbar(np.arange(self.impute_array.shape[1])+.1, np.nanmean(self.impute_array,0), yerr=impute_errbar, label=methodname+' Imputation Error', errorevery=5)
+            e1[-1][0].set_linestyle('dotted')
+            e1[-1][0].set_linestyle('dotted')
             ax.legend(loc='upper right')
         elif rep == None:
             for i in range(self.rep+1):
