@@ -72,10 +72,14 @@ class Decomposition():
             To set a percentage, tensor.shape[mode] and multiply by the percentage 
             to find the relevant drop value, rounding to nearest int.
         repeat : int
+        maxiter : int
         mode : int
             Defaults to mode corresponding to axis = 0. Can be set to any mode of the tensor.
         callback : tracker Class
             Optional callback class to track R2X over iteration/runtime for the factorization with max_rr components.
+        single : boolean
+            Looks at only the final component (useful for plotting)
+
 
 
         Returns
@@ -136,11 +140,14 @@ class Decomposition():
             To set a percentage, multiply np.sum(np.isfinite(tensor)) by the percentage 
             to find the relevant drop value, rounding to nearest int.
         repeat : int
+        maxiter : int
         comparePCA : boolean
             Defaulted to calculate Q2X for respective principal components using PCA for factorization
             to compare against self.method.
         callback : tracker Class
             Optional callback class to track R2X over iteration/runtime for the factorization with max_rr components.
+        single : boolean
+            Looks at only the final component (useful for plotting)
 
         Returns
         -------
@@ -154,9 +161,8 @@ class Decomposition():
         Q2X = np.zeros((repeat,self.rrs[-1]))
         Q2XPCA = np.zeros((repeat,self.rrs[-1]))
         
-        missingCube = np.copy(self.data)
         tImp = np.copy(self.data)
-        mask = entry_drop(missingCube, drop)
+        missingCube, mask = entry_drop(tImp, drop)
         if callback: callback.set_mask(mask)
 
         if single:
