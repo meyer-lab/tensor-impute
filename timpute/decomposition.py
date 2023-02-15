@@ -61,7 +61,7 @@ class Decomposition():
         self.PCAR2X = [calcR2X(c, mIn=flatData) for c in recon]
         self.sizePCA = [sum(flatData.shape) * rr for rr in self.rrs]
 
-    def Q2X_chord(self, drop=5, repeat=3, maxiter=50, mode=0, callback=None):
+    def Q2X_chord(self, drop=5, repeat=3, maxiter=50, mode=0, callback=None, single=False):
         """
         Calculates Q2X when dropping chords along axis = mode from the data using self.method for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -93,18 +93,37 @@ class Decomposition():
             if callback: callback.set_mask(mask)
 
             # Calculate Q2X for each number of components
+        
+        missingCube = np.copy(self.data)
+        np.moveaxis(missingCube,mode,0)
+        tImp = np.copy(self.data)
+        np.moveaxis(tImp,mode,0)
+        mask = chord_drop(missingCube, drop)
+        if callback: callback.set_mask(mask)
+
+        if single:
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
-                if callback and rr == max(self.rrs) and x == repeat-1:
+                if callback and rr == max(self.rrs):
                     tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, callback=callback)
                 else:
                     tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter)
-                Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
+        else:
+            for x in range(repeat):
+                # Calculate Q2X for each number of components
+                tImp[np.isfinite(missingCube)] = np.nan
+                for rr in self.rrs:
+                    if callback and rr == max(self.rrs):
+                        tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, callback=callback)
+                    else:
+                        tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter)
+                    Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
 
-            if callback:
-                if x+1 < repeat: callback.new()
+                if callback:
+                    if x+1 < repeat: callback.new()
+        
+            self.chordQ2X = Q2X
             
-        self.chordQ2X = Q2X
 
     def Q2X_entry(self, drop=20, repeat=3, maxiter=50, comparePCA=False, callback=None, progress=False):
         """
@@ -140,7 +159,7 @@ class Decomposition():
             missingCube, mask = entry_drop(tImp, drop)
             if callback: callback.set_mask(mask)
 
-            # Calculate Q2X for each number of components
+        if single:
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
                 if callback and rr == max(self.rrs):
@@ -151,25 +170,35 @@ class Decomposition():
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
             if progress: print("finished run")
 
-            
-            # Calculate Q2X for each number of principal components using PCA for factorization as comparison
-            if comparePCA:
-                si = IterativeSVD(rank=max(self.rrs), random_state=1)
-                missingMat = np.reshape(np.moveaxis(missingCube, 0, 0), (missingCube.shape[0], -1))
-                mImp = np.reshape(np.moveaxis(tImp, 0, 0), (tImp.shape[0], -1))
+        else:
+            for x in range(repeat):
+                # Calculate Q2X for each number of components
+                tImp[np.isfinite(missingCube)] = np.nan
+                for rr in self.rrs:
+                    if callback and rr == max(self.rrs):
+                        tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, callback=callback)
+                    else:
+                        tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter)
+                    Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
+                
+                # Calculate Q2X for each number of principal components using PCA for factorization as comparison
+                if comparePCA:
+                    si = IterativeSVD(rank=max(self.rrs), random_state=1)
+                    missingMat = np.reshape(np.moveaxis(missingCube, 0, 0), (missingCube.shape[0], -1))
+                    mImp = np.reshape(np.moveaxis(tImp, 0, 0), (tImp.shape[0], -1))
 
-                missingMat = si.fit_transform(missingMat)
-                U, S, V = svd_interface(matrix=missingMat, n_eigenvecs=max(self.rrs))
-                scores = U @ np.diag(S)
-                loadings = V
-                recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
-                Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
-                self.entryQ2XPCA = Q2XPCA
-            
-            if callback:
-                if x+1 < repeat: callback.new()
-    
-        self.entryQ2X = Q2X
+                    missingMat = si.fit_transform(missingMat)
+                    U, S, V = svd_interface(matrix=missingMat, n_eigenvecs=max(self.rrs))
+                    scores = U @ np.diag(S)
+                    loadings = V
+                    recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
+                    Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
+                    self.entryQ2XPCA = Q2XPCA
+                
+                if callback:
+                    if x+1 < repeat: callback.new()
+        
+            self.entryQ2X = Q2X
     
 
     def save(self, pfile):
