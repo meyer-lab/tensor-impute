@@ -165,14 +165,13 @@ def cp_normalize(tFac):
     return tFac
 
   
-def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, mask=None, progress=False, callback=None):
+def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None, init=None):
     """ Perform CP decomposition. """
 
-    if callback:
-        if callback.track_runtime: callback.begin()
-    tFac = initialize_fac(tOrig.copy(), rank)
+    if init==None: tFac = initialize_fac(tOrig.copy(), rank)
+    else: tFac = init
     if callback: callback(tFac)
-
+    
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
     R2X_last = -np.inf

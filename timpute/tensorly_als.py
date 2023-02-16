@@ -207,8 +207,6 @@ def perform_ALS(
     .. [3] R. Bro, "Multi-Way Analysis in the Food Industry: Models, Algorithms, and
            Applications", PhD., University of Amsterdam, 1998
     """
-    if callback:
-        if callback.track_runtime: callback.begin()
     
     tensor = np.nan_to_num(tensor)
 
