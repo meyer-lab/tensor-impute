@@ -5,6 +5,7 @@ from .cmtf import perform_CLS, calcR2X
 from tensorly.tenalg import svd_interface
 from .SVD_impute import IterativeSVD
 from .impute_helper import entry_drop, chord_drop
+from .initialize_fac import initialize_fac
 
 class Decomposition():
     def __init__(self, data, max_rr=5, method=perform_CLS):
@@ -98,20 +99,22 @@ class Decomposition():
 
             # Calculate Q2X for each number of components
         
-        missingCube = np.copy(self.data)
-        np.moveaxis(missingCube,mode,0)
         tImp = np.copy(self.data)
         np.moveaxis(tImp,mode,0)
-        mask = chord_drop(missingCube, drop)
+        missingCube, mask = chord_drop(tImp, drop)
         if callback: callback.set_mask(mask)
 
         if single:
             tImp[np.isfinite(missingCube)] = np.nan
             for rr in self.rrs:
                 if callback and rr == max(self.rrs):
-                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, callback=callback)
+                    if callback.track_runtime: callback.begin()
+                    CPinit = initialize_fac(missingCube, rr)
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, callback=callback, init=CPinit)
                 else:
-                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter)
+
+                    CPinit = initialize_fac(missingCube, rr)
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, init=CPinit)
         else:
             for x in range(repeat):
                 # Calculate Q2X for each number of components
@@ -170,9 +173,11 @@ class Decomposition():
             for rr in self.rrs:
                 if callback and rr == max(self.rrs):
                     if callback.track_runtime: callback.begin()
-                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback)
+                    CPinit = initialize_fac(missingCube, rr)
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                 else:
-                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask)
+                    CPinit = initialize_fac(missingCube, rr)
+                    tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
                 Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
 
         else:
