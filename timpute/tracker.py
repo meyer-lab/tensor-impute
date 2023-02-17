@@ -98,7 +98,7 @@ class tracker():
             e1 = ax.errorbar(np.arange(self.fitted_array.shape[1]), np.nanmean(self.fitted_array,0), yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
             e2 = ax.errorbar(np.arange(self.impute_array.shape[1])+.1, np.nanmean(self.impute_array,0), yerr=impute_errbar, label=methodname+' Imputation Error', errorevery=5)
             e1[-1][0].set_linestyle('dotted')
-            e1[-1][0].set_linestyle('dotted')
+            e2[-1][0].set_linestyle('dotted')
             ax.legend(loc='upper right')
         elif rep == None:
             for i in range(self.rep+1):
