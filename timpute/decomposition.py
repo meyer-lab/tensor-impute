@@ -121,6 +121,7 @@ class Decomposition():
                 tImp[np.isfinite(missingCube)] = np.nan
                 for rr in self.rrs:
                     if callback and rr == max(self.rrs):
+                        if callback.track_runtime: callback.begin()
                         tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, callback=callback)
                     else:
                         tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter)
@@ -186,6 +187,7 @@ class Decomposition():
                 tImp[np.isfinite(missingCube)] = np.nan
                 for rr in self.rrs:
                     if callback and rr == max(self.rrs):
+                        if callback.track_runtime: callback.begin()
                         tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, callback=callback)
                     else:
                         tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter)
