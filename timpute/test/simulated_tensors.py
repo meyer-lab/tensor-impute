@@ -10,7 +10,7 @@ def createNoise(tensor,scale=1.0):
 
 
 def createUnknownRank(drop_perc=0.0, size=(10, 20, 25), distribution="gamma", scale=1, par=1):
-    if distribution == "gamma": tensor = np.random.gamma(par, scale, np.prod(size))
+    if distribution == "gamma": tensor = np.random.gamma(par, scale, size=size)
     if distribution == "chisquare": tensor = np.random.chisquare(size=size)
     if distribution == "logistic": tensor = np.random.logistic(size=size)
     if distribution == "exponential": tensor = np.random.exponential(size=size)
