@@ -59,12 +59,11 @@ def entry_drop(tensor, drop, seed=None):
     data_pattern = np.ones_like(tensor) # capture missingness pattern
     dropidxs = idxs[np.random.choice(idxs.shape[0], drop, replace=False)]
     dropidxs = [tuple(dropidxs[i]) for i in range(drop)]
-    dropped_tensor = np.copy(tensor)
     for i in dropidxs:
-        dropped_tensor[i] = np.nan
+        tensor[i] = np.nan
         data_pattern[i] = 0
     
-    return dropped_tensor, np.array(data_pattern, dtype=bool)
+    return np.array(data_pattern, dtype=bool)
 
 def chord_drop(tensor, drop, seed=None):
     """
@@ -93,7 +92,6 @@ def chord_drop(tensor, drop, seed=None):
     data_pattern = np.ones_like(tensor) # capture missingness pattern
 
     chordlen = tensor.shape[0]
-    dropped_tensor = np.copy(tensor)
     for _ in range(drop):
         idxs = np.argwhere(np.isfinite(tensor))
         chordidx = np.delete(idxs[np.random.choice(idxs.shape[0], 1)][0], 0, -1)
@@ -103,6 +101,6 @@ def chord_drop(tensor, drop, seed=None):
         for i in range(chordlen):
             if tensor[dropidxs[i]] != np.nan:
                 data_pattern[dropidxs[i]] = 0  
-            dropped_tensor[dropidxs[i]] = np.nan  
+            tensor[dropidxs[i]] = np.nan  
 
-    return dropped_tensor, np.array(data_pattern, dtype=bool)
+    return np.array(data_pattern, dtype=bool)
