@@ -91,17 +91,12 @@ class Decomposition():
         """
         Q2X = np.zeros((repeat,self.rrs[-1]))
 
-        for x in range(repeat):
-            tImp = np.copy(self.data)
-            np.moveaxis(tImp,mode,0)
-            missingCube, mask = chord_drop(tImp, drop)
-            if callback: callback.set_mask(mask)
-
-            # Calculate Q2X for each number of components
+        # Calculate Q2X for each number of components
         
         tImp = np.copy(self.data)
         np.moveaxis(tImp,mode,0)
-        missingCube, mask = chord_drop(tImp, drop)
+        missingCube = np.copy(tImp)
+        mask = chord_drop(missingCube, drop)
         if callback: callback.set_mask(mask)
 
         if single:
@@ -166,7 +161,8 @@ class Decomposition():
         Q2XPCA = np.zeros((repeat,self.rrs[-1]))
         
         tImp = np.copy(self.data)
-        missingCube, mask = entry_drop(tImp, drop)
+        missingCube = np.copy(tImp)
+        mask = entry_drop(missingCube, drop)
         if callback: callback.set_mask(mask)
 
         if single:
