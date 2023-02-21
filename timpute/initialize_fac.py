@@ -1,5 +1,5 @@
 import numpy as np
-from tensorly import svd_interface
+from tensorly.tenalg import svd_interface
 import tensorly as tl
 from .SVD_impute import IterativeSVD
 
