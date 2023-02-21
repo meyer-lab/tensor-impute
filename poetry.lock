@@ -786,7 +786,7 @@ scipy = ">=1.0"
 
 [[package]]
 name = "setuptools"
-version = "67.3.3"
+version = "67.4.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 category = "main"
 optional = false
@@ -883,7 +883,7 @@ resolved_reference = "a28f5ecf636d9c84185a1ff9ca8c69d5cd6244d0"
 
 [[package]]
 name = "tensorly"
-version = "0.7.0"
+version = "0.8.0"
 description = "Tensor learning in Python."
 category = "main"
 optional = false
@@ -1040,7 +1040,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<3.11"
-content-hash = "fefb1b36460ce0139071a1c56bc87422aa98f6be4fa69c365eadcda1b20293e4"
+content-hash = "c86d7839193775eaab097279e495b8213997828cbc05fd30f1f45411e010a946"
 
 [metadata.files]
 appnope = [
@@ -1971,8 +1971,8 @@ seaborn = [
     {file = "seaborn-0.11.2.tar.gz", hash = "sha256:cf45e9286d40826864be0e3c066f98536982baf701a7caa386511792d61ff4f6"},
 ]
 setuptools = [
-    {file = "setuptools-67.3.3-py3-none-any.whl", hash = "sha256:9d3de8591bd6f6522594406fa46a6418eabd0562dacb267f8556675762801514"},
-    {file = "setuptools-67.3.3.tar.gz", hash = "sha256:ed4e75fafe103c79b692f217158ba87edf38d31004b9dbc1913debb48793c828"},
+    {file = "setuptools-67.4.0-py3-none-any.whl", hash = "sha256:f106dee1b506dee5102cc3f3e9e68137bbad6d47b616be7991714b0c62204251"},
+    {file = "setuptools-67.4.0.tar.gz", hash = "sha256:e5fd0a713141a4a105412233c63dc4e17ba0090c8e8334594ac790ec97792330"},
 ]
 setuptools-scm = [
     {file = "setuptools_scm-7.1.0-py3-none-any.whl", hash = "sha256:73988b6d848709e2af142aa48c986ea29592bbcfca5375678064708205253d8e"},
@@ -1996,8 +1996,8 @@ tabulate = [
 ]
 tensordata = []
 tensorly = [
-    {file = "tensorly-0.7.0-py3-none-any.whl", hash = "sha256:484c6da50c34f23b3428d0d59b9dcbe5ff904d52f644ab4d62425f4fea3fa670"},
-    {file = "tensorly-0.7.0.tar.gz", hash = "sha256:fbfca8d0499f1b07530f5a2566a9a9f61ca3a31cfdec9f05155ad3f08332b3cc"},
+    {file = "tensorly-0.8.0-py3-none-any.whl", hash = "sha256:ee798200a3b57d118910392d7be6da759422bc7e2c51e2a20033f80f16bf0fcb"},
+    {file = "tensorly-0.8.0.tar.gz", hash = "sha256:8e1e406463127ac239f2808b3ed10a4deaad3cbdf670cf9d113d30ab0d0d8d74"},
 ]
 tensorpack = [
     {file = "tensorpack-0.11-py2.py3-none-any.whl", hash = "sha256:afcdaccf6e8e7d61c98970646d57b1c22372ddd712c462477a90f53e3994c4a1"},
