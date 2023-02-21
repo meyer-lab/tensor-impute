@@ -6,7 +6,7 @@ import tensorly as tl
 import warnings
 from tensorly.cp_tensor import _validate_cp_tensor
 from tensorly.random import random_cp
-from ..cmtf import delete_component, calcR2X, buildMat, sort_factors, perform_CLS
+from ..cmtf import delete_component, calcR2X, buildMat, sort_factors, perform_CLS, censored_lstsq
 from tensordata.alter import data as alter
 from tensorly.tenalg import khatri_rao
 from ..initialize_fac import initialize_fac
