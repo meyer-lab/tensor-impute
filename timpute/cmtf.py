@@ -22,16 +22,20 @@ def buildMat(tFac):
     return tFac.factors[0] @ tFac.mFactor.T
 
 
-def calcR2X(tFac, tIn=None, mIn=None, calcError=False):
+def calcR2X(tFac, tIn=None, mIn=None, calcError=False, mask=None):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
     assert (tIn is not None) or (mIn is not None)
 
     vTop, vBottom = 0.0, 0.0
 
     if tIn is not None:
-        tMask = np.isfinite(tIn)
-        tIn = np.nan_to_num(tIn)
-        vTop += np.linalg.norm(tl.cp_to_tensor(tFac) * tMask - tIn)**2.0
+        tOrig = np.copy(tIn)
+        if mask is not None:
+            tTens = tl.cp_to_tensor(tFac)*mask
+            tOrig = tIn*mask
+        tMask = np.isfinite(tOrig)
+        tIn = np.nan_to_num(tOrig)
+        vTop += np.linalg.norm(tTens * tMask - tOrig)**2.0
         vBottom += np.linalg.norm(tIn)**2.0
     if mIn is not None:
         mMask = np.isfinite(mIn)
