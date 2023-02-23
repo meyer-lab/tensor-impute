@@ -2,8 +2,9 @@ import numpy as np
 from tensorly.tenalg import svd_interface
 import tensorly as tl
 from .SVD_impute import IterativeSVD
+from tensorly.random import random_cp
 
-def initialize_fac(tensor: np.ndarray, rank: int):
+def initialize_fac(tensor: np.ndarray, rank: int, method='svd'):
     """Initialize factors used in `parafac`.
     Parameters
     ----------
@@ -14,6 +15,9 @@ def initialize_fac(tensor: np.ndarray, rank: int):
     factors : CPTensor
         An initial cp tensor.
     """
+    if method == 'random':
+        return random_cp(shape=tensor.shape, rank=rank)
+
     factors = [np.ones((tensor.shape[i], rank)) for i in range(tensor.ndim)]
     contain_missing = (np.sum(~np.isfinite(tensor)) > 0)
 
