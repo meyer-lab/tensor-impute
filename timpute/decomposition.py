@@ -90,6 +90,7 @@ class Decomposition():
             Each row represents a single repetition.
         """
         Q2X = np.zeros((repeat,self.rrs[-1]))
+        imputed_Q2X = np.zeros((repeat,self.rrs[-1]))
         fitted_Q2X = np.zeros((repeat,self.rrs[-1]))
 
         # Calculate Q2X for each number of components
@@ -111,7 +112,8 @@ class Decomposition():
                 else:
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
                     tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, init=CPinit)
-                Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals)
+                Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
+                imputed_Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals)
                 fitted_Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals)
 
         else:
@@ -132,13 +134,15 @@ class Decomposition():
                     else:
                         CPinit = initialize_fac(missingCube, rr, init)
                         tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
-                    Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals)
+                    Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
+                    imputed_Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals)
                     fitted_Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals)
 
                 if callback:
                     if x+1 < repeat: callback.new()
         
         self.chordQ2X = Q2X
+        self.imputed_entryQ2X = fitted_Q2X
         self.fitted_entryQ2X = fitted_Q2X
             
 
@@ -172,6 +176,7 @@ class Decomposition():
             SVD imputation. Each row represents a single repetition.
         """
         Q2X = np.zeros((repeat,self.rrs[-1]))
+        imputed_Q2X = np.zeros((repeat,self.rrs[-1]))
         fitted_Q2X = np.zeros((repeat,self.rrs[-1]))
 
         if single:
@@ -190,7 +195,8 @@ class Decomposition():
                 else:
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
                     tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, init=CPinit)
-                Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals)
+                Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
+                imputed_Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals)
                 fitted_Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals)
 
         else:
@@ -210,7 +216,8 @@ class Decomposition():
                     else:
                         CPinit = initialize_fac(missingCube, rr, init)
                         tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
-                    Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals)
+                    Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
+                    imputed_Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals)
                     fitted_Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals)
 
                 if callback:
@@ -231,8 +238,9 @@ class Decomposition():
                     Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
                     self.entryQ2XPCA = Q2XPCA
         
-            self.entryQ2X = Q2X
-            self.fitted_entryQ2X = fitted_Q2X
+        self.entryQ2X = Q2X
+        self.imputed_entryQ2X = fitted_Q2X
+        self.fitted_entryQ2X = fitted_Q2X
     
 
     def save(self, pfile):
