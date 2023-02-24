@@ -31,11 +31,11 @@ def calcR2X(tFac, tIn=None, mIn=None, calcError=False, mask=None):
     if tIn is not None:
         tOrig = np.copy(tIn)
         if mask is not None:
-            tTens = tl.cp_to_tensor(tFac)*mask
+            tFac = tl.cp_to_tensor(tFac)*mask
             tOrig = tIn*mask
         tMask = np.isfinite(tOrig)
         tIn = np.nan_to_num(tOrig)
-        vTop += np.linalg.norm(tTens * tMask - tOrig)**2.0
+        vTop += np.linalg.norm(tFac * tMask - tOrig)**2.0
         vBottom += np.linalg.norm(tIn)**2.0
     if mIn is not None:
         mMask = np.isfinite(mIn)
