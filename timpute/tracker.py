@@ -4,7 +4,7 @@ import pickle
 from .cmtf import calcR2X
 import matplotlib.patches as mpatches
 
-def calc_impute_error(mask, data, tFac):
+def calc_imputed_error(mask, data, tFac):
     if mask is not None:
         assert mask.all() == False, "Mask indicates no removed entries"
         tensorImp = np.copy(data)
@@ -25,7 +25,7 @@ class tracker():
         self.track_runtime = track_runtime
         self.rep = 0
         self.fitted_error = [np.full((1, 0), 0)]
-        self.impute_error = [np.full((1, 0), 0)]
+        self.imputed_error = [np.full((1, 0), 0)]
         if self.track_runtime:
             self.timer = [np.full((1, 0), 0)]
 
@@ -40,7 +40,7 @@ class tracker():
             else:
                 error = calcR2X(tFac, self.data, calcError=True)
         self.fitted_error[self.rep] = np.append(self.fitted_error[self.rep], error)
-        self.impute_error[self.rep] = np.append(self.impute_error[self.rep], calc_impute_error(self.mask, self.data, tFac))
+        self.imputed_error[self.rep] = np.append(self.imputed_error[self.rep], calc_imputed_error(self.mask, self.data, tFac))
             
         if self.track_runtime:
             assert self.start
@@ -56,7 +56,7 @@ class tracker():
     def new(self):
         """ Call to start tracking a repetition of the same method """
         self.fitted_error.append([np.full((1, 0), 0)])
-        self.impute_error.append([np.full((1, 0), 0)])
+        self.imputed_error.append([np.full((1, 0), 0)])
         if self.track_runtime:
             self.timer.append([np.full((1, 0), 0)])
         self.rep += 1
@@ -70,47 +70,47 @@ class tracker():
             if (current > max):
                 for j in range(i):
                     self.fitted_error[j] = np.append(self.fitted_error[j], np.full((current-max), np.nan))
-                    self.impute_error[j] = np.append(self.impute_error[j], np.full((current-max), np.nan))
+                    self.imputed_error[j] = np.append(self.imputed_error[j], np.full((current-max), np.nan))
                     if self.track_runtime: self.timer[j] = np.append(self.timer[j], np.full((current-max), np.nan))
                 max = current
             else:
                 self.fitted_error[i] = np.append(self.fitted_error[i], np.full((max-current), np.nan))
-                self.impute_error[i] = np.append(self.impute_error[i], np.full((max-current), np.nan))
+                self.imputed_error[i] = np.append(self.imputed_error[i], np.full((max-current), np.nan))
                 if self.track_runtime: self.timer[i] = np.append(self.timer[i], np.full((max-current), np.nan))
                 
         
         self.fitted_array = np.vstack(tuple(self.fitted_error)) 
-        self.impute_array = np.vstack(tuple(self.impute_error))    
+        self.imputed_array = np.vstack(tuple(self.imputed_error))    
         if self.track_runtime: self.time_array = np.vstack(tuple(self.timer))
 
     def reset(self):
         self.fitted_error = [np.full((1, 0), 0)]
-        self.impute_error = [np.full((1, 0), 0)]
+        self.imputed_error = [np.full((1, 0), 0)]
         if self.track_runtime: self.timer = [np.full((1, 0), 0)]
 
     """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
     def plot_iteration(self, ax, methodname='Method', average=True, rep=None):
         if average:
             fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
-            impute_errbar = [np.percentile(self.impute_array,25,0),np.percentile(self.impute_array,75,0)]
+            imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
             print(fitted_errbar)
-            print(impute_errbar)
+            print(imputed_errbar)
             e1 = ax.errorbar(np.arange(self.fitted_array.shape[1]), np.nanmean(self.fitted_array,0), yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
-            e2 = ax.errorbar(np.arange(self.impute_array.shape[1])+.1, np.nanmean(self.impute_array,0), yerr=impute_errbar, label=methodname+' Imputation Error', errorevery=5)
+            e2 = ax.errorbar(np.arange(self.imputed_array.shape[1])+.1, np.nanmean(self.imputed_array,0), yerr=imputed_errbar, label=methodname+' Imputation Error', errorevery=5)
             e1[-1][0].set_linestyle('dotted')
             e2[-1][0].set_linestyle('dotted')
             ax.legend(loc='upper right')
         elif rep == None:
             for i in range(self.rep+1):
                 ax.plot(np.arange(self.fitted_array.shape[1]), self.fitted_array[i], color='blue')
-                ax.plot(np.arange(self.impute_array.shape[1])+.1, self.impute_array[i], color='green')
+                ax.plot(np.arange(self.imputed_array.shape[1])+.1, self.imputed_array[i], color='green')
             leg1 = mpatches.Patch(color='blue', label=methodname+'Fitted Error')
             leg2 = mpatches.Patch(color='green', label=methodname+'Imputation Error')
             ax.legend(loc='upper right', handles=[leg1, leg2])
         else:
             assert rep < self.rep + 1
             ax.plot(np.arange(self.fitted_array.shape[1]), self.fitted_array[rep-1], color='blue')
-            ax.plot(np.arange(self.impute_array.shape[1])+.1, self.impute_array[rep-1], color='green')
+            ax.plot(np.arange(self.imputed_array.shape[1])+.1, self.imputed_array[rep-1], color='green')
             leg1 = mpatches.Patch(color='blue', label=methodname+'Fitted Error'+str(rep))
             leg2 = mpatches.Patch(color='green', label=methodname+'Imputation Error'+str(rep))
             ax.legend(loc='upper right', handles=[leg1, leg2])
@@ -125,14 +125,14 @@ class tracker():
         if rep == None:
             for i in range(self.rep+1):
                 ax.plot(self.time_array[i,1:maxlen], self.fitted_array[i,1:maxlen], color='blue')
-                ax.plot(self.time_array[i,1:maxlen], self.impute_array[i,1:maxlen], color='green')
+                ax.plot(self.time_array[i,1:maxlen], self.imputed_array[i,1:maxlen], color='green')
             ax.set_xlim((0, np.nanmax(self.time_array) * 1.2))
             leg1 = mpatches.Patch(color='blue', label=methodname+' Fitted Error')
             leg2 = mpatches.Patch(color='green', label=methodname+' Imputation Error')
         else:
             assert rep < self.rep + 1
             ax.plot(self.time_array[rep-1,1:maxlen], self.fitted_array[rep-1,1:maxlen], color='blue')
-            ax.plot(self.time_array[rep-1,1:maxlen], self.impute_array[rep-1,1:maxlen], color='green')
+            ax.plot(self.time_array[rep-1,1:maxlen], self.imputed_array[rep-1,1:maxlen], color='green')
             ax.set_xlim((0, np.nanmax(self.time_array[rep-1]) * 1.2))
             leg1 = mpatches.Patch(color='blue', label=methodname+' Fitted Error'+str(rep))
             leg2 = mpatches.Patch(color='green', label=methodname+' Imputation Error'+str(rep))
