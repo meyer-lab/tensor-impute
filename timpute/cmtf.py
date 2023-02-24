@@ -169,7 +169,7 @@ def cp_normalize(tFac):
     return tFac
 
   
-def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None, init=None):
+def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None, init=Nonem mask=None):
     """ Perform CP decomposition. """
 
     if init==None: tFac = initialize_fac(tOrig.copy(), rank)
