@@ -32,11 +32,11 @@ def calcR2X(tFac, tIn=None, mIn=None, calcError=False, mask=None):
         tOrig = np.copy(tIn)
         if mask is not None:
             tFac = tl.cp_to_tensor(tFac)*mask
-            tOrig = tIn*mask
+            tOrig = tOrig*mask
         tMask = np.isfinite(tOrig)
-        tIn = np.nan_to_num(tOrig)
+        tOrig = np.nan_to_num(tOrig)
         vTop += np.linalg.norm(tFac * tMask - tOrig)**2.0
-        vBottom += np.linalg.norm(tIn)**2.0
+        vBottom += np.linalg.norm(tOrig)**2.0
     if mIn is not None:
         mMask = np.isfinite(mIn)
         recon = tFac if isinstance(tFac, np.ndarray) else buildMat(tFac)
@@ -172,7 +172,7 @@ def cp_normalize(tFac):
 def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None, init=None, mask=None):
     """ Perform CP decomposition. """
 
-    if init==None: tFac = initialize_fac(tOrig.copy(), rank)
+    if init==None: tFac = initialize_fac(tOrig, rank)
     else: tFac = init
     if callback: callback(tFac)
     
