@@ -9,7 +9,7 @@ from scipy.optimize import minimize
 import tensorly as tl
 from .initialize_fac import initialize_fac
 from tensorly.cp_tensor import CPTensor, cp_normalize
-from .test.simulated_tensors import createCube
+from .test.simulated_tensors import createUnknownRank
 
 tl.set_backend('numpy')
 config.update("jax_enable_x64", True)
@@ -67,8 +67,6 @@ class do_callback():
         self.callback = callback
         self.r = r
         self.shape = shape
-        if self.callback.track_runtime:
-            self.callback.begin()
 
     def __call__(self, x):
         tensorFac = CPTensor((None, buildTensors(x, self.r, self.shape)))
@@ -79,15 +77,12 @@ class do_callback():
         self.callback(tensorFac)
 
 
-def perform_CP_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None):
+def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None, mask=None):
     """ Perform CP decomposition. """
-    if tensorOrig is None:
-        tensorOrig = createCube()
-    if callback:
-        temp_callback = do_callback(callback, rank, tensorOrig.shape)
-        temp_callback
-    else:
-        temp_callback = None
+    if tensorOrig is None: tensorOrig = createUnknownRank()
+    if init==None: init=initialize_fac(tensorOrig, rank)
+    if callback: temp_callback = do_callback(callback, rank, tensorOrig.shape)
+    else: temp_callback = None
 
     tensorIn = tensorOrig.copy()
     tmask = np.isnan(tensorIn)
@@ -102,9 +97,7 @@ def perform_CP_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None):
     def gradd(*args):
         return np.array(cost_grad(*args))
 
-    CPinit = initialize_fac(tensorIn.copy(), rank)
-    if callback: callback(CPinit)
-    x0 = np.concatenate(tuple([np.ravel(CPinit.factors[ii]) for ii in range(np.ndim(tensorIn))]))
+    x0 = np.concatenate(tuple([np.ravel(init.factors[ii]) for ii in range(np.ndim(tensorIn))]))
 
     rgs = (tensorIn, tmask, rank)
     res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter":n_iter_max}, callback=temp_callback)

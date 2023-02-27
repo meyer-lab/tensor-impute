@@ -6,7 +6,7 @@ import tensorly as tl
 import warnings
 from tensorly.cp_tensor import _validate_cp_tensor
 from tensorly.random import random_cp
-from ..cmtf import delete_component, calcR2X, buildMat, sort_factors, perform_CP, censored_lstsq
+from ..cmtf import delete_component, calcR2X, buildMat, sort_factors, perform_CLS, censored_lstsq
 from tensordata.alter import data as alter
 from tensorly.tenalg import khatri_rao
 from ..initialize_fac import initialize_fac
@@ -24,8 +24,8 @@ def createCube(missing=0.0, size=(10, 20, 25)):
 def test_cp():
     # Test that the CP decomposition code works.
     tensor = createCube(missing=0.2, size=(10, 20, 25))
-    fac3 = perform_CP(tensor, rank=3)
-    fac6 = perform_CP(tensor, rank=6)
+    fac3 = perform_CLS(tensor, rank=3)
+    fac6 = perform_CLS(tensor, rank=6)
     assert fac3.R2X < fac6.R2X
     assert fac3.R2X > 0.0
     if fac3.R2X < 0.67:
@@ -33,8 +33,8 @@ def test_cp():
 
     # test case where mode size < rank
     tensor2 = createCube(missing=0.2, size=(10, 4, 50))
-    fac23 = perform_CP(tensor2, rank=3)
-    fac26 = perform_CP(tensor2, rank=6)
+    fac23 = perform_CLS(tensor2, rank=3)
+    fac26 = perform_CLS(tensor2, rank=6)
     assert fac23.R2X < fac26.R2X
     assert fac23.R2X > 0.0
 

@@ -3,7 +3,7 @@ Censored Least Squares
 """
 
 import numpy as np
-from tensorly import svd_interface
+from tensorly.tenalg import svd_interface
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
 from .initialize_fac import initialize_fac
@@ -22,17 +22,23 @@ def buildMat(tFac):
     return tFac.factors[0] @ tFac.mFactor.T
 
 
-def calcR2X(tFac, tIn=None, mIn=None, calcError=False):
+def calcR2X(tFac, tIn=None, mIn=None, calcError=False, mask=None):
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
     assert (tIn is not None) or (mIn is not None)
 
     vTop, vBottom = 0.0, 0.0
 
     if tIn is not None:
-        tMask = np.isfinite(tIn)
-        tIn = np.nan_to_num(tIn)
-        vTop += np.linalg.norm(tl.cp_to_tensor(tFac) * tMask - tIn)**2.0
-        vBottom += np.linalg.norm(tIn)**2.0
+        tOrig = np.copy(tIn)
+        if mask is not None:
+            recons_tFac = tl.cp_to_tensor(tFac)*mask
+            tOrig = tOrig*mask
+        else:
+            recons_tFac = tl.cp_to_tensor(tFac)
+        tMask = np.isfinite(tOrig)
+        tOrig = np.nan_to_num(tOrig)
+        vTop += np.linalg.norm(recons_tFac * tMask - tOrig)**2.0
+        vBottom += np.linalg.norm(tOrig)**2.0
     if mIn is not None:
         mMask = np.isfinite(mIn)
         recon = tFac if isinstance(tFac, np.ndarray) else buildMat(tFac)
@@ -164,14 +170,14 @@ def cp_normalize(tFac):
 
     return tFac
 
-
-def perform_CP(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None):
+  
+def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None, init=None, mask=None):
     """ Perform CP decomposition. """
 
-    if callback: callback.begin()
-    tFac = initialize_fac(tOrig.copy(), rank)
+    if init==None: tFac = initialize_fac(tOrig, rank)
+    else: tFac = init
     if callback: callback(tFac)
-
+    
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
     R2X_last = -np.inf
