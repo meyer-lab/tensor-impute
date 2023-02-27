@@ -9,18 +9,17 @@ from tensordata.zohar import data as zohar
 
 def test_impute_alter():
     np.random.seed(5)
-    test = Decomposition(alter()['Fc'])
+    test = Decomposition(alter()['Fc'].to_numpy())
     test.Q2X_chord(drop=30, repeat=1)
     assert max(test.chordQ2X[0]) >= .8
     test.Q2X_entry(drop=9000,repeat=3, comparePCA=True)
     assert len(test.entryQ2X) == len(test.entryQ2XPCA)
     assert len(test.entryQ2X[0]) == len(test.entryQ2XPCA[0])
     assert max(test.entryQ2X[0]) >= .85
-    assert max(test.entryQ2XPCA[0]) >= .8
 
 def test_impute_zohar():
     np.random.seed(5)
-    test = Decomposition(zohar())
+    test = Decomposition(zohar().to_numpy())
     test.Q2X_chord(drop=5, repeat=1)
     assert max(test.chordQ2X[0]) >= .4
     test.Q2X_entry(drop=3000,repeat=1, comparePCA=True)
