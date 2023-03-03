@@ -77,7 +77,7 @@ class do_callback():
         self.callback(tensorFac)
 
 
-def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None):
+def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None, mask=None):
     """ Perform CP decomposition. """
     if tensorOrig is None: tensorOrig = createUnknownRank()
     if init==None: init=initialize_fac(tensorOrig, rank)
