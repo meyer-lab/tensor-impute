@@ -67,25 +67,25 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented,
             imputed_df.index = comps
             imputed_df['mean'] = imputed_df.mean(axis=1)
             imputed_df['sem'] = imputed_df.sem(axis=1)
-            TR2X = imputed_df['mean']
-            TErr = imputed_df['sem']
-            ax[plotID].plot(comps + 0.05, TR2X, ".", label=m.__name__+' Imputed Error')
-            ax[plotID].errorbar(comps + 0.05, TR2X, yerr=TErr, fmt='none', ecolor='b')
+            imputed_means = imputed_df['mean']
+            imputed_sem = imputed_df['sem']
+            ax[plotID].plot(comps + 0.05, imputed_means, ".", label=m.__name__+' Imputed Error')
+            ax[plotID].errorbar(comps + 0.05, imputed_means, yerr=imputed_sem, fmt='none', ecolor='b')
             
             fitted_df.index = comps
             fitted_df['mean'] = fitted_df.mean(axis=1)
             fitted_df['sem'] = fitted_df.sem(axis=1)
-            TR2X = fitted_df['mean']
-            TErr = fitted_df['sem']
-            ax[plotID].plot(comps, TR2X, ".", label=m.__name__+' Imputed Error')
-            ax[plotID].errorbar(comps, TR2X, yerr=TErr, fmt='none', ecolor='b')
+            fitted_means = fitted_df['mean']
+            fitted_sem = fitted_df['sem']
+            ax[plotID].plot(comps, fitted_means, ".", label=m.__name__+' Fitted Error')
+            ax[plotID].errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none', ecolor='b')
 
             ax[plotID].set_ylabel("Entry Imputation Error")
             ax[plotID].set_xlabel("Number of Components")
             ax[plotID].set_xticks([x for x in comps])
             ax[plotID].set_xticklabels([x for x in comps])
             ax[plotID].set_ylim(0, 1)
-            ax[plotID].legend(loc=4)
+            ax[plotID].legend(loc='upper right')
         
         if impute_type == 'chord':
             imputed_df = pd.DataFrame(decomp.imputed_chord_error).T
@@ -94,25 +94,25 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented,
             imputed_df.index = comps
             imputed_df['mean'] = imputed_df.mean(axis=1)
             imputed_df['sem'] = imputed_df.sem(axis=1)
-            Q2Xchord = imputed_df['mean']
-            Q2Xerrors = imputed_df['sem']
-            ax.scatter(comps, Q2Xchord, s=10)
-            ax.errorbar(comps, Q2Xchord, yerr=Q2Xerrors, fmt='none')
+            imputed_means = imputed_df['mean']
+            imputed_sem = imputed_df['sem']
+            ax[plotID].plot(comps + 0.05, imputed_means, ".", label=m.__name__+' Imputed Error')
+            ax[plotID].errorbar(comps + 0.05, imputed_means, yerr=imputed_sem, fmt='none')
 
-            comps = decomp.rrs
             fitted_df.index = comps
             fitted_df['mean'] = fitted_df.mean(axis=1)
             fitted_df['sem'] = fitted_df.sem(axis=1)
-            Q2Xchord = fitted_df['mean']
-            Q2Xerrors = fitted_df['sem']
-            ax.scatter(comps, Q2Xchord, s=10)
-            ax.errorbar(comps, Q2Xchord, yerr=Q2Xerrors, fmt='none')
+            fitted_means = fitted_df['mean']
+            fitted_sem = fitted_df['sem']
+            ax[plotID].plot(comps, fitted_means, ".", label=m.__name__+' Fitted Error')
+            ax[plotID].errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none')
 
-            ax.set_ylabel("Chord Imputation Error")
-            ax.set_xlabel("Number of Components")
-            ax.set_xticks([x for x in comps])
-            ax.set_xticklabels([x for x in comps])
-            ax.set_ylim(bottom=0.0, top=1.0)         
+            ax[plotID].set_ylabel("Chord Imputation Error")
+            ax[plotID].set_xlabel("Number of Components")
+            ax[plotID].set_xticks([x for x in comps])
+            ax[plotID].set_xticklabels([x for x in comps])
+            ax[plotID].set_ylim(0, 1)    
+            ax[plotID].legend(loc='upper right')     
         
         plotID = methodID + 3
         track.plot_iteration(ax[plotID], methodname=m.__name__)
