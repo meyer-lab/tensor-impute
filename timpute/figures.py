@@ -34,7 +34,7 @@ def generateTensor(type=None, r=6, shape=(10,20,25), scale=2, distribution='gamm
 
 def compare_imputation(tensor=None, init='svd', reg=NotImplemented,
                        impute_type='entry', impute_r=6, impute_reps=5, impute_perc=0.25, impute_mode=0,
-                       save=None, graphComp=True, graphIter=True):
+                       save=None):
     # run all methods
     if tensor==None: tensor = generateTensor()
     dirname = os.getcwd()+'/methodruns/'
@@ -114,10 +114,8 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented,
             ax.set_xticklabels([x for x in comps])
             ax.set_ylim(bottom=0.0, top=1.0)         
         
-        # plot iteration vs imputed/fitted error
-        if graphIter:
-            plotID = methodID + 3
-            track.plot_iteration(ax[plotID], methodname=m.__name__)
+        plotID = methodID + 3
+        track.plot_iteration(ax[plotID], methodname=m.__name__)
 
         methodID = methodID + 1
 
