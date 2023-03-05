@@ -93,8 +93,6 @@ class tracker():
         if average:
             fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
             imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
-            print(fitted_errbar)
-            print(imputed_errbar)
             e1 = ax.errorbar(np.arange(self.fitted_array.shape[1]), np.nanmean(self.fitted_array,0), yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
             e2 = ax.errorbar(np.arange(self.imputed_array.shape[1])+.1, np.nanmean(self.imputed_array,0), yerr=imputed_errbar, label=methodname+' Imputation Error', errorevery=5)
             e1[-1][0].set_linestyle('dotted')
