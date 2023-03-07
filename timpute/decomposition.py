@@ -113,8 +113,8 @@ class Decomposition():
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
                     tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, init=CPinit)
                 Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
-                imputed_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals)
-                fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals)
+                imputed_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
+                fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
 
         else:
             for x in range(repeat):
@@ -196,8 +196,8 @@ class Decomposition():
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
                     tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, init=CPinit)
                 Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
-                imputed_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals)
-                fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals)
+                imputed_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
+                fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
 
         else:
             for x in range(repeat):
