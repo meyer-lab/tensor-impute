@@ -16,14 +16,14 @@ from timpute.cmtf import perform_CLS
 from timpute.tensorly_als import perform_ALS
 
 
-def generateTensor(type=None, r=6, shape=(10,20,25), scale=2, distribution='gamma', par=2, missingness=0.1, noise_scale=50):
-    if type == "zohar": return zohar().to_numpy()
-    elif type == "atyeo": return atyeo().to_numpy()
-    elif type == "alter": return alter()['Fc'].to_numpy()
-    elif type == "unknown":
+def generateTensor(type=None, r=6, shape=(20,25,30), scale=2, distribution='gamma', par=2, missingness=0.1, noise_scale=50):
+    if type == 'zohar': return zohar().to_numpy()
+    elif type == 'atyeo': return atyeo().to_numpy()
+    elif type == 'alter': return alter()['Fc'].to_numpy()
+    elif type == 'unknown':
             temp = createUnknownRank(drop_perc=missingness, size=shape, distribution=distribution, scale=scale, par=par)
             return createNoise(temp,noise_scale)
-    elif type == "known":
+    elif type == 'known':
             temp = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
             return createNoise(temp,noise_scale)
     else:
@@ -33,11 +33,13 @@ def generateTensor(type=None, r=6, shape=(10,20,25), scale=2, distribution='gamm
 
 def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[perform_DO,perform_ALS,perform_CLS],
                        impute_type='entry', impute_r=6, impute_reps=5, impute_perc=0.25, impute_mode=0,
-                       save=None):
+                       f_size=(12,6), save=None):
     # run all methods
-    if tensor==None: tensor = generateTensor()
-    dirname = os.getcwd()+'/methodruns/'
-    ax, f = getSetup((16,9), (2,3))
+    if tensor is None: tensor = generateTensor()
+    save = 'methodruns/'+save
+    os.makedirs(save)
+    dirname = os.getcwd()+'/'+save
+    ax, f = getSetup(f_size, (2,3))
     methodID = 0
 
     for m in methods:
@@ -52,6 +54,7 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
             decomp.Q2X_entry(drop=drop, repeat=impute_reps, callback=track)
         elif impute_type=='chord':
             drop = int(impute_perc*tensor.shape[impute_mode])
+            if drop < 1: drop = 1
             decomp.Q2X_chord(drop=drop, repeat=impute_reps, callback=track)
         track.combine()
 
@@ -67,9 +70,9 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
 
         # save for inspection
         if save is not None:
-            decomp.save(dirname + save + "-" + m.__name__ + '-imputations')
-            track.save(dirname + save + "-" + m.__name__ + '-iters')
-            f.savefig(dirname + save + "-" + "imputation_results.pdf", format="pdf", bbox_inches="tight")
+            decomp.save(dirname + '/' + m.__name__ + '-imputations')
+            track.save(dirname + '/' + m.__name__ + '-iters')
+            f.savefig(dirname + '/' + "imputation_results.pdf", format="pdf", bbox_inches="tight")
 
     return f 
         
