@@ -73,8 +73,8 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
         if save is not None:
             decomp.save('./'+dirname+'/' + m.__name__ + '-imputations')
             track.save('./'+dirname+'/' + m.__name__ + '-iters')
-            f.savefig('./'+dirname+'/' + "imputation_results.pdf", format="pdf", bbox_inches="tight")
-
+    
+    if save is not None: f.savefig('./'+dirname+'/' + "imputation_results", bbox_inches="tight")
     return f 
         
     

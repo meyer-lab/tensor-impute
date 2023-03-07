@@ -134,3 +134,6 @@ dmypy.json
 
 # Other jupyter files
 *.ipynb
+
+# Plotting results
+methodruns/
