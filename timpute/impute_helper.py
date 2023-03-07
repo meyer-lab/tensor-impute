@@ -24,8 +24,6 @@ def entry_drop(tensor, drop, seed=None):
 
     Returns
     -------
-    dropped_tensor : ndarray
-        tensor is modified with missing chords
     mask : ndarray (boolean)
         artificial missingness mask
     """
@@ -79,8 +77,6 @@ def chord_drop(tensor, drop, seed=None):
 
     Returns
     -------
-    dropped_tensor : ndarray
-        tensor is modified with missing chords
     mask : ndarray (boolean)
         artificial missingness mask
     """
