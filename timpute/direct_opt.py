@@ -81,7 +81,9 @@ def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None,
     """ Perform CP decomposition. """
     if tensorOrig is None: tensorOrig = createUnknownRank()
     if init==None: init=initialize_fac(tensorOrig, rank)
-    if callback: temp_callback = do_callback(callback, rank, tensorOrig.shape)
+    if callback:
+        callback(init)
+        temp_callback = do_callback(callback, rank, tensorOrig.shape)
     else: temp_callback = None
 
     tensorIn = tensorOrig.copy()
