@@ -36,9 +36,10 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
                        f_size=(12,6), save=None):
     # run all methods
     if tensor is None: tensor = generateTensor()
-    save = 'methodruns/'+save
-    os.makedirs(save)
-    dirname = os.getcwd()+'/'+save
+    
+    dirname = 'methodruns/'+save
+    if os.path.isdir(dirname) == False: os.makedirs(dirname)
+
     ax, f = getSetup(f_size, (2,3))
     methodID = 0
 
@@ -70,9 +71,9 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
 
         # save for inspection
         if save is not None:
-            decomp.save(dirname + '/' + m.__name__ + '-imputations')
-            track.save(dirname + '/' + m.__name__ + '-iters')
-            f.savefig(dirname + '/' + "imputation_results.pdf", format="pdf", bbox_inches="tight")
+            decomp.save('./'+dirname+'/' + m.__name__ + '-imputations')
+            track.save('./'+dirname+'/' + m.__name__ + '-iters')
+            f.savefig('./'+dirname+'/' + "imputation_results.pdf", format="pdf", bbox_inches="tight")
 
     return f 
         
