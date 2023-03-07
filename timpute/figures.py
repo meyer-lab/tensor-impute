@@ -16,7 +16,7 @@ from timpute.cmtf import perform_CLS
 from timpute.tensorly_als import perform_ALS
 
 
-def generateTensor(type=None, r=6, shape=(10,20,25), scale=2, distribution='gamma', par=2, missingness=0.2, noise_scale=50):
+def generateTensor(type=None, r=6, shape=(10,20,25), scale=2, distribution='gamma', par=2, missingness=0.1, noise_scale=50):
     if type == "zohar": return zohar().to_numpy()
     elif type == "atyeo": return atyeo().to_numpy()
     elif type == "alter": return alter()['Fc'].to_numpy()
