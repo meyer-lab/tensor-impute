@@ -15,7 +15,6 @@ from timpute.direct_opt import perform_DO
 from timpute.cmtf import perform_CLS
 from timpute.tensorly_als import perform_ALS
 
-methods = [perform_DO,perform_ALS,perform_CLS]
 
 def generateTensor(type=None, r=6, shape=(10,20,25), scale=2, distribution='gamma', par=2, missingness=0.2, noise_scale=50):
     if type == "zohar": return zohar().to_numpy()
@@ -32,13 +31,12 @@ def generateTensor(type=None, r=6, shape=(10,20,25), scale=2, distribution='gamm
             return createNoise(temp,noise_scale)
 
 
-def compare_imputation(tensor=None, init='svd', reg=NotImplemented,
+def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[perform_DO,perform_ALS,perform_CLS],
                        impute_type='entry', impute_r=6, impute_reps=5, impute_perc=0.25, impute_mode=0,
                        save=None):
     # run all methods
     if tensor==None: tensor = generateTensor()
     dirname = os.getcwd()+'/methodruns/'
-    methods = [perform_DO,perform_ALS,perform_CLS]
     ax, f = getSetup((16,9), (2,3))
     methodID = 0
 
@@ -60,60 +58,8 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented,
         # plot components vs imputed/fitted error
         plotID = methodID
         comps = decomp.rrs
-        if impute_type == 'entry':
-            imputed_df = pd.DataFrame(decomp.imputed_entry_error).T
-            fitted_df = pd.DataFrame(decomp.fitted_entry_error).T
-
-            imputed_df.index = comps
-            imputed_df['mean'] = imputed_df.mean(axis=1)
-            imputed_df['sem'] = imputed_df.sem(axis=1)
-            imputed_means = imputed_df['mean']
-            imputed_sem = imputed_df['sem']
-            ax[plotID].plot(comps + 0.05, imputed_means, ".", label=m.__name__+' Imputed Error')
-            ax[plotID].errorbar(comps + 0.05, imputed_means, yerr=imputed_sem, fmt='none', ecolor='b')
-            
-            fitted_df.index = comps
-            fitted_df['mean'] = fitted_df.mean(axis=1)
-            fitted_df['sem'] = fitted_df.sem(axis=1)
-            fitted_means = fitted_df['mean']
-            fitted_sem = fitted_df['sem']
-            ax[plotID].plot(comps, fitted_means, ".", label=m.__name__+' Fitted Error')
-            ax[plotID].errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none', ecolor='b')
-
-            ax[plotID].set_ylabel("Entry Imputation Error")
-            ax[plotID].set_xlabel("Number of Components")
-            ax[plotID].set_xticks([x for x in comps])
-            ax[plotID].set_xticklabels([x for x in comps])
-            ax[plotID].set_ylim(0, 1)
-            ax[plotID].legend(loc='upper right')
-        
-        if impute_type == 'chord':
-            imputed_df = pd.DataFrame(decomp.imputed_chord_error).T
-            fitted_df = pd.DataFrame(decomp.fitted_chord_error).T
-
-            imputed_df.index = comps
-            imputed_df['mean'] = imputed_df.mean(axis=1)
-            imputed_df['sem'] = imputed_df.sem(axis=1)
-            imputed_means = imputed_df['mean']
-            imputed_sem = imputed_df['sem']
-            ax[plotID].plot(comps + 0.05, imputed_means, ".", label=m.__name__+' Imputed Error')
-            ax[plotID].errorbar(comps + 0.05, imputed_means, yerr=imputed_sem, fmt='none')
-
-            fitted_df.index = comps
-            fitted_df['mean'] = fitted_df.mean(axis=1)
-            fitted_df['sem'] = fitted_df.sem(axis=1)
-            fitted_means = fitted_df['mean']
-            fitted_sem = fitted_df['sem']
-            ax[plotID].plot(comps, fitted_means, ".", label=m.__name__+' Fitted Error')
-            ax[plotID].errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none')
-
-            ax[plotID].set_ylabel("Chord Imputation Error")
-            ax[plotID].set_xlabel("Number of Components")
-            ax[plotID].set_xticks([x for x in comps])
-            ax[plotID].set_xticklabels([x for x in comps])
-            ax[plotID].set_ylim(0, 1)    
-            ax[plotID].legend(loc='upper right')     
-        
+        if impute_type == 'entry': q2xentry(ax[plotID], decomp, methodname = m.__name__, detailed=True)
+        elif impute_type == 'chord': q2xchord(ax[plotID], decomp, methodname = m.__name__, detailed=True)
         plotID = methodID + 3
         track.plot_iteration(ax[plotID], methodname=m.__name__)
 

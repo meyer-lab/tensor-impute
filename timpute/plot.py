@@ -55,7 +55,7 @@ def reduction(ax, decomp):
     ax.legend()
 
 
-def q2xchord(ax, decomp):
+def q2xchord(ax, decomp, methodname = "CP", detailed=False):
     """
     Plots Q2X for tensor factorization when removing chords from a single mode for all components up to decomp.max_rr.
     Requires multiple runs to generate error bars.
@@ -67,25 +67,51 @@ def q2xchord(ax, decomp):
     decomp : Decomposition
         Takes a Decomposition object that has successfully run decomp.Q2X_chord().
     """
-    chords_df = decomp.chordQ2X
-    comps = decomp.rrs
-    chords_df = pd.DataFrame(decomp.chordQ2X).T
-    chords_df.index = comps
-    chords_df['mean'] = chords_df.mean(axis=1)
-    chords_df['sem'] = chords_df.sem(axis=1)
 
-    Q2Xchord = chords_df['mean']
-    Q2Xerrors = chords_df['sem']
-    ax.scatter(comps, Q2Xchord, s=10)
-    ax.errorbar(comps, Q2Xchord, yerr=Q2Xerrors, fmt='none')
-    ax.set_ylabel("Q2X of Chord Imputation")
+    comps = decomp.rrs
+    
+    if detailed == False:
+        chords_df = decomp.chordQ2X
+        chords_df = pd.DataFrame(decomp.chordQ2X).T
+        chords_df.index = comps
+        chords_df['mean'] = chords_df.mean(axis=1)
+        chords_df['sem'] = chords_df.sem(axis=1)
+
+        Q2Xchord = chords_df['mean']
+        Q2Xerrors = chords_df['sem']
+        ax.scatter(comps, Q2Xchord, s=10)
+        ax.errorbar(comps, Q2Xchord, yerr=Q2Xerrors, fmt='none')
+        ax.set_ylabel("Q2X of Chord Imputation")
+    
+    else:
+        imputed_df = pd.DataFrame(decomp.imputed_chord_error).T
+        fitted_df = pd.DataFrame(decomp.fitted_chord_error).T
+
+        imputed_df.index = comps
+        imputed_df['mean'] = imputed_df.mean(axis=1)
+        imputed_df['sem'] = imputed_df.sem(axis=1)
+        imputed_means = imputed_df['mean']
+        imputed_sem = imputed_df['sem']
+        ax.plot(comps + 0.05, imputed_means, ".", label=methodname+' Imputed Error')
+        ax.errorbar(comps + 0.05, imputed_means, yerr=imputed_sem, fmt='none')
+
+        fitted_df.index = comps
+        fitted_df['mean'] = fitted_df.mean(axis=1)
+        fitted_df['sem'] = fitted_df.sem(axis=1)
+        fitted_means = fitted_df['mean']
+        fitted_sem = fitted_df['sem']
+        ax.plot(comps, fitted_means, ".", label=methodname+' Fitted Error')
+        ax.errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none')
+        ax.set_ylabel("Chord Imputation Error")
+
     ax.set_xlabel("Number of Components")
     ax.set_xticks([x for x in comps])
     ax.set_xticklabels([x for x in comps])
-    ax.set_ylim(bottom=0.0, top=1.0)
+    ax.set_ylim(0, 1)    
+    ax.legend(loc='upper right')  
 
 
-def q2xentry(ax, decomp, methodname = "CP", comparePCA = False):
+def q2xentry(ax, decomp, methodname = "CP", detailed=True, comparePCA = False):
     """
     Plots Q2X for tensor factorization versus PCA when removing entries for all components up to decomp.max_rr.
     Requires multiple runs to generate error bars.
@@ -99,16 +125,39 @@ def q2xentry(ax, decomp, methodname = "CP", comparePCA = False):
     methodname : str
         Allows for proper tensor method when naming graph axes. 
     """
-    entry_df = pd.DataFrame(decomp.entryQ2X).T
     comps = decomp.rrs
 
-    entry_df.index = comps
-    entry_df['mean'] = entry_df.mean(axis=1)
-    entry_df['sem'] = entry_df.sem(axis=1)
-    TR2X = entry_df['mean']
-    TErr = entry_df['sem']
-    ax.plot(comps - 0.05, TR2X, ".", label=methodname)
-    ax.errorbar(comps - 0.05, TR2X, yerr=TErr, fmt='none', ecolor='b')
+    if detailed == False:
+        entry_df = pd.DataFrame(decomp.entryQ2X).T
+        entry_df.index = comps
+        entry_df['mean'] = entry_df.mean(axis=1)
+        entry_df['sem'] = entry_df.sem(axis=1)
+        TR2X = entry_df['mean']
+        TErr = entry_df['sem']
+        ax.plot(comps - 0.05, TR2X, ".", label=methodname)
+        ax.errorbar(comps - 0.05, TR2X, yerr=TErr, fmt='none', ecolor='b')
+        ax.set_ylabel("Q2X of Entry Imputation")
+    
+    else:
+        imputed_df = pd.DataFrame(decomp.imputed_entry_error).T
+        fitted_df = pd.DataFrame(decomp.fitted_entry_error).T
+
+        imputed_df.index = comps
+        imputed_df['mean'] = imputed_df.mean(axis=1)
+        imputed_df['sem'] = imputed_df.sem(axis=1)
+        imputed_means = imputed_df['mean']
+        imputed_sem = imputed_df['sem']
+        ax.plot(comps + 0.05, imputed_means, ".", label=methodname+' Imputed Error')
+        ax.errorbar(comps + 0.05, imputed_means, yerr=imputed_sem, fmt='none', ecolor='b')
+        
+        fitted_df.index = comps
+        fitted_df['mean'] = fitted_df.mean(axis=1)
+        fitted_df['sem'] = fitted_df.sem(axis=1)
+        fitted_means = fitted_df['mean']
+        fitted_sem = fitted_df['sem']
+        ax.plot(comps, fitted_means, ".", label=methodname+' Fitted Error')
+        ax.errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none', ecolor='b')
+        ax.set_ylabel("Entry Imputation Error")
 
     if comparePCA:
         entrypca_df = pd.DataFrame(decomp.entryQ2XPCA).T
@@ -120,12 +169,11 @@ def q2xentry(ax, decomp, methodname = "CP", comparePCA = False):
         ax.plot(comps + 0.05, PCAR2X, ".", label="PCA")
         ax.errorbar(comps + 0.05, PCAR2X, yerr=PCAErr, fmt='none', ecolor='darkorange')
 
-    ax.set_ylabel("Q2X of Entry Imputation")
     ax.set_xlabel("Number of Components")
     ax.set_xticks([x for x in comps])
     ax.set_xticklabels([x for x in comps])
     ax.set_ylim(0, 1)
-    ax.legend(loc=4)
+    ax.legend(loc="upper right")
 
 
 def tucker_reduced_Dsize(tensor, ranks:list):
