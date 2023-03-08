@@ -6,7 +6,7 @@ import numpy as np
 from tensorly.tenalg import svd_interface
 import tensorly as tl
 from tensorly.tenalg import khatri_rao
-from .initialize_fac import initialize_fac
+from timpute.initialize_fac import initialize_fac
 from copy import deepcopy
 from tqdm import tqdm
 from sklearn.linear_model import Ridge

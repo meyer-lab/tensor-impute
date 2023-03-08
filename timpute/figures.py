@@ -33,7 +33,7 @@ def generateTensor(type=None, r=6, shape=(20,25,30), scale=2, distribution='gamm
 
 def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[perform_DO,perform_ALS,perform_CLS],
                        impute_type='entry', impute_r=6, impute_reps=5, impute_perc=0.25, impute_mode=0,
-                       f_size=(12,6), save=None):
+                       f_size=(12,6), save=None, printRuntime=True):
     # run all methods
     if tensor is None: tensor = generateTensor()
     
@@ -42,8 +42,10 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
 
     ax, f = getSetup(f_size, (2,3))
     methodID = 0
+    start = time.time()
 
     for m in methods:
+        mstart = time.time()
         # instantiate objects
         track = tracker(tensor,track_runtime=True)
         decomp = Decomposition(tensor, method=m, max_rr=impute_r)
@@ -58,6 +60,7 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
             if drop < 1: drop = 1
             decomp.Q2X_chord(drop=drop, repeat=impute_reps, callback=track)
         track.combine()
+        if printRuntime: print(m.__name__ + ": " + str(time.time()-mstart))
 
         # plot components vs imputed/fitted error
         plotID = methodID
@@ -74,6 +77,7 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
             decomp.save('./'+dirname+'/' + m.__name__ + '-imputations')
             track.save('./'+dirname+'/' + m.__name__ + '-iters')
     
+    if printRuntime: print("Total runtime: " + str(time.time()-start))
     if save is not None: f.savefig('./'+dirname+'/' + "imputation_results", bbox_inches="tight")
     return f 
         

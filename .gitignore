@@ -132,8 +132,10 @@ dmypy.json
 
 .DS_Store
 
-# Other jupyter files
+# Testing (Ethan)
 *.ipynb
-
-# Plotting results
+figures/
 methodruns/
+knownrank.py
+unknownrank.py
+real-zohar.py
