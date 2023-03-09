@@ -56,7 +56,7 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
             drop = int(impute_perc*np.sum(np.isfinite(tensor)))
             decomp.Q2X_entry(drop=drop, repeat=impute_reps, callback=track)
         elif impute_type=='chord':
-            drop = int(impute_perc*tensor.shape[impute_mode])
+            drop = int(impute_perc*tensor.size/tensor.shape[impute_mode])
             if drop < 1: drop = 1
             decomp.Q2X_chord(drop=drop, repeat=impute_reps, callback=track)
         track.combine()
@@ -64,7 +64,6 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
 
         # plot components vs imputed/fitted error
         plotID = methodID
-        comps = decomp.rrs
         if impute_type == 'entry': q2xentry(ax[plotID], decomp, methodname = m.__name__, detailed=True)
         elif impute_type == 'chord': q2xchord(ax[plotID], decomp, methodname = m.__name__, detailed=True)
         plotID = methodID + 3
@@ -77,7 +76,7 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
             decomp.save('./'+dirname+'/' + m.__name__ + '-imputations')
             track.save('./'+dirname+'/' + m.__name__ + '-iters')
     
-    if printRuntime: print("Total runtime: " + str(time.time()-start))
+    if printRuntime: print("Total runtime: " + str(time.time()-start)+'\n')
     if save is not None: f.savefig('./'+dirname+'/' + "imputation_results", bbox_inches="tight")
     return f 
         
