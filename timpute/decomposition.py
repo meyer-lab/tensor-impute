@@ -62,7 +62,7 @@ class Decomposition():
         self.PCAR2X = [calcR2X(c, mIn=flatData) for c in recon]
         self.sizePCA = [sum(flatData.shape) * rr for rr in self.rrs]
 
-    def Q2X_chord(self, drop=5, repeat=3, maxiter=50, mode=0, callback=None, single=False, init='svd'):
+    def Q2X_chord(self, drop=5, repeat=3, maxiter=50, mode=0, single=False, init='svd', callback=None, callback_r=None):
         """
         Calculates Q2X when dropping chords along axis = mode from the data using self.method for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -92,6 +92,7 @@ class Decomposition():
         Q2X = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
         fitted_error = np.zeros((repeat,self.rrs[-1]))
+        if callback_r is None: callback_r = max(self.rrs)
 
         # Calculate Q2X for each number of components
 
@@ -127,7 +128,7 @@ class Decomposition():
                 fitted_vals = np.isfinite(tImp) - imputed_vals
 
                 for rr in self.rrs:
-                    if callback and rr == max(self.rrs):
+                    if callback and rr == callback_r:
                         if callback.track_runtime: callback.begin()
                         CPinit = initialize_fac(missingCube, rr, init)
                         tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
@@ -146,7 +147,7 @@ class Decomposition():
         self.fitted_chord_error = fitted_error
             
 
-    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, comparePCA=False, callback=None, single=False, init='svd'):
+    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, single=False, init='svd', comparePCA=False, callback=None, callback_r=None):
         """
         Calculates Q2X when dropping entries from the data using self.method for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -178,6 +179,7 @@ class Decomposition():
         Q2X = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
         fitted_error = np.zeros((repeat,self.rrs[-1]))
+        if callback_r is None: callback_r = max(self.rrs)
 
         if single:
             for x in range(repeat):
@@ -209,7 +211,7 @@ class Decomposition():
                 fitted_vals = np.isfinite(tImp) - imputed_vals
 
                 for rr in self.rrs:
-                    if callback and rr == max(self.rrs):
+                    if callback and rr == callback_r:
                         if callback.track_runtime: callback.begin()
                         CPinit = initialize_fac(missingCube, rr, init)
                         tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
