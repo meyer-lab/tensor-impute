@@ -26,6 +26,8 @@ def entry_drop(tensor, drop, seed=None):
     -------
     mask : ndarray (boolean)
         artificial missingness mask
+        0 = indicates artificial missingness added
+        1 = indicates original data was untouched (regardless of true missingness status)
     """
     # Track chords for each mode to ensure bare minimum cube covers each chord at least once
 
@@ -72,17 +74,18 @@ def chord_drop(tensor, drop, seed=None):
     tensor : ndarray
         Takes a tensor of any shape.
     drop : int
-        To set a percentage, multiply tensor.shape[0] by the percentage
+        To set a percentage, multiply int(tensor.size/tensor.shape[0]) by the percentage
         to find the relevant drop value, rounding to nearest int.
 
     Returns
     -------
     mask : ndarray (boolean)
         artificial missingness mask
+        0 = indicates artificial missingness added
+        1 = indicates original data was untouched (regardless of true missingness status)
     """
 
-    if seed != None:
-        np.random.seed(seed)
+    if seed != None: np.random.seed(seed)
 
     # Drop chords based on random idxs
     data_pattern = np.ones_like(tensor) # capture missingness pattern
@@ -90,13 +93,13 @@ def chord_drop(tensor, drop, seed=None):
     chordlen = tensor.shape[0]
     for _ in range(drop):
         idxs = np.argwhere(np.isfinite(tensor))
-        chordidx = np.delete(idxs[np.random.choice(idxs.shape[0], 1)][0], 0, -1)
+        chordidx = np.delete(idxs[np.random.choice(idxs.shape[0], 1)][0], 0)
         dropidxs = []
         for i in range(chordlen):
-            dropidxs.append(tuple(np.insert(chordidx, 0, i).T))
+            dropidxs.append(tuple(np.insert(chordidx, 0, i)))
         for i in range(chordlen):
             if tensor[dropidxs[i]] != np.nan:
                 data_pattern[dropidxs[i]] = 0  
-            tensor[dropidxs[i]] = np.nan  
+            tensor[dropidxs[i]] = np.nan
 
     return np.array(data_pattern, dtype=bool)
