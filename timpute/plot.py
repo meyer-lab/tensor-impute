@@ -100,7 +100,7 @@ def q2xchord(ax, decomp, methodname = "CP", detailed=False):
         fitted_df['sem'] = fitted_df.sem(axis=1)
         fitted_means = fitted_df['mean']
         fitted_sem = fitted_df['sem']
-        ax.scatter(comps, fitted_means, ".", color='C1', s=10, label=methodname+' Fitted Error')
+        ax.scatter(comps, fitted_means, color='C1', s=10, label=methodname+' Fitted Error')
         ax.errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none', ecolor='C1')
 
         ax.set_ylabel("Chord Imputation Error")
