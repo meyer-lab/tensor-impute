@@ -54,11 +54,11 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
         # TODO: update with regularization when reg=True
         if impute_type=='entry':
             drop = int(impute_perc*np.sum(np.isfinite(tensor)))
-            decomp.Q2X_entry(drop=drop, repeat=impute_reps, callback=track)
+            decomp.Q2X_entry(drop=drop, repeat=impute_reps, callback=track, init=init)
         elif impute_type=='chord':
             drop = int(impute_perc*tensor.size/tensor.shape[impute_mode])
             if drop < 1: drop = 1
-            decomp.Q2X_chord(drop=drop, repeat=impute_reps, callback=track)
+            decomp.Q2X_chord(drop=drop, repeat=impute_reps, callback=track, init=init)
         track.combine()
         if printRuntime: print(m.__name__ + ": " + str(time.time()-mstart))
 
@@ -81,3 +81,20 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
     return f 
         
     
+def regraph(dir=None, impute_type='entry', methods=[perform_DO,perform_ALS,perform_CLS], f_size=(12,6)):
+    assert(dir is not None)
+    ax, f = getSetup(f_size, (2,3))
+    methodID = 0
+
+    for m in methods:
+        decomp = Decomposition().load(dir + m.__name__ + '-imputations')
+        track = tracker().load(dir + m.__name__ + '-imputations')
+
+        # plot components vs imputed/fitted error
+        plotID = methodID
+        if impute_type == 'entry': q2xentry(ax[plotID], decomp, methodname = m.__name__, detailed=True)
+        elif impute_type == 'chord': q2xchord(ax[plotID], decomp, methodname = m.__name__, detailed=True)
+        plotID = methodID + 3
+        track.plot_iteration(ax[plotID], methodname=m.__name__)
+
+        methodID = methodID + 1
