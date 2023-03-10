@@ -93,8 +93,8 @@ class tracker():
         if average:
             fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
             imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
-            e1 = ax.errorbar(np.arange(self.fitted_array.shape[1]), np.nanmean(self.fitted_array,0), yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
-            e2 = ax.errorbar(np.arange(self.imputed_array.shape[1])+.1, np.nanmean(self.imputed_array,0), yerr=imputed_errbar, label=methodname+' Imputation Error', errorevery=5)
+            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+.05, np.nanmean(self.imputed_array,0), yerr=imputed_errbar, label=methodname+' Imputed Error', errorevery=5)
+            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1]), np.nanmean(self.fitted_array,0), yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
             e1[-1][0].set_linestyle('dotted')
             e2[-1][0].set_linestyle('dotted')
             ax.legend(loc='upper right')
@@ -110,7 +110,7 @@ class tracker():
             ax.plot(np.arange(self.fitted_array.shape[1]), self.fitted_array[rep-1], color='blue')
             ax.plot(np.arange(self.imputed_array.shape[1])+.1, self.imputed_array[rep-1], color='green')
             leg1 = mpatches.Patch(color='blue', label=methodname+'Fitted Error'+str(rep))
-            leg2 = mpatches.Patch(color='green', label=methodname+'Imputation Error'+str(rep))
+            leg2 = mpatches.Patch(color='green', label=methodname+'Imputed Error'+str(rep))
             ax.legend(loc='upper right', handles=[leg1, leg2])
         ax.set_ylim((0.0, 1.0))
         ax.set_xlim((0, self.fitted_array.shape[1]))
@@ -126,14 +126,14 @@ class tracker():
                 ax.plot(self.time_array[i,1:maxlen], self.imputed_array[i,1:maxlen], color='green')
             ax.set_xlim((0, np.nanmax(self.time_array) * 1.2))
             leg1 = mpatches.Patch(color='blue', label=methodname+' Fitted Error')
-            leg2 = mpatches.Patch(color='green', label=methodname+' Imputation Error')
+            leg2 = mpatches.Patch(color='green', label=methodname+' Imputed Error')
         else:
             assert rep < self.rep + 1
             ax.plot(self.time_array[rep-1,1:maxlen], self.fitted_array[rep-1,1:maxlen], color='blue')
             ax.plot(self.time_array[rep-1,1:maxlen], self.imputed_array[rep-1,1:maxlen], color='green')
             ax.set_xlim((0, np.nanmax(self.time_array[rep-1]) * 1.2))
             leg1 = mpatches.Patch(color='blue', label=methodname+' Fitted Error'+str(rep))
-            leg2 = mpatches.Patch(color='green', label=methodname+' Imputation Error'+str(rep))
+            leg2 = mpatches.Patch(color='green', label=methodname+' Imputed Error'+str(rep))
         ax.legend(loc='upper right', handles=[leg1, leg2])
         ax.set_ylim((0.0, 1.0))
         ax.set_xlabel('Runtime (s)')

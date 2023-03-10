@@ -92,22 +92,25 @@ def q2xchord(ax, decomp, methodname = "CP", detailed=False):
         imputed_df['sem'] = imputed_df.sem(axis=1)
         imputed_means = imputed_df['mean']
         imputed_sem = imputed_df['sem']
-        ax.plot(comps + 0.05, imputed_means, ".", label=methodname+' Imputed Error')
-        ax.errorbar(comps + 0.05, imputed_means, yerr=imputed_sem, fmt='none')
+        ax.plot(comps + 0.05, imputed_means, color='C0', label=methodname+' Imputed Error')
+        e1 = ax.errorbar(comps + 0.05, imputed_means, yerr=imputed_sem, fmt='none', ecolor='C0')
+        e1[-1][0].set_linestyle('dotted')
 
         fitted_df.index = comps
         fitted_df['mean'] = fitted_df.mean(axis=1)
         fitted_df['sem'] = fitted_df.sem(axis=1)
         fitted_means = fitted_df['mean']
         fitted_sem = fitted_df['sem']
-        ax.plot(comps, fitted_means, ".", label=methodname+' Fitted Error')
-        ax.errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none')
+        ax.plot(comps, fitted_means, ".", color='C1', label=methodname+' Fitted Error')
+        e2 = ax.errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none', ecolor='C1')
+        e2[-1][0].set_linestyle('dotted')
+
         ax.set_ylabel("Chord Imputation Error")
 
     ax.set_xlabel("Number of Components")
     ax.set_xticks([x for x in comps])
     ax.set_xticklabels([x for x in comps])
-    ax.set_ylim(0, 1)    
+    ax.set_ylim(0, 1)
     ax.legend(loc='upper right')  
 
 
@@ -147,16 +150,18 @@ def q2xentry(ax, decomp, methodname = "CP", detailed=True, comparePCA = False):
         imputed_df['sem'] = imputed_df.sem(axis=1)
         imputed_means = imputed_df['mean']
         imputed_sem = imputed_df['sem']
-        ax.plot(comps + 0.05, imputed_means, ".", label=methodname+' Imputed Error')
-        ax.errorbar(comps + 0.05, imputed_means, yerr=imputed_sem, fmt='none', ecolor='b')
+        ax.plot(comps + 0.05, imputed_means, color='C0', label=methodname+' Imputed Error')
+        e1 = ax.errorbar(comps + 0.05, imputed_means, yerr=imputed_sem, fmt='none', ecolor='C0')
+        e1[-1][0].set_linestyle('dotted')
         
         fitted_df.index = comps
         fitted_df['mean'] = fitted_df.mean(axis=1)
         fitted_df['sem'] = fitted_df.sem(axis=1)
         fitted_means = fitted_df['mean']
         fitted_sem = fitted_df['sem']
-        ax.plot(comps, fitted_means, ".", label=methodname+' Fitted Error')
-        ax.errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none', ecolor='b')
+        ax.plot(comps, fitted_means, color='C1', label=methodname+' Fitted Error')
+        e2 = ax.errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none', ecolor='C1')
+        e2[-1][0].set_linestyle('dotted')
         ax.set_ylabel("Entry Imputation Error")
 
     if comparePCA:
