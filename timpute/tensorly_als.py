@@ -118,7 +118,7 @@ def perform_ALS(
     tensor,
     rank,
     n_iter_max=100,
-    init="svd",
+    init=None,
     svd="truncated_svd",
     normalize_factors=False,
     orthogonalise=False,
@@ -225,7 +225,9 @@ def perform_ALS(
         acc_fail = 0  # How many times acceleration have failed
         max_fail = 4  # Increase acc_pow with one after max_fail failure
 
-    weights, factors = initialize_fac(tensor,rank)
+    
+    if init is None: init = initialize_fac(tensor,rank)
+    weights, factors = init
 
     rec_errors = []
     norm_tensor = tl.norm(tensor, 2)
