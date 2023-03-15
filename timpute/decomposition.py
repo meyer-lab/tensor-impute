@@ -74,12 +74,14 @@ class Decomposition():
             to find the relevant drop value, rounding to nearest int.
         repeat : int
         maxiter : int
+        single : boolean
+            Looks at only the final component (useful for plotting)
         mode : int
             Defaults to mode corresponding to axis = 0. Can be set to any mode of the tensor.
         callback : tracker Class
             Optional callback class to track R2X over iteration/runtime for the factorization with max_rr components.
-        single : boolean
-            Looks at only the final component (useful for plotting)
+        callback_r : int
+            Optional component to look atl; defaulted to the max component if not specified.
 
 
 
@@ -88,6 +90,12 @@ class Decomposition():
         self.Q2X : ndarray of size (repeat, max_rr)
             Each value in a row represents the Q2X of the tensor calculated for components 1 to max_rr.
             Each row represents a single repetition.
+        self.imputed_chord_error : ndarray of size (repeat, max_rr)
+            Each value in a row represents error of the IMPUTED artificial dropped values of the tensor
+            calculated for components 1 to max_rr.
+        self.fitted_chord_error : ndarray of size (repeat, max_rr)
+            Each value in a row represents error of the FITTED (not dropped, not missing) values of the tensor
+            calculated for components 1 to max_rr.
         """
         Q2X = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
@@ -98,14 +106,18 @@ class Decomposition():
 
         if single:
             for x in range(repeat):
+                # drop values
                 tImp = np.copy(self.data)
                 np.moveaxis(tImp,mode,0)
                 missingCube = np.copy(tImp)
                 mask = chord_drop(missingCube, drop)
+                
+                # track masks
                 if callback: callback.set_mask(mask)
                 imputed_vals = np.ones_like(missingCube) - mask
                 fitted_vals = np.isfinite(tImp) - imputed_vals
 
+                # run method
                 if callback:
                     if callback.track_runtime: callback.begin()
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
@@ -113,21 +125,28 @@ class Decomposition():
                 else:
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
                     tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, init=CPinit)
+
+                # save error/Q2X
                 Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
                 imputed_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
                 fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
 
         else:
             for x in range(repeat):
+                # drop values
                 tImp = np.copy(self.data)
                 np.moveaxis(tImp,mode,0)
                 missingCube = np.copy(tImp)
                 mask = chord_drop(missingCube, drop)
+
+                # track masks
                 if callback: callback.set_mask(mask)
                 imputed_vals = np.ones_like(missingCube) - mask
                 fitted_vals = np.isfinite(tImp) - imputed_vals
-
+                
+                # for each component up to max
                 for rr in self.rrs:
+                    #run method
                     if callback and rr == callback_r:
                         if callback.track_runtime: callback.begin()
                         CPinit = initialize_fac(missingCube, rr, init)
@@ -135,6 +154,8 @@ class Decomposition():
                     else:
                         CPinit = initialize_fac(missingCube, rr, init)
                         tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
+
+                    # save error/Q2X
                     Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
                     imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
                     fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
@@ -147,7 +168,7 @@ class Decomposition():
         self.fitted_chord_error = fitted_error
             
 
-    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, single=False, init='svd', comparePCA=False, callback=None, callback_r=None):
+    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, dropany=True, single=False, init='svd', comparePCA=False, callback=None, callback_r=None):
         """
         Calculates Q2X when dropping entries from the data using self.method for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -159,23 +180,36 @@ class Decomposition():
             to find the relevant drop value, rounding to nearest int.
         repeat : int
         maxiter : int
+        dropany : boolean
+            considers whether to prevent chord dropping in dropping logic
+        single : boolean
+            Looks at only the final component (useful for plotting)
         comparePCA : boolean
             Defaulted to calculate Q2X for respective principal components using PCA for factorization
             to compare against self.method.
+            NOTE: cannot have dropany=True, otherwise empty chords may be present
         callback : tracker Class
             Optional callback class to track R2X over iteration/runtime for the factorization with max_rr components.
-        single : boolean
-            Looks at only the final component (useful for plotting)
+        callback_r : int
+            Optional component to look atl; defaulted to the max component if not specified.
 
         Returns
         -------
         self.Q2X : ndarray of size (repeat, max_rr)
             Each value in a row represents the Q2X of the tensor calculated for components 1 to max_rr using self.method.
             Each row represents a single repetition.
+        self.imputed_chord_error : ndarray of size (repeat, max_rr)
+            Each value in a row represents error of the IMPUTED artificial dropped values of the tensor
+            calculated for components 1 to max_rr.
+        self.fitted_chord_error : ndarray of size (repeat, max_rr)
+            Each value in a row represents error of the FITTED (not dropped, not missing) values of the tensor
+            calculated for components 1 to max_rr.
         self.Q2XPCA : ndarray of size (repeat, max_rr)
             Each value in a row represents the Q2X of the tensor calculated for components 1 to max_rr using PCA after
-            SVD imputation. Each row represents a single repetition.
+            SVD imputation. Each row represents a single repetition. (only if comparePCA=True)
         """
+        assert(dropany is False or comparePCA is False)
+
         Q2X = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
         fitted_error = np.zeros((repeat,self.rrs[-1]))
@@ -183,13 +217,18 @@ class Decomposition():
 
         if single:
             for x in range(repeat):
+                # drop values
                 tImp = np.copy(self.data)
                 missingCube = np.copy(tImp)
-                mask = entry_drop(missingCube, drop)
+                if dropany: mask = entry_drop(missingCube, drop, dropany=True)
+                else: mask = entry_drop(missingCube, drop)
+
+                # track masks
                 if callback: callback.set_mask(mask)
                 imputed_vals = np.ones_like(missingCube) - mask
                 fitted_vals = np.isfinite(tImp) - imputed_vals
 
+                # run method
                 if callback:
                     if callback.track_runtime: callback.begin()
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
@@ -197,20 +236,28 @@ class Decomposition():
                 else:
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
                     tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, init=CPinit)
+
+                # save error/Q2X
                 Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
                 imputed_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
                 fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
 
         else:
             for x in range(repeat):
+                # drop values
                 tImp = np.copy(self.data)
                 missingCube = np.copy(tImp)
-                mask = entry_drop(missingCube, drop)
+                if dropany: mask = entry_drop(missingCube, drop, dropany=True)
+                else: mask = entry_drop(missingCube, drop)
+
+                # track masks
                 if callback: callback.set_mask(mask)
                 imputed_vals = np.ones_like(missingCube) - mask
                 fitted_vals = np.isfinite(tImp) - imputed_vals
 
+                # for each component up to max
                 for rr in self.rrs:
+                    # run method
                     if callback and rr == callback_r:
                         if callback.track_runtime: callback.begin()
                         CPinit = initialize_fac(missingCube, rr, init)
@@ -218,6 +265,7 @@ class Decomposition():
                     else:
                         CPinit = initialize_fac(missingCube, rr, init)
                         tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
+                    # save error/Q2X
                     Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
                     imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
                     fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)

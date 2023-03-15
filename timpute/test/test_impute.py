@@ -2,7 +2,7 @@ import numpy as np
 import tensorly as tl
 from tensorly.random import random_cp
 from ..decomposition import Decomposition
-from ..impute_helper import create_missingness
+from ..impute_helper import entry_drop
 from tensordata.atyeo import data as atyeo
 from tensordata.alter import data as alter
 from tensordata.zohar import data as zohar
@@ -44,7 +44,7 @@ def test_impute_noise_missing():
     np.random.seed(5)
     shape = (10,10,10)
     tensor = tl.cp_to_tensor(random_cp(shape, 10))
-    create_missingness(tensor,300)
+    entry_drop(tensor,300, dropany=True)
     noise = np.random.normal(0.5,0.15, shape)
     tensor_2 = np.add(tensor,noise)
 

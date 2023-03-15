@@ -1,7 +1,7 @@
 import numpy as np
 import tensorly as tl
 from tensorly.cp_tensor import CPTensor
-from ..impute_helper import create_missingness
+from ..impute_helper import entry_drop
 
 def createNoise(tensor,scale=1.0):
     noise = np.random.normal(0, scale, tensor.shape)
@@ -19,7 +19,7 @@ def createUnknownRank(drop_perc=0.0, size=(10, 20, 25), distribution="gamma", sc
 
     if scale != 1: tensor *= scale
 
-    create_missingness(tensor, int(drop_perc*tensor.size))
+    entry_drop(tensor, int(drop_perc*tensor.size), dropany=True)
     return tensor
 
 def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", scale=1, par=1, noise=True):
@@ -43,5 +43,5 @@ def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma"
     temp = tl.cp_to_tensor(CPTensor((None, factors)))
     if noise: 
         tensor = np.add(np.random.normal(0.5,0.15, size),temp)
-    create_missingness(tensor, int(drop_perc*tensor.size))
+    entry_drop(tensor, int(drop_perc*tensor.size), dropany=True)
     return tensor

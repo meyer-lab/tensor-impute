@@ -1,16 +1,6 @@
 import numpy as np
 
-def create_missingness(tensor, drop):
-    """
-    Creates missingness for a full tensor. Slgihtly faster than entry_drop()
-    """
-    idxs = np.argwhere(np.isfinite(tensor))
-    dropidxs = idxs[np.random.choice(idxs.shape[0], drop, replace=False)]
-    dropidxs = tuple(dropidxs.T)
-    tensor[dropidxs] = np.nan
-
-
-def entry_drop(tensor, drop, seed=None):
+def entry_drop(tensor, drop, dropany=False, seed=None):
     """
     Drops random values within a tensor. Finds a bare minimum cube before dropping values to ensure PCA remains viable.
 
@@ -34,31 +24,33 @@ def entry_drop(tensor, drop, seed=None):
     if seed != None:
         np.random.seed(seed)
 
-    midxs = np.zeros((tensor.ndim, max(tensor.shape)))
-    for i in range(tensor.ndim):
-        midxs[i] = [1 for n in range(tensor.shape[i])] + [0 for m in range(len(midxs[i]) - tensor.shape[i])]
-    modecounter = np.arange(tensor.ndim)
+    if dropany: idxs = np.argwhere(np.isfinite(tensor))
+        
+    else:
+        midxs = np.zeros((tensor.ndim, max(tensor.shape)))
+        for i in range(tensor.ndim):
+            midxs[i] = [1 for n in range(tensor.shape[i])] + [0 for m in range(len(midxs[i]) - tensor.shape[i])]
+        modecounter = np.arange(tensor.ndim)
 
-    # Remove bare minimum cube idxs from droppable values
-    idxs = np.argwhere(np.isfinite(tensor))
-    while np.sum(midxs) > 0:
-        removable = False
-        ran = np.random.choice(idxs.shape[0], 1)
-        ranidx = idxs[ran][0]
-        counter = 0
-        for i in ranidx:
-            if midxs[modecounter[counter], i] > 0:
-                removable = True
-            midxs[modecounter[counter], i] = 0
-            counter += 1
-        if removable == True:
-            idxs = np.delete(idxs, ran, axis=0)
-    assert idxs.shape[0] >= drop
+        # Remove bare minimum cube idxs from droppable values
+        idxs = np.argwhere(np.isfinite(tensor))
+        while np.sum(midxs) > 0:
+            removable = False
+            ran = np.random.choice(idxs.shape[0], 1)
+            ranidx = idxs[ran][0]
+            counter = 0
+            for i in ranidx:
+                if midxs[modecounter[counter], i] > 0:
+                    removable = True
+                midxs[modecounter[counter], i] = 0
+                counter += 1
+            if removable == True:
+                idxs = np.delete(idxs, ran, axis=0)
+        assert idxs.shape[0] >= drop
 
     # Drop values
     data_pattern = np.ones_like(tensor) # capture missingness pattern
     dropidxs = idxs[np.random.choice(idxs.shape[0], drop, replace=False)]
-    dropidxs = [tuple(dropidxs[i]) for i in range(drop)]
     for i in dropidxs:
         tensor[i] = np.nan
         data_pattern[i] = 0
