@@ -55,7 +55,7 @@ def reduction(ax, decomp):
     ax.legend()
 
 
-def q2xchord(ax, decomp, methodname = "CP", detailed=False):
+def q2xchord(ax, decomp, methodname = "CP", detailed=True):
     """
     Plots Q2X for tensor factorization when removing chords from a single mode for all components up to decomp.max_rr.
     Requires multiple runs to generate error bars.

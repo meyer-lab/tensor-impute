@@ -15,10 +15,11 @@ seaborn = "^0.11.2"
 svgutils = "^0.3.4"
 xarray = "^2022.6.0"
 ipykernel = "^6.16.0"
-jax = "^0.3.19"
-jaxlib = "^0.3.20"
+jax = {extras = ["cuda"], version = "^0.4.6"}
+jaxlib = "0.4.6"
 tensorpack = "^0.11"
 scikit-learn = "^1.1.3"
+tensorflow = "^2.11.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
