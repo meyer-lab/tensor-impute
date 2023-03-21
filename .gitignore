@@ -134,9 +134,5 @@ dmypy.json
 
 # Testing (Ethan)
 *.ipynb
-figures/
+analysis/
 methodruns/
-knownrank.py
-unknownrank.py
-real-zohar.py
-regraph.py
