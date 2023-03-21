@@ -208,7 +208,7 @@ class Decomposition():
             Each value in a row represents the Q2X of the tensor calculated for components 1 to max_rr using PCA after
             SVD imputation. Each row represents a single repetition. (only if comparePCA=True)
         """
-        assert(dropany is False or comparePCA is False)
+        if comparePCA: assert(dropany is False)
 
         Q2X = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
