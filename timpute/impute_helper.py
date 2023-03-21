@@ -51,6 +51,7 @@ def entry_drop(tensor, drop, dropany=False, seed=None):
     # Drop values
     data_pattern = np.ones_like(tensor) # capture missingness pattern
     dropidxs = idxs[np.random.choice(idxs.shape[0], drop, replace=False)]
+    dropidxs = [tuple(dropidxs[i]) for i in range(dropidxs.shape[0])]
     for i in dropidxs:
         tensor[i] = np.nan
         data_pattern[i] = 0

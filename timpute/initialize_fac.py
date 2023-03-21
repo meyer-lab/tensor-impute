@@ -16,7 +16,7 @@ def initialize_fac(tensor: np.ndarray, rank: int, method='svd'):
         An initial cp tensor.
     """
     if method == 'random':
-        return random_cp(shape=tensor.shape, rank=rank)
+        return random_cp(shape=tensor.shape, rank=rank, normalise_factors=False)
 
     factors = [np.ones((tensor.shape[i], rank)) for i in range(tensor.ndim)]
     contain_missing = (np.sum(~np.isfinite(tensor)) > 0)

@@ -40,7 +40,7 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
     dirname = 'methodruns/'+save
     if os.path.isdir(dirname) == False: os.makedirs(dirname)
 
-    ax, f = getSetup(f_size, (2,3))
+    ax, f = getSetup(f_size, (2,len(methods)))
     methodID = 0
     start = time.time()
 
@@ -81,7 +81,7 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
     return f 
         
     
-def regraph(save=None, impute_type='entry', methods=[perform_DO,perform_ALS,perform_CLS], f_size=(12,6)):
+def regraph(save=None, fname="new_imputation_results", impute_type='entry', methods=[perform_DO,perform_ALS,perform_CLS], f_size=(12,6)):
     assert(save is not None)
     ax, f = getSetup(f_size, (2,3))
     methodID = 0
@@ -104,6 +104,6 @@ def regraph(save=None, impute_type='entry', methods=[perform_DO,perform_ALS,perf
 
         methodID = methodID + 1
     
-    f.savefig("new_imputation_results", bbox_inches="tight")
+    f.savefig(fname, bbox_inches="tight")
 
     return f
