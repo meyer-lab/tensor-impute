@@ -134,5 +134,5 @@ dmypy.json
 
 # Testing (Ethan)
 *.ipynb
-analysis/
+CoHcomponents/
 methodruns/
