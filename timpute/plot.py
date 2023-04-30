@@ -177,6 +177,34 @@ def q2xentry(ax, decomp, methodname = "CP", detailed=True, comparePCA = False):
     ax.legend(loc="upper right")
 
 
+def l2_plot(ax, decomp, alpha, methodname = "CP", comp=None):
+    """ Plots the error for a CLS factorization at a given component number with a given regularization term alpha.
+    Must be run multiple times to graph every alpha level of interest
+
+    """
+
+    if comp is None: comp = max(decomp.rrs)
+    imputed_df = pd.DataFrame(decomp.imputed_entry_error[:,comp])
+    fitted_df = pd.DataFrame(decomp.fitted_entry_error[:,comp])
+
+    fitted_df.index = alpha
+    imputed_mean = imputed_df.mean()
+    imputed_sem = imputed_df.sem()
+    ax.scatter(alpha + 0.05, imputed_mean, color='C0', s=10, label=methodname+' Imputed Error')
+    ax.errorbar(alpha + 0.05, imputed_mean, yerr=imputed_sem, fmt='none', ecolor='C0')
+    
+    fitted_df.index = alpha
+    fitted_mean = fitted_df.mean()
+    fitted_sem = fitted_df.sem()
+    ax.scatter(alpha, fitted_mean, color='C1', s=10, label=methodname+' Fitted Error')
+    ax.errorbar(alpha, fitted_mean, yerr=fitted_sem, fmt='none', ecolor='C1')
+
+    ax.set_xlabel("L2 Regularization Term")
+    ax.set_ylabel("Imputation Error at Component "+str(comp))
+    ax.xscale("log")
+    ax.yscale("log")
+    ax.legend(loc="upper right")
+
 def tucker_reduced_Dsize(tensor, ranks:list):
     """ Output the error (1 - r2x) for each size of the data at each component # for tucker decomposition.
     This forms the x-axis of the error vs. data size plot.

@@ -62,7 +62,7 @@ class Decomposition():
         self.PCAR2X = [calcR2X(c, mIn=flatData) for c in recon]
         self.sizePCA = [sum(flatData.shape) * rr for rr in self.rrs]
 
-    def Q2X_chord(self, drop=5, repeat=3, maxiter=50, mode=0, single=False, init='svd', callback=None, callback_r=None):
+    def Q2X_chord(self, drop=5, repeat=3, maxiter=50, mode=0, alpha=None, single=False, init='svd', callback=None, callback_r=None):
         """
         Calculates Q2X when dropping chords along axis = mode from the data using self.method for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -121,10 +121,12 @@ class Decomposition():
                 if callback:
                     if callback.track_runtime: callback.begin()
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
-                    tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
+                    if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
+                    else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                 else:
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
-                    tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, init=CPinit)
+                    if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
+                    else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
 
                 # save error/Q2X
                 Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
@@ -150,10 +152,12 @@ class Decomposition():
                     if callback and rr == callback_r:
                         if callback.track_runtime: callback.begin()
                         CPinit = initialize_fac(missingCube, rr, init)
-                        tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
+                        if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
+                        else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                     else:
                         CPinit = initialize_fac(missingCube, rr, init)
-                        tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
+                        if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
+                        else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
 
                     # save error/Q2X
                     Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
@@ -168,7 +172,7 @@ class Decomposition():
         self.fitted_chord_error = fitted_error
             
 
-    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, dropany=True, single=False, init='svd', comparePCA=False, callback=None, callback_r=None):
+    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, alpha=None, dropany=True, single=False, init='svd', comparePCA=False, callback=None, callback_r=None):
         """
         Calculates Q2X when dropping entries from the data using self.method for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -232,10 +236,12 @@ class Decomposition():
                 if callback:
                     if callback.track_runtime: callback.begin()
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
-                    tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
+                    if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
+                    else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                 else:
                     CPinit = initialize_fac(missingCube, max(self.rrs), init)
-                    tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, init=CPinit)
+                    if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
+                    else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
 
                 # save error/Q2X
                 Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
@@ -261,10 +267,12 @@ class Decomposition():
                     if callback and rr == callback_r:
                         if callback.track_runtime: callback.begin()
                         CPinit = initialize_fac(missingCube, rr, init)
-                        tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
+                        if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
+                        else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                     else:
                         CPinit = initialize_fac(missingCube, rr, init)
-                        tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
+                        if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
+                        else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                     # save error/Q2X
                     Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
                     imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)

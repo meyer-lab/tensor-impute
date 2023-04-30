@@ -31,7 +31,7 @@ def generateTensor(type=None, r=6, shape=(20,25,30), scale=2, distribution='gamm
             return createNoise(temp,noise_scale)
 
 
-def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[perform_DO,perform_ALS,perform_CLS],
+def compare_imputation(tensor=None, init='svd', alpha=None, methods=[perform_DO,perform_ALS,perform_CLS],
                        impute_type='entry', impute_r=6, impute_reps=5, impute_perc=0.25, impute_mode=0,
                        f_size=(12,6), save=None, printRuntime=True):
     # run all methods
@@ -54,8 +54,12 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
         # TODO: update with regularization when reg=True
         if impute_type=='entry':
             drop = int(impute_perc*np.sum(np.isfinite(tensor)))
-            decomp.Q2X_entry(drop=drop, repeat=impute_reps, callback=track, init=init)
-        elif impute_type=='chord':
+            if alpha is not None and m == perform_CLS:
+                decomp.Q2X_entry(drop=drop, repeat=impute_reps, callback=track, init=init, alpha=alpha)
+            else:
+                decomp.Q2X_entry(drop=drop, repeat=impute_reps, callback=track, init=init)
+
+        if impute_type=='chord':
             drop = int(impute_perc*tensor.size/tensor.shape[impute_mode])
             if drop < 1: drop = 1
             decomp.Q2X_chord(drop=drop, repeat=impute_reps, callback=track, init=init)
@@ -69,7 +73,7 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
         plotID = methodID + 3
         track.plot_iteration(ax[plotID], methodname=m.__name__)
 
-        methodID = methodID + 1
+        methodID += 1
 
         # save for inspection
         if save is not None:
@@ -79,7 +83,39 @@ def compare_imputation(tensor=None, init='svd', reg=NotImplemented, methods=[per
     if printRuntime: print("Total runtime: " + str(time.time()-start)+'\n')
     if save is not None: f.savefig('./'+dirname+'/' + "imputation_results", bbox_inches="tight")
     return f 
+
+def l2_comparison(tensor=None, init='svd', alpha=[1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2],
+                       impute_type='entry', impute_r=[3,4,5,6], impute_reps=5, impute_perc=0.25, impute_mode=0,
+                       f_size=(12,6), save=None, printRuntime=True):
+    if tensor is None: tensor = generateTensor()
+
+    dirname = 'methodruns/'+save
+    if os.path.isdir(dirname) == False: os.makedirs(dirname)
+
+    ax, f = getSetup(f_size, (2,len(alpha)))
+    start = time.time()
+
+    for rr in impute_r:
+        rstart = time.time()
+        decomp = Decomposition(tensor, method=perform_CLS, max_rr=rr)
+
+        for a in alpha:
+            if impute_type=='entry':
+                drop = int(impute_perc*np.sum(np.isfinite(tensor)))
+                decomp.Q2X_entry(drop=drop, repeat=impute_reps, init=init, alpha=alpha, single=True)
+                l2_plot(ax,decomp,methodname="perform_CLS", alpha=a, comp=rr)
+
+            if impute_type=='chord':
+                drop = int(impute_perc*tensor.size/tensor.shape[impute_mode])
+                decomp.Q2X_chord(drop=drop, repeat=impute_reps, init=init, alpha=alpha, single=True)
+                l2_plot(ax,decomp,methodname="perform_CLS", alpha=a, comp=rr)
         
+        
+         
+        if printRuntime: print(rr + " components: " + str(time.time()-rstart))
+
+
+    
     
 def regraph(save=None, fname="new_imputation_results", impute_type='entry', methods=[perform_DO,perform_ALS,perform_CLS], f_size=(12,6)):
     assert(save is not None)
