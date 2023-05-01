@@ -5,7 +5,7 @@ import numpy as np
 from scipy.optimize import minimize
 import tensorly as tl
 from .initialize_fac import initialize_fac
-from tensorly.cp_tensor import CPTensor, cp_normalize, cp_lstsq_grad, cp_to_tensor
+from tensorly.cp_tensor import CPTensor, cp_normalize, cp_lstsq_grad
 from .test.simulated_tensors import createUnknownRank
 
 tl.set_backend('numpy')
@@ -26,7 +26,7 @@ def reorient_factors(tensorFac):
 def buildTensors(pIn, r, tshape):
     """ Use parameter vector to build CP tensors. """
     nn = np.cumsum(tshape) * r
-    return [x.reshape(tshape[i], r) for i, x in enumerate(jnp.split(pIn, nn)) if i < len(nn)]
+    return [x.reshape(tshape[i], r) for i, x in enumerate(np.split(pIn, nn)) if i < len(nn)]
 
 
 def cost(pIn, tensor, tmask, r):
@@ -36,6 +36,7 @@ def cost(pIn, tensor, tmask, r):
 
     gradd = np.concatenate([g.flatten() for g in grad])
     return costt, gradd
+
 
 class do_callback():
     def __init__(self, callback, r, shape):
