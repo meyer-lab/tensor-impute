@@ -11,9 +11,10 @@ from timpute.test.simulated_tensors import createKnownRank, createUnknownRank, c
 from tensordata.atyeo import data as atyeo
 from tensordata.zohar import data as zohar
 from tensordata.alter import data as alter
+from timpute.initialize_fac import initialize_fac
 from timpute.direct_opt import perform_DO
-from timpute.cmtf import perform_CLS
 from timpute.tensorly_als import perform_ALS
+from timpute.cmtf import perform_CLS
 
 
 def generateTensor(type=None, r=6, shape=(20,25,30), scale=2, distribution='gamma', par=2, missingness=0.1, noise_scale=50):
@@ -84,6 +85,8 @@ def compare_imputation(tensor=None, init='svd', alpha=None, methods=[perform_DO,
     if save is not None: f.savefig('./'+dirname+'/' + "imputation_results", bbox_inches="tight")
     return f 
 
+
+
 def l2_comparison(tensor=None, init='svd', alpha=[1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2],
                        impute_type='entry', impute_r=[3,4,5,6], impute_reps=5, impute_perc=0.25, impute_mode=0,
                        f_size=(12,6), save=None, printRuntime=True):
@@ -114,8 +117,6 @@ def l2_comparison(tensor=None, init='svd', alpha=[1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e
          
         if printRuntime: print(rr + " components: " + str(time.time()-rstart))
 
-
-    
     
 def regraph(save=None, fname="new_imputation_results", impute_type='entry', methods=[perform_DO,perform_ALS,perform_CLS], f_size=(12,6)):
     assert(save is not None)
@@ -143,3 +144,50 @@ def regraph(save=None, fname="new_imputation_results", impute_type='entry', meth
     f.savefig(fname, bbox_inches="tight")
 
     return f
+
+
+def figure1(tensor_samples=50, impute_reps=5, impute_perc = 0.1, printRuntime=True):
+    f_size = (12,6)
+    methods = [perform_DO,perform_ALS,perform_CLS]
+    dirname = 'methodruns/fig1'
+
+    if os.path.isdir(dirname) == False: os.makedirs(dirname)
+    ax, f = getSetup(f_size, (2,len(methods)))
+
+    for i in range(tensor_samples):
+        # generate tensor
+        tensor = generateTensor('known',r=6,shape=(10,10,10))
+        drop = int(impute_perc*np.sum(np.isfinite(tensor)))     # TODO: adjust for entry/chord
+        inits = [initialize_fac(tensor,6) for _ in range(impute_reps)]
+
+        for m in methods:
+            if i==0:
+                track = tracker(tensor,track_runtime=True)
+                decomp = Decomposition(tensor, method=m, max_rr=6)
+            else:
+                decomp.load('./'+dirname+'/' + m.__name__ + '-decomp')
+                track.load('./'+dirname+'/' + m.__name__ + '-track')
+                track.new()
+            
+            # run imputation
+            mstart = time.time()
+            decomp.Q2X_entry(drop=drop, repeat=impute_reps, callback=track, init=inits)      # TODO: adjust for entry/chord
+            if printRuntime: print(m.__name__ + " tensor " + i + ": " + str(time.time()-mstart))
+
+            decomp.save('./'+dirname+'/' + m.__name__ + '-decomp')
+            track.save('./'+dirname+'/' + m.__name__ + '-track')
+
+    # plot components vs imputed/fitted error
+    for methodID,m in enumerate(methods):
+        decomp.load('./'+dirname+'/' + m.__name__ + '-decomp')
+        track.load('./'+dirname+'/' + m.__name__ + '-track')
+        track.combine()
+
+        # plot graphs
+        plotID = methodID
+        q2xentry(ax[plotID], decomp, methodname = m.__name__, detailed=True)    # TODO: adjust for entry/chord
+        plotID = methodID + 3
+        track.plot_iteration(ax[plotID], methodname=m.__name__)
+    
+    return f
+    

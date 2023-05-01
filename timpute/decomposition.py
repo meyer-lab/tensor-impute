@@ -1,11 +1,13 @@
 import pickle
 from re import A
 import numpy as np
+import tensorly as tl
 from .cmtf import perform_CLS, calcR2X
 from tensorly.tenalg import svd_interface
+from .initialize_fac import initialize_fac
 from .SVD_impute import IterativeSVD
 from .impute_helper import entry_drop, chord_drop
-from .initialize_fac import initialize_fac
+
 
 class Decomposition():
     def __init__(self, data, max_rr=5, method=perform_CLS):
@@ -117,14 +119,22 @@ class Decomposition():
                 imputed_vals = np.ones_like(missingCube) - mask
                 fitted_vals = np.isfinite(tImp) - imputed_vals
 
-                # run method
+                # method chunk
                 if callback:
+                    # handle initialization
+                    if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+                    else: CPinit = initialize_fac(missingCube, max(self.rrs), init)
+
+                    # run method
                     if callback.track_runtime: callback.begin()
-                    CPinit = initialize_fac(missingCube, max(self.rrs), init)
                     if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                     else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                 else:
-                    CPinit = initialize_fac(missingCube, max(self.rrs), init)
+                    # handle initialization
+                    if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+                    else: CPinit = initialize_fac(missingCube, max(self.rrs), init)
+
+                    # run method
                     if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                     else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
 
@@ -134,7 +144,11 @@ class Decomposition():
                 fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
 
         else:
+            if isinstance(init,list):
+                assert(len(init) == repeat)
+                assert(isinstance(init[x],tl.cp_tensor.CPTensor))
             for x in range(repeat):
+
                 # drop values
                 tImp = np.copy(self.data)
                 np.moveaxis(tImp,mode,0)
@@ -150,12 +164,22 @@ class Decomposition():
                 for rr in self.rrs:
                     #run method
                     if callback and rr == callback_r:
+                        # handle initialization
+                        if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+                        elif isinstance(init,list): CPinit = init[x]
+                        else: CPinit = initialize_fac(missingCube, max(self.rrs), init)
+                        
+                        # run method
                         if callback.track_runtime: callback.begin()
-                        CPinit = initialize_fac(missingCube, rr, init)
                         if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                         else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                     else:
-                        CPinit = initialize_fac(missingCube, rr, init)
+                        # handle initialization
+                        if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+                        elif isinstance(init,list): CPinit = init[x]
+                        else: CPinit = initialize_fac(missingCube, max(self.rrs), init)
+
+                        # run method
                         if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                         else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
 
@@ -231,15 +255,23 @@ class Decomposition():
                 if callback: callback.set_mask(mask)
                 imputed_vals = np.ones_like(missingCube) - mask
                 fitted_vals = np.isfinite(tImp) - imputed_vals
-
-                # run method
+                
+                # method chunk
                 if callback:
+                    # handle initialization
+                    if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+                    else: CPinit = initialize_fac(missingCube, max(self.rrs), init)
+
+                    # run method
                     if callback.track_runtime: callback.begin()
-                    CPinit = initialize_fac(missingCube, max(self.rrs), init)
                     if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                     else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                 else:
-                    CPinit = initialize_fac(missingCube, max(self.rrs), init)
+                    # handle initialization
+                    if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+                    else: CPinit = initialize_fac(missingCube, max(self.rrs), init)
+
+                    # run method
                     if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                     else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
 
@@ -249,6 +281,9 @@ class Decomposition():
                 fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
 
         else:
+            if isinstance(init,list):
+                assert(len(init) == repeat)
+                assert(isinstance(init[x],tl.cp_tensor.CPTensor))
             for x in range(repeat):
                 # drop values
                 tImp = np.copy(self.data)
@@ -265,12 +300,22 @@ class Decomposition():
                 for rr in self.rrs:
                     # run method
                     if callback and rr == callback_r:
+                        # handle initialization
+                        if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+                        elif isinstance(init,list): CPinit = init[x]
+                        else: CPinit = initialize_fac(missingCube, max(self.rrs), init)
+
+                        # run method
                         if callback.track_runtime: callback.begin()
-                        CPinit = initialize_fac(missingCube, rr, init)
                         if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                         else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                     else:
-                        CPinit = initialize_fac(missingCube, rr, init)
+                        # handle initialization
+                        if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+                        elif isinstance(init,list): CPinit = init[x]
+                        else: CPinit = initialize_fac(missingCube, max(self.rrs), init)
+                        
+                        # run method
                         if alpha is not None: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                         else: tFac = self.method(missingCube, rank=max(self.rrs), n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                     # save error/Q2X
