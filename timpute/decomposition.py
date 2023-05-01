@@ -1,6 +1,5 @@
 import pickle
 from re import A
-from typing import Any
 import numpy as np
 import tensorly as tl
 from .cmtf import perform_CLS, calcR2X
