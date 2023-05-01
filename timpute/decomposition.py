@@ -1,5 +1,6 @@
 import pickle
 from re import A
+from typing import Any
 import numpy as np
 import tensorly as tl
 from .cmtf import perform_CLS, calcR2X
@@ -345,6 +346,28 @@ class Decomposition():
         self.imputed_entry_error = imputed_error
         self.fitted_entry_error = fitted_error
     
+
+    def save(self, pfile):
+        with open(pfile, "wb") as output_file:
+            pickle.dump(self.__dict__, output_file)
+
+    def load(self, pfile):
+        with open(pfile, "rb") as input_file:
+            tmp_dict = pickle.load(input_file)
+            self.__dict__.update(tmp_dict)
+
+
+class MultiDecomp():
+    def __init__(self, decomp:Decomposition, imp_type='entry'):
+        assert(imp_type=='entry' or imp_type=='chord')
+        self.imp_type = imp_type
+        self.rr = decomp.rrs[-1]
+        if imp_type == 'entry': self.array = decomp.entryQ2X
+        if imp_type == 'chord': self.array = decomp.chordQ2X
+
+    def __call__(self, decomp:Decomposition, imp_type='entry'):
+        if imp_type == 'entry': self.array = np.vstack(self.array,decomp.entryQ2X)
+        if imp_type == 'chord': self.array = np.vstack(self.array,decomp.chordQ2X)
 
     def save(self, pfile):
         with open(pfile, "wb") as output_file:

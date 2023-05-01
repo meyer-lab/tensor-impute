@@ -1,6 +1,6 @@
 import numpy as np
 import tensorly as tl
-from timpute.decomposition import Decomposition
+from timpute.decomposition import Decomposition, MultiDecomp
 from timpute.tracker import tracker
 from timpute.common import *
 from timpute.plot import *
@@ -145,8 +145,11 @@ def regraph(save=None, fname="new_imputation_results", impute_type='entry', meth
 
     return f
 
+def q2x_plot():
+    pass
 
 def figure1(tensor_samples=50, impute_reps=5, impute_perc = 0.1, printRuntime=True):
+    """ Generates a figure of method for `tensor_samples` tensors, each run `impute_reps` times. Identical initializations for each method's run per tensor."""
     f_size = (12,6)
     methods = [perform_DO,perform_ALS,perform_CLS]
     dirname = 'methodruns/fig1'
@@ -154,40 +157,49 @@ def figure1(tensor_samples=50, impute_reps=5, impute_perc = 0.1, printRuntime=Tr
     if os.path.isdir(dirname) == False: os.makedirs(dirname)
     ax, f = getSetup(f_size, (2,len(methods)))
 
+    # for each tensor
     for i in range(tensor_samples):
         # generate tensor
         tensor = generateTensor('known',r=6,shape=(10,10,10))
         drop = int(impute_perc*np.sum(np.isfinite(tensor)))     # TODO: adjust for entry/chord
         inits = [initialize_fac(tensor,6) for _ in range(impute_reps)]
 
+        tstart = time.time()
         for m in methods:
-            if i==0:
-                track = tracker(tensor,track_runtime=True)
-                decomp = Decomposition(tensor, method=m, max_rr=6)
+            # initialize objects
+            decomp = Decomposition(tensor, method=m, max_rr=6)
+            if i==0: m_track = tracker(tensor,track_runtime=True)
             else:
-                decomp.load('./'+dirname+'/' + m.__name__ + '-decomp')
-                track.load('./'+dirname+'/' + m.__name__ + '-track')
-                track.new()
+                m_track.load('./'+dirname+'/' + m.__name__ + '-track')
+                m_track.new()
             
             # run imputation
-            mstart = time.time()
-            decomp.Q2X_entry(drop=drop, repeat=impute_reps, callback=track, init=inits)      # TODO: adjust for entry/chord
-            if printRuntime: print(m.__name__ + " tensor " + i + ": " + str(time.time()-mstart))
+            tstart = time.time()
+            decomp.Q2X_entry(drop=drop, repeat=impute_reps, callback=m_track, init=inits)      # TODO: adjust for entry/chord
 
-            decomp.save('./'+dirname+'/' + m.__name__ + '-decomp')
-            track.save('./'+dirname+'/' + m.__name__ + '-track')
+            # save runs
+            if i==0: m_decomp = MultiDecomp(decomp,'entry')     # TODO: adjust for entry/chord
+            else: m_decomp(decomp)
+
+
+            m_decomp.save('./'+dirname+'/' + m.__name__ + '-decomp')
+            m_track.save('./'+dirname+'/' + m.__name__ + '-track')
+
+        if printRuntime and (i+1)%10==0: print(f"Tensor {str(i+1)}, {m.__name__}: {str(time.time()-tstart)}")
+
 
     # plot components vs imputed/fitted error
     for methodID,m in enumerate(methods):
-        decomp.load('./'+dirname+'/' + m.__name__ + '-decomp')
-        track.load('./'+dirname+'/' + m.__name__ + '-track')
-        track.combine()
+        m_decomp.load('./'+dirname+'/' + m.__name__ + '-decomp')
+        m_track.load('./'+dirname+'/' + m.__name__ + '-track')
+        m_track.combine()
 
         # plot graphs
         plotID = methodID
         q2xentry(ax[plotID], decomp, methodname = m.__name__, detailed=True)    # TODO: adjust for entry/chord
         plotID = methodID + 3
-        track.plot_iteration(ax[plotID], methodname=m.__name__)
+        m_track.plot_iteration(ax[plotID], methodname=m.__name__)
     
+    subplotLabel(ax)
     return f
     
