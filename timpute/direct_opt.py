@@ -10,7 +10,6 @@ from .test.simulated_tensors import createUnknownRank
 
 tl.set_backend('numpy')
 
-
 def reorient_factors(tensorFac):
     """ This function ensures that factors are negative on at most one direction. """
     for jj in range(1, len(tensorFac)):
@@ -53,7 +52,7 @@ class do_callback():
         self.callback(tensorFac)
 
 
-def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None):
+def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None, mask=None):
     """ Perform CP decomposition. """
     if tensorOrig is None: tensorOrig = createUnknownRank()
     if init==None: init=initialize_fac(tensorOrig, rank)
