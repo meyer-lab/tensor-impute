@@ -1,5 +1,4 @@
 import pickle
-from re import A
 import numpy as np
 from .cmtf import perform_CLS, calcR2X
 from tensorly.tenalg import svd_interface

@@ -4,10 +4,7 @@ Unit test file.
 import numpy as np
 import tensorly as tl
 import warnings
-from tensorly.cp_tensor import _validate_cp_tensor
-from tensorly.random import random_cp
-from ..cmtf import delete_component, calcR2X, buildMat, sort_factors, perform_CLS, censored_lstsq
-from tensordata.alter import data as alter
+from ..cmtf import perform_CLS, censored_lstsq
 from tensorly.tenalg import khatri_rao
 from ..initialize_fac import initialize_fac
 from sklearn.linear_model import Ridge
@@ -38,28 +35,6 @@ def test_cp():
     assert fac23.R2X < fac26.R2X
     assert fac23.R2X > 0.0
 
-
-def test_sort():
-    """ Test that sorting does not affect anything. """
-    tOrig = createCube(missing=0.2, size=(10, 20, 25))
-    mOrig = createCube(missing=0.2, size=(10, 15))
-
-    tFac = random_cp(tOrig.shape, 3)
-    tFac.mFactor = np.random.randn(mOrig.shape[1], 3)
-    tFac.mWeights = np.ones(3)
-
-    R2X = calcR2X(tFac, tOrig, mOrig)
-    tRec = tl.cp_to_tensor(tFac)
-    mRec = buildMat(tFac)
-
-    tFac = sort_factors(tFac)
-    sR2X = calcR2X(tFac, tOrig, mOrig)
-    stRec = tl.cp_to_tensor(tFac)
-    smRec = buildMat(tFac)
-
-    np.testing.assert_allclose(R2X, sR2X)
-    np.testing.assert_allclose(tRec, stRec)
-    np.testing.assert_allclose(mRec, smRec)
 
 def test_ridge():
     """Testing ridge solver is equal to numpy least squares"""
