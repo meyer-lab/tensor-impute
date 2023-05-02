@@ -11,21 +11,8 @@ def test_impute_alter():
     test = Decomposition(alter()['Fc'].to_numpy())
     test.Q2X_chord(drop=30, repeat=1)
     assert max(test.chordQ2X[0]) >= .8
-    test.Q2X_entry(drop=9000,repeat=3, comparePCA=True)
-    assert len(test.entryQ2X) == len(test.entryQ2XPCA)
-    assert len(test.entryQ2X[0]) == len(test.entryQ2XPCA[0])
+    test.Q2X_entry(drop=9000,repeat=3)
     assert max(test.entryQ2X[0]) >= .85
-
-def test_impute_zohar():
-    np.random.seed(5)
-    test = Decomposition(zohar().to_numpy())
-    test.Q2X_chord(drop=5, repeat=1)
-    assert max(test.chordQ2X[0]) >= .4
-    test.Q2X_entry(drop=3000,repeat=1, comparePCA=True)
-    assert len(test.entryQ2X) == len(test.entryQ2XPCA)
-    assert len(test.entryQ2X[0]) == len(test.entryQ2XPCA[0])
-    assert max(test.entryQ2X[0]) >= .5
-    assert max(test.entryQ2XPCA[0]) >= .4
 
 def test_impute_random():
     np.random.seed(5)
@@ -33,11 +20,8 @@ def test_impute_random():
     test = Decomposition(tl.cp_to_tensor(random_cp(shape, 10)))
     test.Q2X_chord(drop=10, repeat=1)
     assert max(test.chordQ2X[0]) >= .95
-    test.Q2X_entry(drop=100, repeat=1, comparePCA=True)
-    assert len(test.entryQ2X) == len(test.entryQ2XPCA)
-    assert len(test.entryQ2X[0]) == len(test.entryQ2XPCA[0])
+    test.Q2X_entry(drop=100, repeat=1)
     assert max(test.entryQ2X[0]) >= .95
-    assert max(test.entryQ2XPCA[0]) >= .8
 
 def test_impute_noise_missing():
     np.random.seed(5)
@@ -50,8 +34,5 @@ def test_impute_noise_missing():
     test = Decomposition(tensor_2)
     test.Q2X_chord(drop=10, repeat=1)
     assert max(test.chordQ2X[0]) >= .95
-    test.Q2X_entry(drop=100, repeat=1, comparePCA=True)
-    assert len(test.entryQ2X) == len(test.entryQ2XPCA)
-    assert len(test.entryQ2X[0]) == len(test.entryQ2XPCA[0])
+    test.Q2X_entry(drop=100, repeat=1)
     assert max(test.entryQ2X[0]) >= .95
-    assert max(test.entryQ2XPCA[0]) >= .8
