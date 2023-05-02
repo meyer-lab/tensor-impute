@@ -2,8 +2,6 @@ import numpy as np
 import warnings
 
 import tensorly as tl
-from tensorly.random import random_cp
-from tensorly.base import unfold
 from tensorly.cp_tensor import (
     cp_to_tensor,
     CPTensor,
@@ -12,8 +10,6 @@ from tensorly.cp_tensor import (
     validate_cp_rank,
 )
 from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao
-
-from .cmtf import calcR2X
 from .initialize_fac import initialize_fac
 
 # Authors: Jean Kossaifi <jean.kossaifi+tensors@gmail.com>

@@ -193,7 +193,7 @@ class Decomposition():
         self.fitted_chord_error = fitted_error
             
 
-    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, alpha=None, dropany=True, single=False, init='svd', comparePCA=False, callback=None, callback_r=None):
+    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, alpha=None, single=False, init='svd', callback=None, callback_r=None):
         """
         Calculates Q2X when dropping entries from the data using self.method for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -233,7 +233,6 @@ class Decomposition():
             Each value in a row represents the Q2X of the tensor calculated for components 1 to max_rr using PCA after
             SVD imputation. Each row represents a single repetition. (only if comparePCA=True)
         """
-        if comparePCA: assert(dropany is False)
 
         Q2X = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
@@ -245,8 +244,7 @@ class Decomposition():
                 # drop values
                 tImp = np.copy(self.data)
                 missingCube = np.copy(tImp)
-                if dropany: mask = entry_drop(missingCube, drop, dropany=True)
-                else: mask = entry_drop(missingCube, drop)
+                mask = entry_drop(missingCube, drop, dropany=True)
 
                 # track masks
                 if callback: callback.set_mask(mask)
@@ -285,8 +283,7 @@ class Decomposition():
                 # drop values
                 tImp = np.copy(self.data)
                 missingCube = np.copy(tImp)
-                if dropany: mask = entry_drop(missingCube, drop, dropany=True)
-                else: mask = entry_drop(missingCube, drop)
+                mask = entry_drop(missingCube, drop, dropany=True)
 
                 # track masks
                 if callback: callback.set_mask(mask)
@@ -323,20 +320,20 @@ class Decomposition():
                 if callback:
                     if x+1 < repeat: callback.new()
                 
-                # Calculate Q2X for each number of principal components using PCA for factorization as comparison
-                if comparePCA:
-                    Q2XPCA = np.zeros((repeat,self.rrs[-1]))
-                    si = IterativeSVD(rank=max(self.rrs), random_state=1)
-                    missingMat = np.reshape(np.moveaxis(missingCube, 0, 0), (missingCube.shape[0], -1))
-                    mImp = np.reshape(np.moveaxis(tImp, 0, 0), (tImp.shape[0], -1))
+                # # Calculate Q2X for each number of principal components using PCA for factorization as comparison
+                # if comparePCA:
+                #     Q2XPCA = np.zeros((repeat,self.rrs[-1]))
+                #     si = IterativeSVD(rank=max(self.rrs), random_state=1)
+                #     missingMat = np.reshape(np.moveaxis(missingCube, 0, 0), (missingCube.shape[0], -1))
+                #     mImp = np.reshape(np.moveaxis(tImp, 0, 0), (tImp.shape[0], -1))
 
-                    missingMat = si.fit_transform(missingMat)
-                    U, S, V = svd_interface(matrix=missingMat, n_eigenvecs=max(self.rrs))
-                    scores = U @ np.diag(S)
-                    loadings = V
-                    recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
-                    Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
-                    self.entryQ2XPCA = Q2XPCA
+                #     missingMat = si.fit_transform(missingMat)
+                #     U, S, V = svd_interface(matrix=missingMat, n_eigenvecs=max(self.rrs))
+                #     scores = U @ np.diag(S)
+                #     loadings = V
+                #     recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
+                #     Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
+                #     self.entryQ2XPCA = Q2XPCA
         
         self.entryQ2X = Q2X
         self.imputed_entry_error = imputed_error
