@@ -51,11 +51,5 @@ def test_impute_noise_missing():
     test = Decomposition(tensor_2)
     test.Q2X_chord(drop=10, repeat=1)
     assert max(test.chordQ2X[0]) >= .95
-<<<<<<< HEAD
-    test.Q2X_entry(drop=100, repeat=1, dropany=False, comparePCA=True)
-    assert len(test.entryQ2X) == len(test.entryQ2XPCA)
-    assert len(test.entryQ2X[0]) == len(test.entryQ2XPCA[0])
-=======
     test.Q2X_entry(drop=100, repeat=1)
->>>>>>> 94a292464bd1e8fb38c474ae0666d620e6210ccd
     assert max(test.entryQ2X[0]) >= .95
