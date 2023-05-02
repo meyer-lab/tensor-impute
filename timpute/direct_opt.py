@@ -2,40 +2,13 @@
 Tensor decomposition methods
 """
 import numpy as np
-import jax.numpy as jnp
-from jax import jit, grad
-from jax.config import config
 from scipy.optimize import minimize
 import tensorly as tl
 from .initialize_fac import initialize_fac
-from tensorly.cp_tensor import CPTensor, cp_normalize
+from tensorly.cp_tensor import CPTensor, cp_normalize, cp_lstsq_grad
 from .test.simulated_tensors import createUnknownRank
 
 tl.set_backend('numpy')
-config.update("jax_enable_x64", True)
-
-
-def do_khatri_rao(a, b):
-    a = jnp.asarray(a)
-    b = jnp.asarray(b)
-
-    assert (a.ndim == 2 and b.ndim == 2)
-    assert (a.shape[1] == b.shape[1])
-
-    c = a[..., :, jnp.newaxis, :] * b[..., jnp.newaxis, :, :]
-    return c.reshape((-1,) + c.shape[2:])
-
-def khatri_rao(mats):
-    if len(mats) == 1:
-        return mats[0]
-    if len(mats) >= 2:
-        return do_khatri_rao(mats[0], khatri_rao(mats[1:]))
-
-
-def factors_to_tensor(factors):
-    shape = [ff.shape[0] for ff in factors]
-    unfold = jnp.dot(factors[0], khatri_rao(factors[1:]).T)
-    return unfold.reshape(shape)
 
 
 def reorient_factors(tensorFac):
@@ -53,14 +26,17 @@ def reorient_factors(tensorFac):
 def buildTensors(pIn, r, tshape):
     """ Use parameter vector to build CP tensors. """
     nn = np.cumsum(tshape) * r
-    return [x.reshape(tshape[i], r) for i, x in enumerate(jnp.split(pIn, nn)) if i < len(nn)]
+    return [x.reshape(tshape[i], r) for i, x in enumerate(np.split(pIn, nn)) if i < len(nn)]
 
 
 def cost(pIn, tensor, tmask, r):
     tensF = buildTensors(pIn, r, tensor.shape)
-    cost = jnp.linalg.norm((factors_to_tensor(tensF) - tensor) * (1-tmask)) # Tensor cost
-    cost += 1e-9 * jnp.linalg.norm(pIn)
-    return cost
+
+    grad, costt = cp_lstsq_grad((None, tensF), tensor, return_loss=True, mask=tmask)
+
+    gradd = np.concatenate([g.flatten() for g in grad])
+    return costt, gradd
+
 
 class do_callback():
     def __init__(self, callback, r, shape):
@@ -77,7 +53,7 @@ class do_callback():
         self.callback(tensorFac)
 
 
-def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None, mask=None):
+def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None):
     """ Perform CP decomposition. """
     if tensorOrig is None: tensorOrig = createUnknownRank()
     if init==None: init=initialize_fac(tensorOrig, rank)
@@ -88,19 +64,10 @@ def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None,
     tmask = np.isnan(tensorIn)
     tensorIn[tmask] = 0.0
 
-    cost_jax = jit(cost, static_argnums=(3))
-    cost_grad = jit(grad(cost, 0), static_argnums=(3))
-
-    def costt(*args):
-        return np.array(cost_jax(*args))
-
-    def gradd(*args):
-        return np.array(cost_grad(*args))
-
     x0 = np.concatenate(tuple([np.ravel(init.factors[ii]) for ii in range(np.ndim(tensorIn))]))
 
     rgs = (tensorIn, tmask, rank)
-    res = minimize(costt, x0, method='L-BFGS-B', jac=gradd, args=rgs, options={"maxiter":n_iter_max}, callback=temp_callback)
+    res = minimize(cost, x0, method='L-BFGS-B', jac=True, args=rgs, options={"maxiter":n_iter_max}, callback=temp_callback)
     tensorFac = CPTensor((None, buildTensors(res.x, rank, tensorIn.shape)))
     tensorFac = cp_normalize(tensorFac)
 
