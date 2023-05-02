@@ -22,7 +22,7 @@ def cost(pIn, tensor, tmask, r):
 
     grad, costt = cp_lstsq_grad((None, tensF), tensor, return_loss=True, mask=tmask)
 
-    gradd = np.concatenate([g.flatten() for g in grad])
+    gradd = np.concatenate([g.flatten() for g in grad[1]])
     return costt, gradd
 
 
