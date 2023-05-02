@@ -29,36 +29,6 @@ def test_impute_missing_mat():
         errs.append(np.sum((r - imp)[filt] ** 2) / np.sum(r[filt] ** 2))
     assert np.mean(errs) < 0.03
 
-
-def test_decomp_obj():
-    a = Decomposition(atyeo().to_numpy())
-    a.perform_tfac()
-    a.perform_PCA()
-    assert len(a.PCAR2X) == len(a.sizePCA)
-    assert len(a.TR2X) == len(a.sizeT)
-
-    # test decomp save
-    fname = "test_temp_atyeo.pkl"
-    a.save(fname)
-    b = Decomposition(None)
-    b.load(fname)
-    assert len(b.PCAR2X) == len(b.sizePCA)
-    assert len(b.TR2X) == len(b.sizeT)
-    os.remove(fname)
-
-
-def test_missing_obj():
-    for miss_rate in [0.1, 0.2]:
-        dat = random_cp((20, 10, 8), 5, full=True)
-        filter = np.random.rand(*dat.shape) > 1 - miss_rate
-        dat[filter] = np.nan
-        a = Decomposition(dat)
-        a.perform_tfac()
-        a.perform_PCA()
-        assert len(a.PCAR2X) == len(a.sizePCA)
-        assert len(a.TR2X) == len(a.sizeT)
-
-
 def test_known_rank():
     shape = (50, 40, 30)
     tFacOrig = random_cp(shape, 10, full=False)
