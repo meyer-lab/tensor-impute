@@ -145,54 +145,28 @@ def regraph(save=None, fname="new_imputation_results", impute_type='entry', meth
 
     return f
 
-def q2x_plot(ax, imputed_arr:np.ndarray, fitted_arr:np.ndarray, methodname:str):
-    comps = np.arange(1,imputed_arr.shape[1])
-    imputed_df = pd.DataFrame(imputed_arr).T
-    fitted_df = pd.DataFrame(fitted_arr).T
-
-    imputed_df.index = comps
-    imputed_df['mean'] = imputed_df.mean(axis=1)
-    imputed_df['sem'] = imputed_df.sem(axis=1)
-    imputed_means = imputed_df['mean']
-    imputed_sem = imputed_df['sem']
-    ax.scatter(comps + 0.05, imputed_means, color='C0', s=10, label=methodname+' Imputed Error')
-    ax.errorbar(comps + 0.05, imputed_means, yerr=imputed_sem, fmt='none', ecolor='C0')
-    
-    fitted_df.index = comps
-    fitted_df['mean'] = fitted_df.mean(axis=1)
-    fitted_df['sem'] = fitted_df.sem(axis=1)
-    fitted_means = fitted_df['mean']
-    fitted_sem = fitted_df['sem']
-    ax.scatter(comps, fitted_means, color='C1', s=10, label=methodname+' Fitted Error')
-    ax.errorbar(comps, fitted_means, yerr=fitted_sem, fmt='none', ecolor='C1')
-    ax.set_ylabel("Imputation Error")
-
-    ax.set_xlabel("Number of Components")
-    ax.set_xticks([x for x in comps])
-    ax.set_xticklabels([x for x in comps])
-    ax.set_ylim(0, 1)
-    ax.legend(loc="upper right")
 
 
 
-def figure1(tensor_samples=50, impute_reps=5, impute_perc = 0.1, printRuntime=True):
+def figure12_data(fig=1, best_comp = [4,4,6], impute_perc = 0.1, printRuntime=True):
     """ Generates a figure of method for `tensor_samples` tensors, each run `impute_reps` times. Identical initializations for each method's run per tensor."""
-    f_size = (12,6)
-    methods = [perform_ALS,perform_CLS]
-    dirname = 'figures/figure_1'
+    tensor_samples=50
+    impute_reps=5
+    methods = [perform_CLS, perform_ALS, perform_DO]
 
+    dirname = f"figures/figure{fig}"
     if os.path.isdir(dirname) == False: os.makedirs(dirname)
-    ax, f = getSetup(f_size, (2,len(methods)))
 
     # for each tensor
     for i in range(tensor_samples):
         # generate tensor
         tensor = generateTensor('known',r=6,shape=(10,10,10))
-        drop = int(impute_perc*np.sum(np.isfinite(tensor)))                                     # TODO: adjust for entry/chord
+        entry_drop = int(impute_perc*np.sum(np.isfinite(tensor)))
+        chord_drop = int(impute_perc*tensor.size/tensor.shape[0])
         inits = [initialize_fac(tensor,6) for _ in range(impute_reps)]
 
         tstart = time.time()
-        for m in methods:
+        for j, m in enumerate(methods):
             # initialize objects
             decomp = Decomposition(tensor, method=m, max_rr=6)
             if i==0: m_track = tracker(tensor,track_runtime=True)
@@ -200,20 +174,28 @@ def figure1(tensor_samples=50, impute_reps=5, impute_perc = 0.1, printRuntime=Tr
                 m_track.load('./'+dirname+'/' + m.__name__ + '-track')
                 m_track.new()
             
-            # run imputation
+            # run imputation, tracking for chords
             tstart = time.time()
-            decomp.Q2X_entry(drop=drop, repeat=impute_reps, callback=m_track, init=inits)       # TODO: adjust for entry/chord
+            decomp.Q2X_entry(drop=entry_drop, repeat=impute_reps, init=inits)
+            decomp.Q2X_chord(drop=chord_drop, repeat=impute_reps, init=inits, callback=m_track, callback_r=best_comp[j])
 
             # save runs
-            if i==0: m_decomp = MultiDecomp(decomp,'entry')                                     # TODO: adjust for entry/chord
+            if i==0: m_decomp = MultiDecomp(decomp)
             else: m_decomp(decomp)
-
-
             m_decomp.save('./'+dirname+'/' + m.__name__ + '-decomp')
             m_track.save('./'+dirname+'/' + m.__name__ + '-track')
+        
+        if (printRuntime and (i+1)%int(tensor_samples*0.2) == 0):
+            print(f"Tensor {i+1} for all methods: {time.time()-tstart}")
 
-        if printRuntime and (i+1)%10==0: print(f"Tensor {str(i+1)}, {m.__name__}: {str(time.time()-tstart)}")
 
+def figure1(methods = [perform_CLS, perform_ALS, perform_DO]):
+    dirname = "figures/figure1"
+    f_size = (12,16)
+
+    ax, f = getSetup(f_size, (3,len(methods)))
+    m_decomp = MultiDecomp()
+    m_track = tracker()
 
     # plot components vs imputed/fitted error
     for methodID,m in enumerate(methods):
@@ -222,11 +204,32 @@ def figure1(tensor_samples=50, impute_reps=5, impute_perc = 0.1, printRuntime=Tr
         m_track.combine()
 
         # plot graphs
-        plotID = methodID
-        q2x_plot(ax[plotID],decomp.imputed_entry_error,decomp.fitted_entry_error,m.__name)      # TODO: adjust for entry/chord
-        plotID = methodID + 3
-        m_track.plot_iteration(ax[plotID], methodname=m.__name__)
+        q2x_plot(ax[methodID], m_decomp.entry_imputed, m_decomp.entry_fitted, m.__name__)
+        q2x_plot(ax[methodID+3], m_decomp.chord_imputed, m_decomp.chord_fitted, m.__name__)
+        m_track.plot_iteration(ax[methodID+6], methodname=m.__name_, log_scale=True)
     
     subplotLabel(ax)
     return f
     
+    
+def figure2(methods = [perform_CLS, perform_ALS, perform_DO]):
+    dirname = "figures/figure2"
+    f_size = (12,16)
+
+    ax, f = getSetup(f_size, (3,len(methods)))
+    m_decomp = MultiDecomp()
+    m_track = tracker()
+
+    # plot components vs imputed/fitted error
+    for methodID,m in enumerate(methods):
+        m_decomp.load('./'+dirname+'/' + m.__name__ + '-decomp')
+        m_track.load('./'+dirname+'/' + m.__name__ + '-track')
+        m_track.combine()
+
+        # plot graphs
+        q2x_plot(ax[methodID], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted)      # TODO: adjust for entry/chord
+        q2x_plot(ax[methodID+3], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted)
+        m_track.plot_iteration(ax[methodID+6], methodname=m.__name__, log_scale=True)
+    
+    subplotLabel(ax)
+    return f
