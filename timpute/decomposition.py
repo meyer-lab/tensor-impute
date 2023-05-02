@@ -143,9 +143,8 @@ class Decomposition():
         else:
             if isinstance(init,list):
                 assert(len(init) == repeat)
-                assert(isinstance(init[x],tl.cp_tensor.CPTensor))
+                assert(isinstance(init[0],tl.cp_tensor.CPTensor))
             for x in range(repeat):
-
                 # drop values
                 tImp = np.copy(self.data)
                 np.moveaxis(tImp,mode,0)
@@ -351,16 +350,23 @@ class Decomposition():
 
 
 class MultiDecomp():
-    def __init__(self, decomp:Decomposition, imp_type='entry'):
-        assert(imp_type=='entry' or imp_type=='chord')
-        self.imp_type = imp_type
+    def __init__(self, decomp:Decomposition = Decomposition([0])):
         self.rr = decomp.rrs[-1]
-        if imp_type == 'entry': self.array = decomp.entryQ2X
-        if imp_type == 'chord': self.array = decomp.chordQ2X
+        self.entry = decomp.entryQ2X
+        self.entry_imputed = decomp.imputed_entry_error
+        self.entry_fitted = decomp.fitted_entry_error
+
+        self.chord = decomp.chordQ2X
+        self.chord_imputed = decomp.imputed_chord_error
+        self.chord_fitted = decomp.fitted_chord_error
 
     def __call__(self, decomp:Decomposition):
-        if self.imp_type == 'entry': self.array = np.vstack((self.array,decomp.entryQ2X))
-        if self.imp_type == 'chord': self.array = np.vstack((self.array,decomp.chordQ2X))
+        self.entry = np.vstack((self.entry,decomp.entryQ2X))
+        self.entry_imputed = np.vstack((self.entry_imputed,decomp.imputed_entry_error))
+        self.entry_fitted = np.vstack((self.entry_fitted,decomp.fitted_entry_error))
+        self.chord = np.vstack((self.chord,decomp.chordQ2X))
+        self.chord_imputed = np.vstack((self.chord_imputed,decomp.imputed_chord_error))
+        self.chord_fitted = np.vstack((self.chord_fitted,decomp.fitted_chord_error))
 
     def save(self, pfile):
         with open(pfile, "wb") as output_file:
