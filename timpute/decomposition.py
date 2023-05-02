@@ -364,9 +364,9 @@ class MultiDecomp():
         if imp_type == 'entry': self.array = decomp.entryQ2X
         if imp_type == 'chord': self.array = decomp.chordQ2X
 
-    def __call__(self, decomp:Decomposition, imp_type='entry'):
-        if imp_type == 'entry': self.array = np.vstack(self.array,decomp.entryQ2X)
-        if imp_type == 'chord': self.array = np.vstack(self.array,decomp.chordQ2X)
+    def __call__(self, decomp:Decomposition):
+        if self.imp_type == 'entry': self.array = np.vstack((self.array,decomp.entryQ2X))
+        if self.imp_type == 'chord': self.array = np.vstack((self.array,decomp.chordQ2X))
 
     def save(self, pfile):
         with open(pfile, "wb") as output_file:
