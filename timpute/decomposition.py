@@ -1,5 +1,4 @@
 import pickle
-from re import A
 import numpy as np
 import tensorly as tl
 from .cmtf import perform_CLS, calcR2X
@@ -58,10 +57,8 @@ class Decomposition():
             flatData = IterativeSVD(rank=1, random_state=1).fit_transform(flatData)
 
         U, S, V = svd_interface(matrix=flatData, n_eigenvecs=max(self.rrs))
-        scores = U @ np.diag(S)
-        loadings = V
-        recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
-        self.PCAR2X = [calcR2X(c, mIn=flatData) for c in recon]
+        recon = [U[:, :rr] @ np.diag(S) @ V[:rr, :] for rr in self.rrs]
+        self.PCAR2X = [1.0 - np.linalg.norm(c - flatData) / np.linalg.norm(flatData) for c in recon]
         self.sizePCA = [sum(flatData.shape) * rr for rr in self.rrs]
 
     def Q2X_chord(self, drop=5, repeat=3, maxiter=50, mode=0, alpha=None, single=False, init='svd', callback=None, callback_r=None):
