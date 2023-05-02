@@ -14,11 +14,9 @@ def calc_imputed_error(mask, data, tFac):
         return np.nan
 
 class tracker():
-    """
-    Tracks next unfilled entry & runtime, holds tracked name for plotting
-    """
+    """ Tracks next unfilled entry & runtime, holds tracked name for plotting """
         
-    def __init__(self, tOrig, mask=None, track_runtime=False):
+    def __init__(self, tOrig = [0], mask=None, track_runtime=False):
         """ self.data should be the original tensor (e.g. prior to running imputation) """
         self.data = tOrig
         self.mask = mask
@@ -89,7 +87,7 @@ class tracker():
         if self.track_runtime: self.timer = [np.full((1, 0), 0)]
 
     """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
-    def plot_iteration(self, ax, methodname='Method', average=True, rep=None):
+    def plot_iteration(self, ax, methodname='Method', average=True, rep=None, log_scale=False):
         if average:
             fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
             imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
@@ -116,6 +114,7 @@ class tracker():
         ax.set_xlim((0, self.fitted_array.shape[1]))
         ax.set_xlabel('Iteration')
         ax.set_ylabel('Error')
+        if log_scale: ax.yscale('log',log_scale=10)
 
     def plot_runtime(self, ax, methodname='Method', rep=None):
         assert self.track_runtime
