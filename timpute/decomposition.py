@@ -1,5 +1,4 @@
 import pickle
-from re import A
 import numpy as np
 from .cmtf import perform_CLS, calcR2X
 from tensorly.tenalg import svd_interface
@@ -56,10 +55,8 @@ class Decomposition():
             flatData = IterativeSVD(rank=1, random_state=1).fit_transform(flatData)
 
         U, S, V = svd_interface(matrix=flatData, n_eigenvecs=max(self.rrs))
-        scores = U @ np.diag(S)
-        loadings = V
-        recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
-        self.PCAR2X = [calcR2X(c, mIn=flatData) for c in recon]
+        recon = [U[:, :rr] @ np.diag(S) @ V[:rr, :] for rr in self.rrs]
+        self.PCAR2X = [1.0 - np.linalg.norm(c - flatData) / np.linalg.norm(flatData) for c in recon]
         self.sizePCA = [sum(flatData.shape) * rr for rr in self.rrs]
 
     def Q2X_chord(self, drop=5, repeat=3, maxiter=50, mode=0, callback=None, single=False, init='svd'):
@@ -146,7 +143,7 @@ class Decomposition():
         self.fitted_entryQ2X = fitted_Q2X
             
 
-    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, comparePCA=False, callback=None, single=False, init='svd'):
+    def Q2X_entry(self, drop=20, repeat=3, maxiter=50, callback=None, single=False, init='svd'):
         """
         Calculates Q2X when dropping entries from the data using self.method for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -223,20 +220,20 @@ class Decomposition():
                 if callback:
                     if x+1 < repeat: callback.new()
                 
-                # Calculate Q2X for each number of principal components using PCA for factorization as comparison
-                if comparePCA:
-                    Q2XPCA = np.zeros((repeat,self.rrs[-1]))
-                    si = IterativeSVD(rank=max(self.rrs), random_state=1)
-                    missingMat = np.reshape(np.moveaxis(missingCube, 0, 0), (missingCube.shape[0], -1))
-                    mImp = np.reshape(np.moveaxis(tImp, 0, 0), (tImp.shape[0], -1))
+                # # Calculate Q2X for each number of principal components using PCA for factorization as comparison
+                # if comparePCA:
+                #     Q2XPCA = np.zeros((repeat,self.rrs[-1]))
+                #     si = IterativeSVD(rank=max(self.rrs), random_state=1)
+                #     missingMat = np.reshape(np.moveaxis(missingCube, 0, 0), (missingCube.shape[0], -1))
+                #     mImp = np.reshape(np.moveaxis(tImp, 0, 0), (tImp.shape[0], -1))
 
-                    missingMat = si.fit_transform(missingMat)
-                    U, S, V = svd_interface(matrix=missingMat, n_eigenvecs=max(self.rrs))
-                    scores = U @ np.diag(S)
-                    loadings = V
-                    recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
-                    Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
-                    self.entryQ2XPCA = Q2XPCA
+                #     missingMat = si.fit_transform(missingMat)
+                #     U, S, V = svd_interface(matrix=missingMat, n_eigenvecs=max(self.rrs))
+                #     scores = U @ np.diag(S)
+                #     loadings = V
+                #     recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
+                #     Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
+                #     self.entryQ2XPCA = Q2XPCA
         
         self.entryQ2X = Q2X
         self.imputed_entryQ2X = fitted_Q2X

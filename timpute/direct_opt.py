@@ -11,18 +11,6 @@ from .test.simulated_tensors import createUnknownRank
 tl.set_backend('numpy')
 
 
-def reorient_factors(tensorFac):
-    """ This function ensures that factors are negative on at most one direction. """
-    for jj in range(1, len(tensorFac)):
-        # Calculate the sign of the current factor in each component
-        means = np.sign(np.mean(tensorFac[jj], axis=0))
-
-        # Update both the current and last factor
-        tensorFac[0] *= means[np.newaxis, :]
-        tensorFac[jj] *= means[np.newaxis, :]
-    return tensorFac
-
-
 def buildTensors(pIn, r, tshape):
     """ Use parameter vector to build CP tensors. """
     nn = np.cumsum(tshape) * r
@@ -34,7 +22,7 @@ def cost(pIn, tensor, tmask, r):
 
     grad, costt = cp_lstsq_grad((None, tensF), tensor, return_loss=True, mask=tmask)
 
-    gradd = np.concatenate([g.flatten() for g in grad])
+    gradd = np.concatenate([g.flatten() for g in grad[1]])
     return costt, gradd
 
 
@@ -47,7 +35,6 @@ class do_callback():
     def __call__(self, x):
         tensorFac = CPTensor((None, buildTensors(x, self.r, self.shape)))
         tensorFac = cp_normalize(tensorFac)
-        tensorFac.factors = reorient_factors(tensorFac.factors)
         for ii in range(len(self.shape)):
             tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
         self.callback(tensorFac)
@@ -70,9 +57,6 @@ def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None)
     res = minimize(cost, x0, method='L-BFGS-B', jac=True, args=rgs, options={"maxiter":n_iter_max}, callback=temp_callback)
     tensorFac = CPTensor((None, buildTensors(res.x, rank, tensorIn.shape)))
     tensorFac = cp_normalize(tensorFac)
-
-    # Reorient the later tensor factors
-    tensorFac.factors = reorient_factors(tensorFac.factors)
 
     for ii in range(np.ndim(tensorIn)):
         tensorFac.factors[ii] = np.array(tensorFac.factors[ii])
