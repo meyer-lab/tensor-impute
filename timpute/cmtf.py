@@ -99,5 +99,6 @@ def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=Fal
         #     break
 
     tFac = cp_normalize(tFac)
+    tFac.R2X = calcR2X(tFac, tOrig)
 
     return tFac
