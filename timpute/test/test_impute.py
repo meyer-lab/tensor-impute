@@ -2,7 +2,7 @@ import numpy as np
 import tensorly as tl
 from tensorly.random import random_cp
 from ..decomposition import Decomposition
-from ..impute_helper import create_missingness
+from ..impute_helper import *
 from tensordata.alter import data as alter
 from tensordata.zohar import data as zohar
 
