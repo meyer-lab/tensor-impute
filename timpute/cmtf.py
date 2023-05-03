@@ -14,8 +14,10 @@ from sklearn.linear_model import Ridge
 tl.set_backend('numpy')
 
 
-def calcR2X(tFac, tIn, calcError=False, mask=None):
-    """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
+def calcR2X(tFac, tIn, calcError=False, mask=None) -> float:
+    """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix.
+    Mask is for imputation and must be of same shape as tIn/tFac, with 0s indicating artifically dropped values
+    """
     vTop, vBottom = 0.0, 0.0
 
     tOrig = np.copy(tIn)
@@ -67,7 +69,7 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) ->
     return X.T
 
   
-def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None, init=None, mask=None):
+def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None, init=None, mask=None)  -> tl.cp_tensor.CPTensor:
     """ Perform CP decomposition. """
 
     if init==None: tFac = initialize_fac(tOrig, rank)

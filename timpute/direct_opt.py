@@ -19,9 +19,7 @@ def buildTensors(pIn, r, tshape):
 
 def cost(pIn, tensor, tmask, r):
     tensF = buildTensors(pIn, r, tensor.shape)
-
     grad, costt = cp_lstsq_grad((None, tensF), tensor, return_loss=True, mask=tmask)
-
     gradd = np.concatenate([g.flatten() for g in grad[1]])
     return costt, gradd
 
@@ -40,7 +38,7 @@ class do_callback():
         self.callback(tensorFac)
 
 
-def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None, mask=None):
+def perform_DO(tensorOrig=None, rank=6, n_iter_max=50, callback=None, init=None, mask=None) -> tl.cp_tensor.CPTensor:
     """ Perform CP decomposition. """
     if tensorOrig is None: tensorOrig = createUnknownRank()
     if init==None: init=initialize_fac(tensorOrig, rank)
