@@ -93,14 +93,15 @@ def q2xentry(ax, decomp, methodname = "CP", detailed=True):
     else: q2x_plot(ax, methodname, imputed_arr=decomp.imputed_entry_error, fitted_arr=decomp.fitted_entry_error, detail=True)
 
 
-def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray=None, fitted_arr:np.ndarray=None, q2x_arr:np.ndarray=None, detailed=True):
+def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray=None, fitted_arr:np.ndarray=None, q2x_arr:np.ndarray=None, detailed=True, log=True):
     
     if not detailed:
         assert(q2x_arr is not None)
+        comps = np.arange(1,q2x_arr.shape[1]+1)
         entry_df = pd.DataFrame(q2x_arr).T
         entry_df.index = comps
-        entry_df['mean'] = entry_df.mean(axis=1)
-        entry_df['sem'] = entry_df.sem(axis=1)
+        entry_df['mean'] = entry_df.median(axis=1)
+        entry_df['sem'] = entry_df.iqr(axis=1)
         TR2X = entry_df['mean']
         TErr = entry_df['sem']
         ax.plot(comps, TR2X, ".", label=methodname)
@@ -109,32 +110,26 @@ def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray=None, fitted_arr:np.ndar
     
     else:
         assert(imputed_arr is not None and fitted_arr is not None)
-        comps = np.arange(1,imputed_arr.shape[1])
-        imputed_df = pd.DataFrame(imputed_arr).T
-        fitted_df = pd.DataFrame(fitted_arr).T
+        comps = np.arange(1,imputed_arr.shape[1]+1)
 
-        imputed_df.index = comps
-        imputed_df['mean'] = imputed_df.mean(axis=1)
-        imputed_df['sem'] = imputed_df.sem(axis=1)
-        imputed_means = imputed_df['mean']
-        imputed_sem = imputed_df['sem']
-        ax.scatter(comps, imputed_means, s=10, label=methodname+' Imputed Error')
-        ax.errorbar(comps + 0.025, imputed_means, yerr=imputed_sem, fmt='none')
-        
-        fitted_df.index = comps
-        fitted_df['mean'] = fitted_df.mean(axis=1)
-        fitted_df['sem'] = fitted_df.sem(axis=1)
-        fitted_means = fitted_df['mean']
-        fitted_sem = fitted_df['sem']
-        ax.scatter(comps, fitted_means, s=10, label=methodname+' Fitted Error')
-        ax.errorbar(comps + 0.025, fitted_means, yerr=fitted_sem, fmt='none')
+        imputed_errbar = [np.percentile(imputed_arr,25,0),np.percentile(imputed_arr,75,0)]
+        fitted_errbar = [np.percentile(fitted_arr,25,0),np.percentile(fitted_arr,75,0)]
+        e1 = ax.errorbar(comps, np.median(imputed_arr,0), yerr=imputed_errbar, label=methodname+' Imputed Error', fmt='.')
+        e2 = ax.errorbar(comps+0.05, np.median(fitted_arr,0), yerr=fitted_errbar, label=methodname+' Fitted Error', fmt='.')
+        # e1[-1][0].set_linestyle('dotted')
+        # e2[-1][0].set_linestyle('dotted')
+
         ax.set_ylabel("Imputation Error")
 
     ax.set_xlabel("Number of Components")
     ax.set_xticks([x for x in comps])
     ax.set_xticklabels([x for x in comps])
-    ax.set_ylim(0, 1)
     ax.legend(loc="upper right")
+    if log:
+        ax.set_yscale("log")
+        ax.set_ylim(1e-6,1e1)
+    else:
+        ax.set_ylim(0,1)
 
 
 def l2_plot(ax, decomp, alpha, methodname = "CP", comp=None):

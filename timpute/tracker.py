@@ -19,7 +19,7 @@ class tracker():
     def __init__(self, tOrig = [0], mask=None, track_runtime=False):
         """ self.data should be the original tensor (e.g. prior to running imputation) """
         self.data = tOrig
-        self.mask = mask
+        self.mask = mask   # mask represents untouched (1) vs dropped (0) entries
         self.track_runtime = track_runtime
         self.rep = 0
         self.fitted_error = [np.full((1, 0), 0)]
@@ -30,13 +30,12 @@ class tracker():
     def __call__(self, tFac, error=None):
         """ Takes a CP tensor object """
         error = None # Issue with how error is currently calculated in tensorly
-        if error is None:
-            if self.mask is not None: # Assure error is calculated with non-removed values 
-                mask_data = np.copy(self.data)
-                mask_data[~self.mask] = np.nan
-                error = calcR2X(tFac, mask_data, calcError=True)
-            else:
-                error = calcR2X(tFac, self.data, calcError=True)
+        if self.mask is not None: # Assure error is calculated with non-removed values 
+            mask_data = np.copy(self.data)
+            mask_data[~self.mask] = np.nan
+            error = calcR2X(tFac, mask_data, calcError=True)
+        else:
+            error = calcR2X(tFac, self.data, calcError=True)
         self.fitted_error[self.rep] = np.append(self.fitted_error[self.rep], error)
         self.imputed_error[self.rep] = np.append(self.imputed_error[self.rep], calc_imputed_error(self.mask, self.data, tFac))
             
@@ -87,7 +86,7 @@ class tracker():
         if self.track_runtime: self.timer = [np.full((1, 0), 0)]
 
     """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
-    def plot_iteration(self, ax, methodname='Method', average=True, rep=None, log_scale=False):
+    def plot_iteration(self, ax, methodname='Method', average=True, rep=None, log=True):
         if average:
             fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
             imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
@@ -110,11 +109,15 @@ class tracker():
             leg1 = mpatches.Patch(color='blue', label=methodname+'Fitted Error'+str(rep))
             leg2 = mpatches.Patch(color='green', label=methodname+'Imputed Error'+str(rep))
             ax.legend(loc='upper right', handles=[leg1, leg2])
-        ax.set_ylim((0.0, 1.0))
+
         ax.set_xlim((0, self.fitted_array.shape[1]))
         ax.set_xlabel('Iteration')
         ax.set_ylabel('Error')
-        if log_scale: ax.yscale('log',log_scale=10)
+        if log:
+            ax.set_yscale("log")
+            ax.set_ylim(1e-6,1e1)
+        else:
+            ax.set_ylim(0,1)
 
     def plot_runtime(self, ax, methodname='Method', rep=None):
         assert self.track_runtime
