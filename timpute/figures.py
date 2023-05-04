@@ -193,10 +193,8 @@ def figure12_data(fig=1, best_comp = [4,4,6], impute_perc = 0.1, printRuntime=Tr
     return m_decomp, m_track
 
 
-def figure1(logComp=True, logTrack=True, save=True):
+def figure1(f_size = (12,9), logComp=True, logTrack=True, save=True, saveFormat='svg'):
     dirname = "figures/figure1"
-    f_size = (12,12)
-
     ax, f = getSetup(f_size, (3,len(methods)))
     m_decomp = MultiDecomp()
     m_track = tracker()
@@ -213,14 +211,12 @@ def figure1(logComp=True, logTrack=True, save=True):
         m_track.plot_iteration(ax[methodID+6], methodname=m.__name__, log=logTrack)
     
     subplotLabel(ax)
-    if save: f.savefig(f"./{dirname}/figure_1", bbox_inches="tight")
+    if save: f.savefig(f"./{dirname}/figure_1.{saveFormat}", bbox_inches="tight", format=saveFormat)
     return f
     
     
-def figure2(logComp=True, logTrack=True, save=True):
+def figure2(f_size = (12,9), logComp=True, logTrack=True, save=True, saveFormat='svg'):
     dirname = "figures/figure2"
-    f_size = (12,12)
-
     ax, f = getSetup(f_size, (3,len(methods)))
     m_decomp = MultiDecomp()
     m_track = tracker()
@@ -237,5 +233,5 @@ def figure2(logComp=True, logTrack=True, save=True):
         m_track.plot_iteration(ax[methodID+6], methodname=m.__name__, log=logTrack)
     
     subplotLabel(ax)
-    if save: f.savefig(f"./{dirname}/figure_2", bbox_inches="tight")
+    if save: f.savefig(f"./{dirname}/figure_2.{saveFormat}", bbox_inches="tight", format=saveFormat)
     return f
