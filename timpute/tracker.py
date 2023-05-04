@@ -58,12 +58,16 @@ class tracker():
             self.timer.append([np.full((1, 0), 0)])
         self.rep += 1
 
-    def combine(self):
+    def combine(self, remove_outliers=False):
         """ Combines all runs into a single np.ndarray. MUST RUN BEFORE PLOTTING """
         max = 0
+
+        # in case any run doesn't hit maximum iterations, make them all the same size
         for i in range(self.rep+1):
             assert(self.fitted_error[i].size == self.fitted_error[i].size)
             current = self.fitted_error[i].size
+            if remove_outliers and np.max(self.fitted_error[i]) > 1: self.fitted_error[i][:] = np.nan
+
             if (current > max):
                 for j in range(i):
                     self.fitted_error[j] = np.append(self.fitted_error[j], np.full((current-max), np.nan))
@@ -74,10 +78,9 @@ class tracker():
                 self.fitted_error[i] = np.append(self.fitted_error[i], np.full((max-current), np.nan))
                 self.imputed_error[i] = np.append(self.imputed_error[i], np.full((max-current), np.nan))
                 if self.track_runtime: self.timer[i] = np.append(self.timer[i], np.full((max-current), np.nan))
-                
         
         self.fitted_array = np.vstack(tuple(self.fitted_error)) 
-        self.imputed_array = np.vstack(tuple(self.imputed_error))    
+        self.imputed_array = np.vstack(tuple(self.imputed_error))
         if self.track_runtime: self.time_array = np.vstack(tuple(self.timer))
 
     def reset(self):
@@ -90,8 +93,8 @@ class tracker():
         if average:
             fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
             imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
-            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+.05, np.nanmean(self.imputed_array,0), yerr=imputed_errbar, label=methodname+' Imputed Error', errorevery=5)
-            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1]), np.nanmean(self.fitted_array,0), yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
+            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+.05, np.nanmedian(self.imputed_array,0), yerr=imputed_errbar, label=methodname+' Imputed Error', errorevery=5)
+            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1]), np.nanmedian(self.fitted_array,0), yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
             e1[-1][0].set_linestyle('dotted')
             e2[-1][0].set_linestyle('dotted')
             ax.legend(loc='upper right')
@@ -110,7 +113,7 @@ class tracker():
             leg2 = mpatches.Patch(color='green', label=methodname+'Imputed Error'+str(rep))
             ax.legend(loc='upper right', handles=[leg1, leg2])
 
-        ax.set_xlim((0, self.fitted_array.shape[1]))
+        ax.set_xlim((-0.5, self.fitted_array.shape[1]))
         ax.set_xlabel('Iteration')
         ax.set_ylabel('Error')
         if log:

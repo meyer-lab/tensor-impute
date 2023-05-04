@@ -87,7 +87,6 @@ def compare_imputation(tensor=None, init='svd', alpha=None, methods=[perform_DO,
     return f 
 
 
-
 def l2_comparison(tensor=None, init='svd', alpha=[1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2],
                        impute_type='entry', impute_r=[3,4,5,6], impute_reps=5, impute_perc=0.25, impute_mode=0,
                        f_size=(12,6), save=None, printRuntime=True):
@@ -187,6 +186,8 @@ def figure12_data(fig=1, best_comp = [4,4,6], impute_perc = 0.1, printRuntime=Tr
 
         if (printRuntime and (i+1)%round(tensor_samples*0.2) == 0):
             print(f"Average runtime for {i+1} tensors: {(process_time()-tstart)/(i+1)}")
+    
+    print(f"{process_time} seconds elapsed for figure {fig}")
 
     return m_decomp, m_track
 

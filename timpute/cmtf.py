@@ -74,7 +74,6 @@ def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=Fal
 
     if init==None: tFac = initialize_fac(tOrig, rank)
     else: tFac = init
-    if callback: callback(tFac)
     
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]

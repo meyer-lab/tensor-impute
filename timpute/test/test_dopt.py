@@ -7,9 +7,9 @@ from timpute.decomposition import Decomposition
 from timpute.common import getSetup
 from timpute.plot import q2xentry
 
-def test_decomp_dopt(plot=False):
+def test_decomp_dopt(plot=False, method = perform_DO):
     tensor = generateTensor('known', shape = (10,10,10))
-    decomp = Decomposition(tensor, max_rr = 6, method = perform_DO)
+    decomp = Decomposition(tensor, max_rr = 6, method = method)
     track = tracker(tensor)
 
     # average Q2X for components 1-6 (n=10) for a single test tensor with 10% imputation
@@ -23,7 +23,7 @@ def test_decomp_dopt(plot=False):
         q2xentry(ax, decomp, perform_DO.__name__, detailed=False)
         return f
     
-    return decomp
+    return decomp, track
 
 
 def unit_test_dopt():

@@ -127,7 +127,9 @@ class Decomposition():
                     else: CPinit = initialize_fac(missingCube, rr, init)
 
                     # run method
-                    if callback.track_runtime: callback.begin()
+                    if callback.track_runtime:
+                        callback.begin()
+                    callback(CPinit)
                     if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                     else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                 else:   # not tracking iteration
@@ -171,7 +173,9 @@ class Decomposition():
                         else: CPinit = initialize_fac(missingCube, rr, init)
                         
                         # run method
-                        if callback.track_runtime: callback.begin()
+                        if callback.track_runtime:
+                            callback.begin()
+                        callback(CPinit)
                         if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                         else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                     else:   # not tracking iteration
@@ -244,6 +248,7 @@ class Decomposition():
         if callback_r is None: callback_r = max(self.rrs)
         if alpha is not None: assert(self.method==perform_CLS)
         if callback_r is not None: assert(callback_r >= 0 and callback_r <= np.max(self.rrs))
+        if isinstance(init,tl.cp_tensor.CPTensor) or isinstance(init,list): preinit = True
 
         if single:
             for x in range(repeat):
@@ -264,7 +269,9 @@ class Decomposition():
                     else: CPinit = initialize_fac(missingCube, rr, init)
 
                     # run method
-                    if callback.track_runtime: callback.begin()
+                    if callback.track_runtime:
+                        callback.begin()
+                    callback(CPinit)
                     if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                     else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                 else:   # not tracking iteration
@@ -308,6 +315,7 @@ class Decomposition():
 
                         # run method
                         if callback.track_runtime: callback.begin()
+                        callback(CPinit)
                         if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
                         else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                     else:   # not tracking iteration
