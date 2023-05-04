@@ -26,8 +26,8 @@ def test_decomp_dopt(plot=False):
     return decomp
 
 
-def unit_test_dopt():
+def test_unit_dopt():
     tensor = generateTensor('known', shape = (10,10,10))
     tFac = perform_DO(tensor, rank=6)
-    q2x = calcR2X(tFac,tensor)
-    return q2x
+    q2x = calcR2X(tFac, tensor)
+    print(q2x)
