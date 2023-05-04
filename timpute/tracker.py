@@ -118,7 +118,7 @@ class tracker():
         ax.set_ylabel('Error')
         if log:
             ax.set_yscale("log")
-            ax.set_ylim(1e-6,1e1)
+            ax.set_ylim(10**-3.5,1)
         else:
             ax.set_ylim(0,1)
 

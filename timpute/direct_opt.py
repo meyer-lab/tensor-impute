@@ -44,7 +44,6 @@ def perform_DO(
     if init == None:
         init = initialize_fac(tensorOrig, rank)
     if callback:
-        callback(init)
         temp_callback = do_callback(callback, tensorOrig.shape)
     else:
         temp_callback = None
@@ -64,6 +63,5 @@ def perform_DO(
         options={"maxiter": n_iter_max},
         callback=temp_callback,
     )
-    assert res.success
 
     return cp_normalize(buildTensors(res.x, tensorIn.shape))

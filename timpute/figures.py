@@ -17,6 +17,8 @@ from timpute.tensorly_als import perform_ALS
 from timpute.cmtf import perform_CLS
 
 
+""" Exploratory Analysis Graphs """
+
 def generateTensor(type=None, r=6, shape=(20,25,30), scale=2, distribution='gamma', par=2, missingness=0.1, noise_scale=50):
     """ Tensor options: 'zohar', 'atyeo', 'alter', 'unknown', 'known', defaulting to 'known' """
     if type == 'zohar': return zohar().to_numpy()
@@ -145,13 +147,12 @@ def regraph(save=None, fname="new_imputation_results", impute_type='entry', meth
 
     return f
 
-
-
+""" Figure Data/Graphs """
+methods = [perform_CLS, perform_ALS, perform_DO]
 
 def figure12_data(fig=1, best_comp = [4,4,6], impute_perc = 0.1, printRuntime=True, tensor_samples=50, impute_reps=5, seed=5):
     """ Generates a figure of method for `tensor_samples` tensors, each run `impute_reps` times. Identical initializations for each method's run per tensor."""
     np.random.seed(seed)
-    methods = [perform_CLS, perform_ALS, perform_DO]
     max_rr = 6
 
     dirname = f"figures/figure{fig}"
@@ -170,8 +171,8 @@ def figure12_data(fig=1, best_comp = [4,4,6], impute_perc = 0.1, printRuntime=Tr
             decomp = Decomposition(tensor, method=m, max_rr=max_rr)
             if i==0: m_track = tracker(tensor,track_runtime=True)
             else:
-                m_decomp.load('./'+dirname+'/' + m.__name__ + '-decomp')
-                m_track.load('./'+dirname+'/' + m.__name__ + '-track')
+                m_decomp.load(f"./{dirname}/{m.__name__}-decomp")
+                m_track.load(f"./{dirname}/{m.__name__}-track")
                 m_track.new()
             
             # run imputation, tracking for chords
@@ -181,19 +182,18 @@ def figure12_data(fig=1, best_comp = [4,4,6], impute_perc = 0.1, printRuntime=Tr
             # save runs
             if i==0: m_decomp = MultiDecomp(decomp)
             else: m_decomp(decomp)
-            m_decomp.save('./'+dirname+'/' + m.__name__ + '-decomp')
-            m_track.save('./'+dirname+'/' + m.__name__ + '-track')
+            m_decomp.save(f"./{dirname}/{m.__name__}-decomp")
+            m_track.save(f"./{dirname}/{m.__name__}-track")
 
         if (printRuntime and (i+1)%round(tensor_samples*0.2) == 0):
             print(f"Average runtime for {i+1} tensors: {(process_time()-tstart)/(i+1)}")
     
-    print(f"{process_time} seconds elapsed for figure {fig}")
+    print(f"{process_time()} seconds elapsed for figure {fig}")
 
     return m_decomp, m_track
 
 
-def figure1(log=True, save=True):
-    methods = [perform_CLS, perform_ALS, perform_DO]
+def figure1(logComp=True, logTrack=True, save=True):
     dirname = "figures/figure1"
     f_size = (12,12)
 
@@ -203,22 +203,21 @@ def figure1(log=True, save=True):
 
     # plot components vs imputed/fitted error
     for methodID,m in enumerate(methods):
-        m_decomp.load('./'+dirname+'/' + m.__name__ + '-decomp')
-        m_track.load('./'+dirname+'/' + m.__name__ + '-track')
+        m_decomp.load(f"./{dirname}/{m.__name__}-decomp")
+        m_track.load(f"./{dirname}/{m.__name__}-track")
         m_track.combine()
 
         # plot graphs
-        q2x_plot(ax[methodID], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, log=log)
-        q2x_plot(ax[methodID+3], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, log=log)
-        m_track.plot_iteration(ax[methodID+6], methodname=m.__name__, log=False)
+        q2x_plot(ax[methodID], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, log=logComp)
+        q2x_plot(ax[methodID+3], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, log=logComp)
+        m_track.plot_iteration(ax[methodID+6], methodname=m.__name__, log=logTrack)
     
     subplotLabel(ax)
-    if save: f.savefig('./'+dirname+'/' + "figure_1", bbox_inches="tight")
+    if save: f.savefig(f"./{dirname}/figure_1", bbox_inches="tight")
     return f
     
     
-def figure2(log=True, save=True):
-    methods = [perform_CLS, perform_ALS, perform_DO]
+def figure2(logComp=True, logTrack=True, save=True):
     dirname = "figures/figure2"
     f_size = (12,12)
 
@@ -228,15 +227,15 @@ def figure2(log=True, save=True):
 
     # plot components vs imputed/fitted error
     for methodID,m in enumerate(methods):
-        m_decomp.load('./'+dirname+'/' + m.__name__ + '-decomp')
-        m_track.load('./'+dirname+'/' + m.__name__ + '-track')
+        m_decomp.load(f"./{dirname}/{m.__name__}-decomp")
+        m_track.load(f"./{dirname}/{m.__name__}-track")
         m_track.combine()
 
         # plot graphs
-        q2x_plot(ax[methodID], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, log=log)
-        q2x_plot(ax[methodID+3], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, log=log)
-        m_track.plot_iteration(ax[methodID+6], methodname=m.__name__, log=False)
+        q2x_plot(ax[methodID], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, log=logComp)
+        q2x_plot(ax[methodID+3], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, log=logComp)
+        m_track.plot_iteration(ax[methodID+6], methodname=m.__name__, log=logTrack)
     
     subplotLabel(ax)
-    if save: f.savefig('./'+dirname+'/' + "figure_1", bbox_inches="tight")
+    if save: f.savefig(f"./{dirname}/figure_2", bbox_inches="tight")
     return f
