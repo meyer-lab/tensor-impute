@@ -169,7 +169,7 @@ def sim_data(name = None, tSize = (10,10,10), useCallback=True, best_comp = [6,6
     tstart = process_time()
     for i in range(tensor_samples):
         # generate tensor
-        tensor = generateTensor('known',r=max_rr,shape=tSize)
+        tensor = generateTensor('known',r=max_rr,shape=tSize,missingness=0)
         entry_drop = int(impute_perc*np.sum(np.isfinite(tensor)))
         chord_drop = int(impute_perc*tensor.size/tensor.shape[0])
         inits = [[initialize_fac(tensor, rr, init) for _ in range(impute_reps)] for rr in range(1,max_rr+1)]
@@ -224,8 +224,8 @@ def comp_iter_graph(figname, f_size = (12,9),
         m_track.combine()
 
         # plot graphs
-        q2x_plot(ax[methodID], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, log=logComp, logbound=logbound)
-        q2x_plot(ax[methodID+3], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, log=logComp, logbound=logbound)
+        q2x_plot(ax[methodID], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total, log=logComp, logbound=logbound)
+        q2x_plot(ax[methodID+3], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total, log=logComp, logbound=logbound)
         m_track.plot_iteration(ax[methodID+6], methodname=m.__name__, log=logTrack, logbound=logbound)
     
     subplotLabel(ax)
@@ -248,8 +248,8 @@ def comp_init_graph(figname, ax = None, ax_start = None,
         m_track.load(f"./{dirname}/{m.__name__}-track")
         m_track.combine()
 
-        if type == 'entry': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, log=logComp, logbound=logbound)
-        elif type == 'chord': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, log=logComp, logbound=logbound)
+        if type == 'entry': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total, log=logComp, logbound=logbound)
+        elif type == 'chord': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total, log=logComp, logbound=logbound)
         m_track.plot_iteration(ax[methodID+ax_start+3], methodname=m.__name__, log=logTrack, logbound=logbound)
 
 def comp_dim_graph(figname, ax = None, ax_start = None,
@@ -264,8 +264,8 @@ def comp_dim_graph(figname, ax = None, ax_start = None,
     # plot components vs imputed/fitted error
     for methodID,m in enumerate(methods):
         m_decomp.load(f"./{dirname}/{m.__name__}-decomp")
-        if type == 'entry': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, log=logComp, logbound=logbound)
-        elif type == 'chord': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, log=logComp, logbound=logbound)
+        if type == 'entry': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total, log=logComp, logbound=logbound)
+        elif type == 'chord': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total, log=logComp, logbound=logbound)
 
 
 """ Figure Data/Graphs """
@@ -273,7 +273,7 @@ def comp_dim_graph(figname, ax = None, ax_start = None,
 
 
 def sim10_data(best_comp = [6,2,6], printRuntime=True):
-    sim_data(tSize = (10,10,10), best_comp = best_comp, impute_perc = 0.1, printRuntime=printRuntime, tensor_samples=50, impute_rep=10, seed=5)
+    sim_data(name="", tSize = (10,10,10), best_comp = best_comp, impute_perc = 0.1, printRuntime=printRuntime, tensor_samples=50, impute_reps=10, seed=5)
 
 def sim10_figure(f_size = (12,9), logComp=True, logTrack=True, logbound=-3.5, save=True, saveFormat='png'):
     if save: assert saveFormat == 'png' or saveFormat == 'svg' or saveFormat == 'jpg' or saveFormat == 'jpeg' or saveFormat == 'pdf'
@@ -282,7 +282,7 @@ def sim10_figure(f_size = (12,9), logComp=True, logTrack=True, logbound=-3.5, sa
     
 
 def sim25_data(best_comp = [6,2,5], printRuntime=True):
-    sim_data(tSize = (10,10,10), best_comp = best_comp, impute_perc = 0.25, printRuntime=printRuntime, tensor_samples=50, impute_rep=10, seed=5)
+    sim_data(name="", tSize = (10,10,10), best_comp = best_comp, impute_perc = 0.25, printRuntime=printRuntime, tensor_samples=50, impute_reps=10, seed=5)
 
 def sim25_figure(f_size = (12,9), logComp=True, logTrack=True, logbound=-3.5, save=True, saveFormat='png'):
     if save: assert saveFormat == 'png' or saveFormat == 'svg' or saveFormat == 'jpg' or saveFormat == 'jpeg' or saveFormat == 'pdf'
@@ -361,7 +361,7 @@ def zohar_data(best_comp = [6,4,3], impute_perc = 0.1, impute_reps=50, seed=5):
 
     return m_decomp, m_track
 
-def zohar_figure(f_size = (12,9), logComp=True, logTrack=True, logbound=-4, save=True, saveFormat='png'):
+def zohar_figure(f_size = (12,9), impute_perc=0.1, logComp=True, logTrack=True, logbound=-4, save=True, saveFormat='png'):
     if save: assert saveFormat == 'png' or saveFormat == 'svg' or saveFormat == 'jpg' or saveFormat == 'jpeg' or saveFormat == 'pdf'
-    figname = "zohar_0.1"
+    figname = f"zohar_{impute_perc}"
     return comp_iter_graph(figname=figname, f_size=f_size, logComp=logComp, logTrack=logTrack, logbound=logbound, save=save, saveFormat=saveFormat)

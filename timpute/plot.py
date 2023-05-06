@@ -71,7 +71,7 @@ def q2xchord(ax, decomp, methodname = "CP", detailed=True):
     detailed : bool
         Plots fitted and imputed error if True, compined Q2X if False
     """
-    if not detailed: q2x_plot(ax, methodname, q2x_arr=decomp.chordQ2X, detailed=False)
+    if not detailed: q2x_plot(ax, methodname, total_arr=decomp.chordQ2X, detailed=False)
     else: q2x_plot(ax, methodname, imputed_arr=decomp.imputed_chord_error, fitted_arr=decomp.fitted_chord_error, detail=True)
 
 
@@ -89,16 +89,16 @@ def q2xentry(ax, decomp, methodname = "CP", detailed=True):
     methodname : str
         Allows for proper tensor method when naming graph axes. 
     """
-    if not detailed: q2x_plot(ax, methodname, q2x_arr=decomp.entryQ2X, detailed=False)
+    if not detailed: q2x_plot(ax, methodname, total_arr=decomp.entryQ2X, detailed=False)
     else: q2x_plot(ax, methodname, imputed_arr=decomp.imputed_entry_error, fitted_arr=decomp.fitted_entry_error, detail=True)
 
 
-def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray=None, fitted_arr:np.ndarray=None, q2x_arr:np.ndarray=None, detailed=True, log=True, logbound=-3.5):
+def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray=None, fitted_arr:np.ndarray=None, total_arr:np.ndarray=None, detailed=True, log=True, logbound=-3.5):
     
     if not detailed:
-        assert(q2x_arr is not None)
-        comps = np.arange(1,q2x_arr.shape[1]+1)
-        entry_df = pd.DataFrame(q2x_arr).T
+        assert(total_arr is not None)
+        comps = np.arange(1,total_arr.shape[1]+1)
+        entry_df = pd.DataFrame(total_arr).T
         entry_df.index = comps
         entry_df['mean'] = entry_df.median(axis=1)
         entry_df['sem'] = entry_df.iqr(axis=1)
@@ -114,8 +114,13 @@ def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray=None, fitted_arr:np.ndar
 
         imputed_errbar = [np.percentile(imputed_arr,25,0),np.percentile(imputed_arr,75,0)]
         fitted_errbar = [np.percentile(fitted_arr,25,0),np.percentile(fitted_arr,75,0)]
-        e1 = ax.errorbar(comps, np.median(imputed_arr,0), yerr=imputed_errbar, label=methodname+' Imputed Error', fmt='.')
-        e2 = ax.errorbar(comps+0.05, np.median(fitted_arr,0), yerr=fitted_errbar, label=methodname+' Fitted Error', fmt='.')
+        ax.errorbar(comps, np.median(imputed_arr,0), yerr=imputed_errbar, label=methodname+' Imputed Error', fmt='.')
+        ax.errorbar(comps+0.05, np.median(fitted_arr,0), yerr=fitted_errbar, label=methodname+' Fitted Error', fmt='.')
+
+        if total_arr is not None:
+            total_errbar = [np.percentile(total_arr,25,0),np.percentile(total_arr,75,0)]
+            ax.errorbar(comps+0.05, np.median(total_arr,0), yerr=total_errbar, label=methodname+' Total Error', fmt='.')
+
         # e1[-1][0].set_linestyle('dotted')
         # e2[-1][0].set_linestyle('dotted')
 

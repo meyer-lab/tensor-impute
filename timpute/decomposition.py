@@ -98,7 +98,7 @@ class Decomposition():
             Each value in a row represents error of the FITTED (not dropped, not missing) values of the tensor
             calculated for components 1 to max_rr.
         """
-        Q2X = np.zeros((repeat,self.rrs[-1]))
+        error = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
         fitted_error = np.zeros((repeat,self.rrs[-1]))
         if callback_r is None: callback_r = max(self.rrs)
@@ -149,55 +149,56 @@ class Decomposition():
                     else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
 
                 # save error/Q2X
-                Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
+                error[x,rr-1] = calcR2X(tFac, tIn=tImp, calcError=True)
                 imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
                 fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
 
             if callback:
                 if x+1 < repeat: callback.new()
         
-        self.chordQ2X = Q2X
+        self.chord_error = error
         self.imputed_chord_error = imputed_error
         self.fitted_chord_error = fitted_error
 
-        if single: pass
-        #     for x in range(repeat):
-        #         # drop values
-        #         tImp = np.copy(self.data)
-        #         np.moveaxis(tImp,mode,0)
-        #         missingCube = np.copy(tImp)
-        #         mask = chord_drop(missingCube, drop)
-                
-        #         # track masks
-        #         if callback: callback.set_mask(mask)
-        #         imputed_vals = np.ones_like(missingCube) - mask
-        #         fitted_vals = np.isfinite(tImp) - imputed_vals
+        if single:
+            #     for x in range(repeat):
+            #         # drop values
+            #         tImp = np.copy(self.data)
+            #         np.moveaxis(tImp,mode,0)
+            #         missingCube = np.copy(tImp)
+            #         mask = chord_drop(missingCube, drop)
+                    
+            #         # track masks
+            #         if callback: callback.set_mask(mask)
+            #         imputed_vals = np.ones_like(missingCube) - mask
+            #         fitted_vals = np.isfinite(tImp) - imputed_vals
 
-        #         # method chunk
-        #         if callback:
-        #             # handle initialization
-        #             if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
-        #             else: CPinit = initialize_fac(missingCube, rr, init)
+            #         # method chunk
+            #         if callback:
+            #             # handle initialization
+            #             if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+            #             else: CPinit = initialize_fac(missingCube, rr, init)
 
-        #             # run method
-        #             if callback.track_runtime:
-        #                 callback.begin()
-        #             callback(CPinit)
-        #             if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
-        #             else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
-        #         else:   # not tracking iteration
-        #             # handle initialization
-        #             if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
-        #             else: CPinit = initialize_fac(missingCube, rr, init)
+            #             # run method
+            #             if callback.track_runtime:
+            #                 callback.begin()
+            #             callback(CPinit)
+            #             if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
+            #             else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
+            #         else:   # not tracking iteration
+            #             # handle initialization
+            #             if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+            #             else: CPinit = initialize_fac(missingCube, rr, init)
 
-        #             # run method
-        #             if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
-        #             else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
+            #             # run method
+            #             if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
+            #             else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
 
-        #         # save error/Q2X
-        #         Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
-        #         imputed_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
-        #         fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
+            #         # save error/Q2X
+            #         Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
+            #         imputed_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
+            #         fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
+            pass
             
 
     def Q2X_entry(self, drop:int=20, repeat:int=3, maxiter:int=50, alpha=None, single:bool=False, init='svd', callback:tracker=None, callback_r:int=None):
@@ -241,7 +242,7 @@ class Decomposition():
             SVD imputation. Each row represents a single repetition. (only if comparePCA=True)
         """
 
-        Q2X = np.zeros((repeat,self.rrs[-1]))
+        error = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
         fitted_error = np.zeros((repeat,self.rrs[-1]))
         if callback_r is None: callback_r = max(self.rrs)
@@ -288,7 +289,7 @@ class Decomposition():
                     if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit, alpha=alpha)
                     else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
                 # save error/Q2X
-                Q2X[x,rr-1] = calcR2X(tFac, tIn=tImp)
+                error[x,rr-1] = calcR2X(tFac, tIn=tImp, calcError=True)
                 imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
                 fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
 
@@ -309,45 +310,46 @@ class Decomposition():
                 #     recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
                 #     Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
                 #     self.entryQ2XPCA = Q2XPCA
-        if single: pass
-        #     for x in range(repeat):
-        #         # drop values
-        #         tImp = np.copy(self.data)
-        #         missingCube = np.copy(tImp)
-        #         mask = entry_drop(missingCube, drop, dropany=True)
+        if single:
+            #     for x in range(repeat):
+            #         # drop values
+            #         tImp = np.copy(self.data)
+            #         missingCube = np.copy(tImp)
+            #         mask = entry_drop(missingCube, drop, dropany=True)
 
-        #         # track masks
-        #         if callback: callback.set_mask(mask)
-        #         imputed_vals = np.ones_like(missingCube) - mask
-        #         fitted_vals = np.ones_like(missingCube) - imputed_vals
-                
-        #         # method chunk
-        #         if callback:
-        #             # handle initialization
-        #             if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
-        #             else: CPinit = initialize_fac(missingCube, rr, init)
+            #         # track masks
+            #         if callback: callback.set_mask(mask)
+            #         imputed_vals = np.ones_like(missingCube) - mask
+            #         fitted_vals = np.ones_like(missingCube) - imputed_vals
+                    
+            #         # method chunk
+            #         if callback:
+            #             # handle initialization
+            #             if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+            #             else: CPinit = initialize_fac(missingCube, rr, init)
 
-        #             # run method
-        #             if callback.track_runtime:
-        #                 callback.begin()
-        #             callback(CPinit)
-        #             if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
-        #             else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
-        #         else:   # not tracking iteration
-        #             # handle initialization
-        #             if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
-        #             else: CPinit = initialize_fac(missingCube, rr, init)
+            #             # run method
+            #             if callback.track_runtime:
+            #                 callback.begin()
+            #             callback(CPinit)
+            #             if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
+            #             else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
+            #         else:   # not tracking iteration
+            #             # handle initialization
+            #             if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
+            #             else: CPinit = initialize_fac(missingCube, rr, init)
 
-        #             # run method
-        #             if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit, alpha=alpha)
-        #             else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
+            #             # run method
+            #             if alpha is not None: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit, alpha=alpha)
+            #             else: tFac = self.method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
 
-        #         # save error/Q2X
-        #         Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
-        #         imputed_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
-        #         fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
+            #         # save error/Q2X
+            #         Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
+            #         imputed_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
+            #         fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
+            pass
 
-        self.entryQ2X = Q2X
+        self.entry_error = error
         self.imputed_entry_error = imputed_error
         self.fitted_entry_error = fitted_error
     
@@ -371,22 +373,22 @@ class MultiDecomp():
             self.hasChord=chord
 
             if entry:
-                self.entry = decomp.entryQ2X
+                self.entry_total = decomp.entry_error
                 self.entry_imputed = decomp.imputed_entry_error
                 self.entry_fitted = decomp.fitted_entry_error
 
             if chord:
-                self.chord = decomp.chordQ2X
+                self.chord_total = decomp.chord_error
                 self.chord_imputed = decomp.imputed_chord_error
                 self.chord_fitted = decomp.fitted_chord_error
 
     def __call__(self, decomp:Decomposition):
         if self.hasEntry:
-            self.entry = np.vstack((self.entry,decomp.entryQ2X))
+            self.entry_total = np.vstack((self.entry_total,decomp.entry_error))
             self.entry_imputed = np.vstack((self.entry_imputed,decomp.imputed_entry_error))
             self.entry_fitted = np.vstack((self.entry_fitted,decomp.fitted_entry_error))
         if self.hasChord:
-            self.chord = np.vstack((self.chord,decomp.chordQ2X))
+            self.chord_total = np.vstack((self.chord_total,decomp.chord_error))
             self.chord_imputed = np.vstack((self.chord_imputed,decomp.imputed_chord_error))
             self.chord_fitted = np.vstack((self.chord_fitted,decomp.fitted_chord_error))
 
