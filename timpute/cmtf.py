@@ -14,7 +14,7 @@ from sklearn.linear_model import Ridge
 tl.set_backend('numpy')
 
 
-def calcR2X(tFac, tIn, calcError=False, mask=None) -> float:
+def calcR2X(tFac:tl.cp_tensor.CPTensor, tIn:np.ndarray, calcError:bool=False, mask:np.ndarray=None) -> float:
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix.
     Mask is for imputation and must be of same shape as tIn/tFac, with 0s indicating artifically dropped values
     """
