@@ -89,15 +89,16 @@ class tracker():
         if self.track_runtime: self.timer = [np.full((1, 0), 0)]
 
     """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
-    def plot_iteration(self, ax, methodname='Method', average=True, rep=None, log=True):
-        if average:
+    def plot_iteration(self, ax, methodname='Method', grouped=True, rep=None, log=True, logbound=-3.5):
+        if grouped:
             fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
             imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
-            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+.05, np.nanmedian(self.imputed_array,0), yerr=imputed_errbar, label=methodname+' Imputed Error', errorevery=5)
+            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+.25, np.nanmedian(self.imputed_array,0), yerr=imputed_errbar, label=methodname+' Imputed Error', errorevery=5)
             e2 = ax.errorbar(np.arange(self.fitted_array.shape[1]), np.nanmedian(self.fitted_array,0), yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
             e1[-1][0].set_linestyle('dotted')
             e2[-1][0].set_linestyle('dotted')
             ax.legend(loc='upper right')
+
         elif rep == None:
             for i in range(self.rep+1):
                 ax.plot(np.arange(self.fitted_array.shape[1]), self.fitted_array[i], color='blue')
@@ -105,7 +106,7 @@ class tracker():
             leg1 = mpatches.Patch(color='blue', label=methodname+'Fitted Error')
             leg2 = mpatches.Patch(color='green', label=methodname+'Imputation Error')
             ax.legend(loc='upper right', handles=[leg1, leg2])
-        else:
+        elif isinstance(rep, int):
             assert rep < self.rep + 1
             ax.plot(np.arange(self.fitted_array.shape[1]), self.fitted_array[rep-1], color='blue')
             ax.plot(np.arange(self.imputed_array.shape[1])+.1, self.imputed_array[rep-1], color='green')
@@ -118,7 +119,7 @@ class tracker():
         ax.set_ylabel('Error')
         if log:
             ax.set_yscale("log")
-            ax.set_ylim(10**-3.5,1)
+            ax.set_ylim(10**logbound,1)
         else:
             ax.set_ylim(0,1)
 

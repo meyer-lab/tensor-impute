@@ -363,25 +363,32 @@ class Decomposition():
 
 
 class MultiDecomp():
-    def __init__(self, decomp:Decomposition = None):
+    def __init__(self, decomp:Decomposition = None, entry = True, chord=True):
         if decomp is not None:
+            assert entry or chord
             self.rr = decomp.rrs[-1]
-            self.entry = decomp.entryQ2X
-            self.entry_imputed = decomp.imputed_entry_error
-            self.entry_fitted = decomp.fitted_entry_error
+            self.hasEntry=entry
+            self.hasChord=chord
 
-            self.chord = decomp.chordQ2X
-            self.chord_imputed = decomp.imputed_chord_error
-            self.chord_fitted = decomp.fitted_chord_error
+            if entry:
+                self.entry = decomp.entryQ2X
+                self.entry_imputed = decomp.imputed_entry_error
+                self.entry_fitted = decomp.fitted_entry_error
+
+            if chord:
+                self.chord = decomp.chordQ2X
+                self.chord_imputed = decomp.imputed_chord_error
+                self.chord_fitted = decomp.fitted_chord_error
 
     def __call__(self, decomp:Decomposition):
-        self.entry = np.vstack((self.entry,decomp.entryQ2X))
-        self.entry_imputed = np.vstack((self.entry_imputed,decomp.imputed_entry_error))
-        self.entry_fitted = np.vstack((self.entry_fitted,decomp.fitted_entry_error))
-        
-        self.chord = np.vstack((self.chord,decomp.chordQ2X))
-        self.chord_imputed = np.vstack((self.chord_imputed,decomp.imputed_chord_error))
-        self.chord_fitted = np.vstack((self.chord_fitted,decomp.fitted_chord_error))
+        if self.hasEntry:
+            self.entry = np.vstack((self.entry,decomp.entryQ2X))
+            self.entry_imputed = np.vstack((self.entry_imputed,decomp.imputed_entry_error))
+            self.entry_fitted = np.vstack((self.entry_fitted,decomp.fitted_entry_error))
+        if self.hasChord:
+            self.chord = np.vstack((self.chord,decomp.chordQ2X))
+            self.chord_imputed = np.vstack((self.chord_imputed,decomp.imputed_chord_error))
+            self.chord_fitted = np.vstack((self.chord_fitted,decomp.fitted_chord_error))
 
     def save(self, pfile):
         with open(pfile, "wb") as output_file:

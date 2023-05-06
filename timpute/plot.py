@@ -93,7 +93,7 @@ def q2xentry(ax, decomp, methodname = "CP", detailed=True):
     else: q2x_plot(ax, methodname, imputed_arr=decomp.imputed_entry_error, fitted_arr=decomp.fitted_entry_error, detail=True)
 
 
-def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray=None, fitted_arr:np.ndarray=None, q2x_arr:np.ndarray=None, detailed=True, log=True):
+def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray=None, fitted_arr:np.ndarray=None, q2x_arr:np.ndarray=None, detailed=True, log=True, logbound=-3.5):
     
     if not detailed:
         assert(q2x_arr is not None)
@@ -127,7 +127,7 @@ def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray=None, fitted_arr:np.ndar
     ax.legend(loc="upper right")
     if log:
         ax.set_yscale("log")
-        ax.set_ylim(10**-3.5,1)
+        ax.set_ylim(10**logbound,1)
     else:
         ax.set_ylim(0,1)
 
