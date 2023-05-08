@@ -93,7 +93,8 @@ def q2xentry(ax, decomp, methodname = "CP", detailed=True):
     else: q2x_plot(ax, methodname, imputed_arr=decomp.imputed_entry_error, fitted_arr=decomp.fitted_entry_error, detail=True)
 
 
-def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray=None, fitted_arr:np.ndarray=None, total_arr:np.ndarray=None, detailed=True, log=True, logbound=-3.5):
+def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray = None, fitted_arr:np.ndarray = None, total_arr:np.ndarray = None,
+             detailed = True, plot_total = False, log = True, logbound = -3.5):
     
     if not detailed:
         assert(total_arr is not None)
@@ -109,17 +110,18 @@ def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray=None, fitted_arr:np.ndar
         ax.set_ylabel("Q2X of Entry Imputation")
     
     else:
-        assert(imputed_arr is not None and fitted_arr is not None)
+        assert imputed_arr is not None and fitted_arr is not None
+        if plot_total: assert total_arr is not None
         comps = np.arange(1,imputed_arr.shape[1]+1)
 
         imputed_errbar = [np.percentile(imputed_arr,25,0),np.percentile(imputed_arr,75,0)]
         fitted_errbar = [np.percentile(fitted_arr,25,0),np.percentile(fitted_arr,75,0)]
-        ax.errorbar(comps, np.median(imputed_arr,0), yerr=imputed_errbar, label=methodname+' Imputed Error', fmt='.')
-        ax.errorbar(comps+0.05, np.median(fitted_arr,0), yerr=fitted_errbar, label=methodname+' Fitted Error', fmt='.')
+        ax.errorbar(comps-0.025, np.median(imputed_arr,0), yerr=imputed_errbar, label=methodname+' Imputed Error', fmt='.')
+        ax.errorbar(comps+0.025, np.median(fitted_arr,0), yerr=fitted_errbar, label=methodname+' Fitted Error', fmt='.')
 
-        if total_arr is not None:
+        if plot_total:
             total_errbar = [np.percentile(total_arr,25,0),np.percentile(total_arr,75,0)]
-            ax.errorbar(comps+0.05, np.median(total_arr,0), yerr=total_errbar, label=methodname+' Total Error', fmt='.')
+            ax.errorbar(comps, np.median(total_arr,0), yerr=total_errbar, label=methodname+' Total Error', fmt='.')
 
         # e1[-1][0].set_linestyle('dotted')
         # e2[-1][0].set_linestyle('dotted')
