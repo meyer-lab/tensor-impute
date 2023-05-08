@@ -148,6 +148,16 @@ def regraph(save=None, fname="new_imputation_results", impute_type='entry', meth
 """ Figure Helper Functions """
 
 methods = [perform_CLS, perform_ALS, perform_DO]
+color_rgbs = [(0.00392156862745098, 0.45098039215686275, 0.6980392156862745, 0.25),
+ (0.8705882352941177, 0.5607843137254902, 0.0196078431372549, 0.25),
+ (0.00784313725490196, 0.6196078431372549, 0.45098039215686275, 0.25),
+ (0.8352941176470589, 0.3686274509803922, 0.0, 0.25),
+ (0.8, 0.47058823529411764, 0.7372549019607844, 0.25),
+ (0.792156862745098, 0.5686274509803921, 0.3803921568627451, 0.25),
+ (0.984313725490196, 0.6862745098039216, 0.8941176470588236, 0.25),
+ (0.5803921568627451, 0.5803921568627451, 0.5803921568627451, 0.25),
+ (0.9254901960784314, 0.8823529411764706, 0.2, 0.25),
+ (0.33725490196078434, 0.7058823529411765, 0.9137254901960784, 0.25)]
 
 def sim_data(name = None, tSize = (10,10,10), useCallback=True, best_comp = [6,6,6],
              impute_perc = 0.1, init = 'svd', impEntry = True, impChord = True,
@@ -227,38 +237,37 @@ def comp_iter_graph(figname, f_size = (12,9), plot_total = False,
         m_track.plot_iteration(ax[methodID+6], methodname=m.__name__, plot_total=plot_total, log=logTrack, logbound=logbound)
     
     subplotLabel(ax)
-    if save: f.savefig(f"./{dirname}/{figname}.{saveFormat}", bbox_inches="tight", format=saveFormat)
+    saveDir = f"./{dirname}/{figname}.{saveFormat}"
+    if plot_total: saveDir += "_total"
+    if save: f.savefig(f"{saveDir}.{saveFormat}", bbox_inches="tight", format=saveFormat)
     return f
 
-def comp_init_graph(figname, ax = None, ax_start = None, plot_total=False,
+def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=False,
                     logbound=-3.5, logComp = True, logTrack = True, type='entry'):
     """ only run entry graph, comparing for each method by initialization """
     assert type == 'entry' or type == 'chord'
-    assert ax is not None and ax_start is not None
     dirname = f"figures/{figname}"
-    
     m_decomp = MultiDecomp()
     m_track = tracker()
 
     # plot components vs imputed/fitted error
     for methodID,m in enumerate(methods):
         m_decomp.load(f"./{dirname}/{m.__name__}-decomp")
-        m_track.load(f"./{dirname}/{m.__name__}-track")
-        m_track.combine()
-
         if type == 'entry': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total,
                                      plot_total=plot_total, log=logComp, logbound=logbound)
         elif type == 'chord': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total,
                                        plot_total=plot_total, log=logComp, logbound=logbound)
-        m_track.plot_iteration(ax[methodID+ax_start+3], methodname=m.__name__, log=logTrack, logbound=logbound)
 
-def comp_dim_graph(figname, ax = None, ax_start = None, plot_total=False,
+        if use_tracker:
+            m_track.load(f"./{dirname}/{m.__name__}-track")
+            m_track.combine()
+            m_track.plot_iteration(ax[methodID+ax_start+3], methodname=m.__name__, log=logTrack, logbound=logbound)
+
+def comp_dim_graph(figname, ax, ax_start, plot_total=False,
                    logComp = True, logbound=-3.5, type='entry'):
     """ only run entry graph, NO TRACKER, comparing for each case by initialization """
     assert type == 'entry' or type == 'chord'
-    assert ax is not None and ax_start is not None
     dirname = f"figures/{figname}"
-    
     m_decomp = MultiDecomp()
 
     # plot components vs imputed/fitted error
@@ -268,3 +277,23 @@ def comp_dim_graph(figname, ax = None, ax_start = None, plot_total=False,
                                      plot_total=plot_total, log=logComp, logbound=logbound)
         elif type == 'chord': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total,
                                        plot_total=plot_total, log=logComp, logbound=logbound)
+
+def runtime_graph(figname, ax1, ax2, range=0.1, threshold=0.1):
+    dirname = f"figures/{figname}"
+    m_track = tracker()
+    unmet = list()
+    methodnames = [m.__name__ for m in methods]
+
+    for methodID,m in enumerate(methods):
+        m_track.load(f"./{dirname}/{m.__name__}-track")
+        m_track.combine()
+        ax1.hist(m_track.time_thresholds(threshold), label=m.__name__, fc=color_rgbs[methodID], edgecolor=color_rgbs[methodID][0:3], bins=50, range=(0,range))
+        unmet.append(m_track.unmet_thresholds(threshold))
+
+    ax1.legend(loc='upper right')
+    ax1.set_xlabel('Runtime')
+    ax1.set_ylabel('Count')
+
+    ax2.bar(methodnames, unmet)
+    ax2.set_xlabel('Method')
+    ax2.set_ylabel('Count')

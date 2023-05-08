@@ -255,21 +255,6 @@ def perform_ALS(
         else:
             sparsity = int(sparsity)
 
-    if callback is not None:
-        cp_tensor = CPTensor((weights, factors))
-        unnorml_rec_error, _, norm_tensor = error_calc(
-            tensor, norm_tensor, weights, factors, sparsity, mask
-        )
-        callback_error = unnorml_rec_error / norm_tensor
-
-        if sparsity:
-            sparse_component = sparsify_tensor(
-                tensor - cp_to_tensor((weights, factors)), sparsity
-            )
-            callback((cp_tensor, sparse_component), callback_error)
-        else:
-            callback(cp_tensor)
-
     for iteration in range(n_iter_max):
         if orthogonalise and iteration <= orthogonalise:
             factors = [
