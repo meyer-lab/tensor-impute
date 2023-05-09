@@ -14,7 +14,7 @@ def test_decomp_dopt(plot=False, method = perform_DO):
 
     # average Q2X for components 1-6 (n=10) for a single test tensor with 10% imputation
     decomp.Q2X_entry(drop=100, repeat=10, callback=track)
-    print("average Q2X: " + np.array2string(np.average(decomp.entryQ2X, axis=0)))
+    print("average Q2X: " + np.array2string(np.average(decomp.entry_error, axis=0)))
     print("average fitted Q2X: " + np.array2string(np.average(decomp.fitted_entry_error, axis=0)))
     print("average imputed Q2X: " + np.array2string(np.average(decomp.imputed_entry_error, axis=0)))
 
