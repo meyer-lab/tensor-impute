@@ -82,20 +82,26 @@ class tracker():
         self.imputed_error = [np.full((1, 0), 0)]
         if self.track_runtime: self.timer = [np.full((1, 0), 0)]
 
+
     """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
-    def plot_iteration(self, ax, methodname='Method', grouped=True, rep=None, plot_total=False, log=True, logbound=-3.5):
+    def plot_iteration(self, ax, methodname='Method', grouped=True,
+                       rep=None, plot_total=False, offset=0,
+                       log=True, logbound=-3.5, color='blue'):
         if not self.combined: self.combine()
         if grouped:
             fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
             imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
-            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+.25, np.nanmedian(self.imputed_array,0), yerr=imputed_errbar, label=methodname+' Imputed Error', errorevery=5)
-            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1]), np.nanmedian(self.fitted_array,0), yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
+            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])-0.5, np.nanmedian(self.imputed_array,0), color=color,
+                             yerr=imputed_errbar, label=methodname+' Imputed Error', ls='-.', errorevery=5)
+            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1])+0.5, np.nanmedian(self.fitted_array,0), color=color,
+                             yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
             e1[-1][0].set_linestyle('dotted')
             e2[-1][0].set_linestyle('dotted')
 
             if plot_total:
                 total_errbar = [np.percentile(self.total_array,25,0),np.percentile(self.total_array,75,0)]
-                e3 = ax.errorbar(np.arange(self.total_array.shape[1])+.25, np.nanmedian(self.total_array,0), yerr=total_errbar, label=methodname+' Total Error', errorevery=5)
+                e3 = ax.errorbar(np.arange(self.total_array.shape[1]), np.nanmedian(self.total_array,0), color=color,
+                                 yerr=total_errbar, label=methodname+' Total Error', ls = '--', errorevery=5)
                 e3[-1][0].set_linestyle('dotted')
 
             ax.legend(loc='upper right')
@@ -106,7 +112,7 @@ class tracker():
         ax.set_ylabel('Error')
         if log:
             ax.set_yscale("log")
-            ax.set_ylim(10**logbound,1)
+            ax.set_ylim(10**logbound,2)
         else:
             ax.set_ylim(0,1)
 

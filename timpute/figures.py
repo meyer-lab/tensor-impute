@@ -148,16 +148,24 @@ def regraph(save=None, fname="new_imputation_results", impute_type='entry', meth
 """ Figure Helper Functions """
 
 methods = [perform_CLS, perform_ALS, perform_DO]
-color_rgbs = [(0.00392156862745098, 0.45098039215686275, 0.6980392156862745, 0.25),
- (0.8705882352941177, 0.5607843137254902, 0.0196078431372549, 0.25),
- (0.00784313725490196, 0.6196078431372549, 0.45098039215686275, 0.25),
- (0.8352941176470589, 0.3686274509803922, 0.0, 0.25),
- (0.8, 0.47058823529411764, 0.7372549019607844, 0.25),
- (0.792156862745098, 0.5686274509803921, 0.3803921568627451, 0.25),
- (0.984313725490196, 0.6862745098039216, 0.8941176470588236, 0.25),
- (0.5803921568627451, 0.5803921568627451, 0.5803921568627451, 0.25),
- (0.9254901960784314, 0.8823529411764706, 0.2, 0.25),
- (0.33725490196078434, 0.7058823529411765, 0.9137254901960784, 0.25)]
+
+def rgbs(color = 0, transparency = None):
+    color_rgbs = [(0.00392156862745098, 0.45098039215686275, 0.6980392156862745),
+                  (0.8705882352941177, 0.5607843137254902, 0.0196078431372549),
+                  (0.00784313725490196, 0.6196078431372549, 0.45098039215686275),
+                  (0.8352941176470589, 0.3686274509803922, 0.0),
+                  (0.8, 0.47058823529411764, 0.7372549019607844),
+                  (0.792156862745098, 0.5686274509803921, 0.3803921568627451),
+                  (0.984313725490196, 0.6862745098039216, 0.8941176470588236),
+                  (0.5803921568627451, 0.5803921568627451, 0.5803921568627451),
+                  (0.9254901960784314, 0.8823529411764706, 0.2),
+                  (0.33725490196078434, 0.7058823529411765, 0.9137254901960784)]
+    if transparency is not None:
+        preTran = list(color_rgbs[color])
+        preTran.append(transparency)
+        return tuple(preTran)
+    else: return color_rgbs[color]
+
 
 def sim_data(name = None, tSize = (10,10,10), useCallback=True, best_comp = [6,6,6],
              impute_perc = 0.1, init = 'svd', impEntry = True, impChord = True,
@@ -214,33 +222,25 @@ def sim_data(name = None, tSize = (10,10,10), useCallback=True, best_comp = [6,6
 
     return m_decomp, m_track
 
-def comp_iter_graph(figname, f_size = (12,9), plot_total = False,
-                    logComp = True, logTrack = True, logbound=-3.5,
-                    save = True, saveFormat = 'png'):
-    if save: assert saveFormat == 'png' or saveFormat == 'svg' or saveFormat == 'jpg' or saveFormat == 'jpeg' or saveFormat == 'pdf'
-    dirname = f"figures/{figname}"
-    ax, f = getSetup(f_size, (3,len(methods)))
+def comp_iter_graph(dirname, ax, ax_start, plot_total = False,
+                    logComp = True, logTrack = True, logbound=-3.5, endbound=1):
+
     m_decomp = MultiDecomp()
     m_track = tracker()
 
     # plot components vs imputed/fitted error
-    for methodID,m in enumerate(methods):
+    for mID, m in enumerate(methods):
         m_decomp.load(f"./{dirname}/{m.__name__}-decomp")
         m_track.load(f"./{dirname}/{m.__name__}-track")
         m_track.combine()
 
         # plot graphs
-        q2x_plot(ax[methodID], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total,
-                 plot_total=plot_total, log=logComp, logbound=logbound)
-        q2x_plot(ax[methodID+3], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total,
-                 plot_total=plot_total, log=logComp, logbound=logbound)
-        m_track.plot_iteration(ax[methodID+6], methodname=m.__name__, plot_total=plot_total, log=logTrack, logbound=logbound)
-    
-    subplotLabel(ax)
-    saveDir = f"./{dirname}/{figname}.{saveFormat}"
-    if plot_total: saveDir += "_total"
-    if save: f.savefig(f"{saveDir}.{saveFormat}", bbox_inches="tight", format=saveFormat)
-    return f
+        q2x_plot(ax[ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total, color=rgbs(mID, transparency=0.8),
+                 plot_total=plot_total, offset=mID, log=logComp, logbound=logbound, endbound=endbound)
+        q2x_plot(ax[ax_start+1], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total, color=rgbs(mID, transparency=0.8),
+                 plot_total=plot_total, offset=mID, log=logComp, logbound=logbound, endbound=endbound)
+        m_track.plot_iteration(ax[ax_start+2], methodname=m.__name__, color=rgbs(mID, transparency=0.8),
+                               plot_total=plot_total, log=logTrack, logbound=logbound)
 
 def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=False,
                     logbound=-3.5, logComp = True, logTrack = True, type='entry'):
@@ -249,19 +249,20 @@ def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=False,
     dirname = f"figures/{figname}"
     m_decomp = MultiDecomp()
     m_track = tracker()
+    transparency = 0.7
 
     # plot components vs imputed/fitted error
-    for methodID,m in enumerate(methods):
+    for mID,m in enumerate(methods):
         m_decomp.load(f"./{dirname}/{m.__name__}-decomp")
-        if type == 'entry': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total,
-                                     plot_total=plot_total, log=logComp, logbound=logbound)
-        elif type == 'chord': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total,
-                                       plot_total=plot_total, log=logComp, logbound=logbound)
+        if type == 'entry': q2x_plot(ax[ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total, color=rgbs(mID, transparency),
+                                     plot_total=plot_total, offset=mID, log=logComp, logbound=logbound)
+        if type == 'chord': q2x_plot(ax[ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total, color=rgbs(mID, transparency),
+                                     plot_total=plot_total, offset=mID, log=logComp, logbound=logbound)
 
         if use_tracker:
             m_track.load(f"./{dirname}/{m.__name__}-track")
             m_track.combine()
-            m_track.plot_iteration(ax[methodID+ax_start+3], methodname=m.__name__, log=logTrack, logbound=logbound)
+            m_track.plot_iteration(ax[ax_start+1], methodname=m.__name__, log=logTrack, logbound=logbound, color=rgbs(mID, transparency))
 
 def comp_dim_graph(figname, ax, ax_start, plot_total=False,
                    logComp = True, logbound=-3.5, type='entry'):
@@ -269,31 +270,40 @@ def comp_dim_graph(figname, ax, ax_start, plot_total=False,
     assert type == 'entry' or type == 'chord'
     dirname = f"figures/{figname}"
     m_decomp = MultiDecomp()
+    transparency = 0.7
 
     # plot components vs imputed/fitted error
-    for methodID,m in enumerate(methods):
+    for mID,m in enumerate(methods):
         m_decomp.load(f"./{dirname}/{m.__name__}-decomp")
-        if type == 'entry': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total,
-                                     plot_total=plot_total, log=logComp, logbound=logbound)
-        elif type == 'chord': q2x_plot(ax[methodID+ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total,
-                                       plot_total=plot_total, log=logComp, logbound=logbound)
+        if type == 'entry': q2x_plot(ax[ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total,
+                                     plot_total=plot_total, offset=mID, log=logComp, logbound=logbound, color=rgbs(mID, transparency))
+        if type == 'chord': q2x_plot(ax[ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total,
+                                       plot_total=plot_total, offset=mID, log=logComp, logbound=logbound, color=rgbs(mID, transparency))
 
-def runtime_graph(figname, ax1, ax2, range=0.1, threshold=0.1):
-    dirname = f"figures/{figname}"
+def runtime_graph(dirname, ax, ax_start, threshold=0.1, timebound=0.1,
+                  graph_threshold=True, graph_unmet=True):
+    assert graph_threshold or graph_unmet
     m_track = tracker()
     unmet = list()
     methodnames = [m.__name__ for m in methods]
 
-    for methodID,m in enumerate(methods):
+    for mID,m in enumerate(methods):
         m_track.load(f"./{dirname}/{m.__name__}-track")
         m_track.combine()
-        ax1.hist(m_track.time_thresholds(threshold), label=m.__name__, fc=color_rgbs[methodID], edgecolor=color_rgbs[methodID][0:3], bins=50, range=(0,range))
+        ax[ax_start].hist(m_track.time_thresholds(threshold), label=m.__name__, fc=rgbs(mID, transparency=0.25), edgecolor=rgbs(mID), bins=50, range=(0,timebound))
         unmet.append(m_track.unmet_thresholds(threshold))
 
-    ax1.legend(loc='upper right')
-    ax1.set_xlabel('Runtime')
-    ax1.set_ylabel('Count')
+    if graph_threshold:
+        ax[ax_start].legend(loc='upper right')
+        ax[ax_start].set_xlabel('Runtime')
+        ax[ax_start].set_ylabel('Count')
+        if graph_unmet:
+            ax[ax_start+1].bar(methodnames, unmet)
+            ax[ax_start+1].set_xlabel('Method')
+            ax[ax_start+1].set_ylabel('Count')
+    elif graph_unmet:
+        ax[ax_start].bar(methodnames, unmet)
+        ax[ax_start].set_xlabel('Method')
+        ax[ax_start].set_ylabel('Count')
 
-    ax2.bar(methodnames, unmet)
-    ax2.set_xlabel('Method')
-    ax2.set_ylabel('Count')
+    

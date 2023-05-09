@@ -7,8 +7,6 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.ticker import ScalarFormatter
 from .decomposition import Decomposition
-import time
-import copy
 
 def tfacr2x(ax, decomp:Decomposition):
     """
@@ -94,7 +92,8 @@ def q2xentry(ax, decomp, methodname = "CP", detailed=True):
 
 
 def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray = None, fitted_arr:np.ndarray = None, total_arr:np.ndarray = None,
-             detailed = True, plot_total = False, log = True, logbound = -3.5):
+             detailed = True, plot_total = False, offset = 0,
+             log = True, logbound = -3.5, endbound=1, color='blue'):
     
     if not detailed:
         assert(total_arr is not None)
@@ -116,12 +115,15 @@ def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray = None, fitted_arr:np.nd
 
         imputed_errbar = [np.percentile(imputed_arr,25,0),np.percentile(imputed_arr,75,0)]
         fitted_errbar = [np.percentile(fitted_arr,25,0),np.percentile(fitted_arr,75,0)]
-        ax.errorbar(comps-0.025, np.median(imputed_arr,0), yerr=imputed_errbar, label=methodname+' Imputed Error', fmt='.')
-        ax.errorbar(comps+0.025, np.median(fitted_arr,0), yerr=fitted_errbar, label=methodname+' Fitted Error', fmt='.')
+        e1 = ax.errorbar(comps+0.010+offset*0.05, np.median(imputed_arr,0), yerr=imputed_errbar, label=methodname+' Imputed Error', fmt='^', color=color)
+        e2 = ax.errorbar(comps-0.020+offset*0.05, np.median(fitted_arr,0), yerr=fitted_errbar, label=methodname+' Fitted Error', fmt='.', color=color)
+        e1[-1][0].set_linestyle('-.')
+        e2[-1][0].set_linestyle('-.')
 
         if plot_total:
             total_errbar = [np.percentile(total_arr,25,0),np.percentile(total_arr,75,0)]
-            ax.errorbar(comps, np.median(total_arr,0), yerr=total_errbar, label=methodname+' Total Error', fmt='.')
+            e3 = ax.errorbar(comps, np.median(total_arr,0), yerr=total_errbar, label=methodname+' Total Error', fmt='D', color=color)
+            e3[-1][0].set_linestyle('-.')
 
         # e1[-1][0].set_linestyle('dotted')
         # e2[-1][0].set_linestyle('dotted')
@@ -134,7 +136,7 @@ def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray = None, fitted_arr:np.nd
     ax.legend(loc="upper right")
     if log:
         ax.set_yscale("log")
-        ax.set_ylim(10**logbound,1)
+        ax.set_ylim(10**logbound,endbound)
     else:
         ax.set_ylim(0,1)
 
