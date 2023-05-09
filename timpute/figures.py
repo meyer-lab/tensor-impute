@@ -240,7 +240,7 @@ def comp_iter_graph(dirname, ax, ax_start, plot_total = False,
         q2x_plot(ax[ax_start+1], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total, color=rgbs(mID, transparency=0.8),
                  plot_total=plot_total, offset=mID, log=logComp, logbound=logbound, endbound=endbound)
         m_track.plot_iteration(ax[ax_start+2], methodname=m.__name__, color=rgbs(mID, transparency=0.8),
-                               plot_total=plot_total, log=logTrack, logbound=logbound)
+                               plot_total=plot_total, offset=mID, log=logTrack, logbound=logbound)
 
 def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=False,
                     logbound=-3.5, logComp = True, logTrack = True, type='entry'):
@@ -262,7 +262,8 @@ def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=False,
         if use_tracker:
             m_track.load(f"./{dirname}/{m.__name__}-track")
             m_track.combine()
-            m_track.plot_iteration(ax[ax_start+1], methodname=m.__name__, log=logTrack, logbound=logbound, color=rgbs(mID, transparency))
+            m_track.plot_iteration(ax[ax_start+1], methodname=m.__name__,
+                                   plot_total=plot_total, offset=mID, log=logTrack, logbound=logbound, color=rgbs(mID, transparency))
 
 def comp_dim_graph(figname, ax, ax_start, plot_total=False,
                    logComp = True, logbound=-3.5, type='entry'):

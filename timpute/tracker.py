@@ -89,14 +89,15 @@ class tracker():
                        log=True, logbound=-3.5, color='blue'):
         if not self.combined: self.combine()
         if grouped:
-            fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
             imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
-            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])-0.5, np.nanmedian(self.imputed_array,0), color=color,
+            fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
+
+            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+0.6-offset*0.2, np.nanmedian(self.imputed_array,0), color=color,
                              yerr=imputed_errbar, label=methodname+' Imputed Error', ls='-.', errorevery=5)
-            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1])+0.5, np.nanmedian(self.fitted_array,0), color=color,
+            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1])-offset*0.2, np.nanmedian(self.fitted_array,0), color=color,
                              yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
             e1[-1][0].set_linestyle('dotted')
-            e2[-1][0].set_linestyle('dotted')
+            # e2[-1][0].set_linestyle('dotted')
 
             if plot_total:
                 total_errbar = [np.percentile(self.total_array,25,0),np.percentile(self.total_array,75,0)]
@@ -107,7 +108,7 @@ class tracker():
             ax.legend(loc='upper right')
         elif rep == None: pass
 
-        ax.set_xlim((-0.5, self.fitted_array.shape[1]))
+        ax.set_xlim((-2, self.fitted_array.shape[1]))
         ax.set_xlabel('Iteration')
         ax.set_ylabel('Error')
         if log:
