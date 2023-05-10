@@ -116,21 +116,17 @@ def q2x_plot(ax, methodname:str = None, imputed_arr:np.ndarray = None, fitted_ar
 
         imputed_errbar = [np.percentile(imputed_arr,25,0),np.percentile(imputed_arr,75,0)]
         fitted_errbar = [np.percentile(fitted_arr,25,0),np.percentile(fitted_arr,75,0)]
-        label = None
-        if showLegend: label = f"{methodname} Imputed Error" 
-        e1 = ax.errorbar(comps+0.025+offset*0.05, np.median(imputed_arr,0), label=label, yerr=imputed_errbar, fmt='^', color=color)
-        if showLegend: label = f"{methodname} Fitted Error"
-        e2 = ax.errorbar(comps-0.125+offset*0.05, np.median(fitted_arr,0), label=label, yerr=fitted_errbar, fmt='.', color=color)
+        e1 = ax.errorbar(comps+0.025+offset*0.05, np.median(imputed_arr,0), label=f"{methodname} Imputed Error" , yerr=imputed_errbar, fmt='^', color=color)
+        e2 = ax.errorbar(comps-0.125+offset*0.05, np.median(fitted_arr,0), label=f"{methodname} Fitted Error", yerr=fitted_errbar, fmt='.', color=color)
         e1[-1][0].set_linestyle('-.')
         # e2[-1][0].set_linestyle('-.')
 
         if plot_total:
             total_errbar = [np.percentile(total_arr,25,0),np.percentile(total_arr,75,0)]
-            if showLegend: label = f"{methodname} Fitted Error"
-            e3 = ax.errorbar(comps, np.median(total_arr,0), yerr=total_errbar,label=label, fmt='D', color=color)
+            e3 = ax.errorbar(comps, np.median(total_arr,0), yerr=total_errbar,label=f"{methodname} Fitted Error", fmt='D', color=color)
             e3[-1][0].set_linestyle('.')
         
-        
+    if not showLegend: ax.legend().remove()
     ax.set_xlabel("Number of Components")
     ax.set_ylabel("Imputation Error")
     ax.set_xticks([x for x in comps])

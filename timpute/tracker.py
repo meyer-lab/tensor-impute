@@ -92,24 +92,21 @@ class tracker():
             imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
             fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
 
-            label=None
-            if showLegend: label = f"{methodname} Imputed Error"
-            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+0.333-offset*0.333, np.nanmedian(self.imputed_array,0), label=label, color=color,
+            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+0.333-offset*0.333, np.nanmedian(self.imputed_array,0), label=f"{methodname} Imputed Error", color=color,
                              yerr = imputed_errbar, ls='--', errorevery=5)
-            if showLegend: label = f"{methodname} Fitted Error"
-            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1])+0.333-offset*0.333, np.nanmedian(self.fitted_array,0), label=label, color=color,
+            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1])+0.333-offset*0.333, np.nanmedian(self.fitted_array,0), label=f"{methodname} Fitted Error", color=color,
                              yerr = fitted_errbar, errorevery=(1,5))
             e1[-1][0].set_linestyle('dotted')
             # e2[-1][0].set_linestyle('dotted')
 
             if plot_total:
                 total_errbar = [np.percentile(self.total_array,25,0),np.percentile(self.total_array,75,0)]
-                if showLegend: label = f"{methodname} Total Error"
-                e3 = ax.errorbar(np.arange(self.total_array.shape[1]), np.nanmedian(self.total_array,0), label=label, color=color,
+                e3 = ax.errorbar(np.arange(self.total_array.shape[1]), np.nanmedian(self.total_array,0), label=f"{methodname} Total Error", color=color,
                                  yerr=total_errbar, ls = '--', errorevery=5)
                 e3[-1][0].set_linestyle('dotted')
         elif rep == None: pass
 
+        if not showLegend: ax.legend().remove()
         ax.set_xlim((-2, self.fitted_array.shape[1]))
         ax.set_xlabel('Iteration')
         ax.set_ylabel('Error')

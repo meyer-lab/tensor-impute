@@ -244,7 +244,7 @@ def comp_iter_graph(dirname, ax, ax_start, plot_total = False, showLegend=False,
                                plot_total=plot_total, offset=mID, log=logTrack, logbound=logbound)
 
 
-def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=False,
+def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=False, showLegend=False,
                     logbound=-3.5, logComp = True, logTrack = True, type='entry'):
     """ only run entry graph, comparing for each method by initialization """
     assert type == 'entry' or type == 'chord'
@@ -257,16 +257,16 @@ def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=False,
     for mID,m in enumerate(methods):
         m_decomp.load(f"./{dirname}/{m.__name__}-decomp")
         if type == 'entry': q2x_plot(ax[ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total, color=rgbs(mID, transparency),
-                                     plot_total=plot_total, offset=mID, log=logComp, logbound=logbound)
+                                     plot_total=plot_total, offset=mID, log=logComp, logbound=logbound,  showLegend=showLegend)
         if type == 'chord': q2x_plot(ax[ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total, color=rgbs(mID, transparency),
-                                     plot_total=plot_total, offset=mID, log=logComp, logbound=logbound)
+                                     plot_total=plot_total, offset=mID, log=logComp, logbound=logbound,  showLegend=showLegend)
 
         if use_tracker:
             m_track.load(f"./{dirname}/{m.__name__}-track")
             m_track.combine()
             m_track.plot_iteration(ax[ax_start+1], plot_total=plot_total, offset=mID, log=logTrack, logbound=logbound, color=rgbs(mID, transparency))
 
-def comp_dim_graph(figname, ax, ax_start, plot_total=False,
+def comp_dim_graph(figname, ax, ax_start, plot_total=False, showLegend=False,
                    logComp = True, logbound=-3.5, type='entry'):
     """ only run entry graph, NO TRACKER, comparing for each case by initialization """
     assert type == 'entry' or type == 'chord'
@@ -277,9 +277,9 @@ def comp_dim_graph(figname, ax, ax_start, plot_total=False,
     # plot components vs imputed/fitted error
     for mID,m in enumerate(methods):
         m_decomp.load(f"./{dirname}/{m.__name__}-decomp")
-        if type == 'entry': q2x_plot(ax[ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total,
+        if type == 'entry': q2x_plot(ax[ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total, showLegend=showLegend,
                                      plot_total=plot_total, offset=mID, log=logComp, logbound=logbound, color=rgbs(mID, transparency))
-        if type == 'chord': q2x_plot(ax[ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total,
+        if type == 'chord': q2x_plot(ax[ax_start], m.__name__, m_decomp.chord_imputed, m_decomp.chord_fitted, m_decomp.chord_total, showLegend=showLegend,
                                        plot_total=plot_total, offset=mID, log=logComp, logbound=logbound, color=rgbs(mID, transparency))
 
 def runtime_graph(dirname, ax, ax_start, threshold=0.1, timebound=0.1,
