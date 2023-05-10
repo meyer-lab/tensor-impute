@@ -7,6 +7,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.ticker import ScalarFormatter
 from .decomposition import Decomposition
+from matplotlib.lines import Line2D
 
 def tfacr2x(ax, decomp:Decomposition):
     """
@@ -91,10 +92,10 @@ def q2xentry(ax, decomp, methodname = "CP", detailed=True):
     else: q2x_plot(ax, methodname, imputed_arr=decomp.imputed_entry_error, fitted_arr=decomp.fitted_entry_error, detail=True)
 
 
-def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray = None, fitted_arr:np.ndarray = None, total_arr:np.ndarray = None,
-             detailed = True, plot_total = False, offset = 0,
+def q2x_plot(ax, methodname:str = None, imputed_arr:np.ndarray = None, fitted_arr:np.ndarray = None, total_arr:np.ndarray = None,
+             detailed = True, plot_total = False, showLegend=False, offset = 0,
              log = True, logbound = -3.5, endbound=1, color='blue'):
-    
+
     if not detailed:
         assert(total_arr is not None)
         comps = np.arange(1,total_arr.shape[1]+1)
@@ -115,25 +116,26 @@ def q2x_plot(ax, methodname:str, imputed_arr:np.ndarray = None, fitted_arr:np.nd
 
         imputed_errbar = [np.percentile(imputed_arr,25,0),np.percentile(imputed_arr,75,0)]
         fitted_errbar = [np.percentile(fitted_arr,25,0),np.percentile(fitted_arr,75,0)]
-        e1 = ax.errorbar(comps+0.025+offset*0.05, np.median(imputed_arr,0), yerr=imputed_errbar, label=methodname+' Imputed Error', fmt='^', color=color)
-        e2 = ax.errorbar(comps-0.125+offset*0.05, np.median(fitted_arr,0), yerr=fitted_errbar, label=methodname+' Fitted Error', fmt='.', color=color)
+        label = None
+        if showLegend: label = f"{methodname} Imputed Error" 
+        e1 = ax.errorbar(comps+0.025+offset*0.05, np.median(imputed_arr,0), label=label, yerr=imputed_errbar, fmt='^', color=color)
+        if showLegend: label = f"{methodname} Fitted Error"
+        e2 = ax.errorbar(comps-0.125+offset*0.05, np.median(fitted_arr,0), label=label, yerr=fitted_errbar, fmt='.', color=color)
         e1[-1][0].set_linestyle('-.')
         # e2[-1][0].set_linestyle('-.')
 
         if plot_total:
             total_errbar = [np.percentile(total_arr,25,0),np.percentile(total_arr,75,0)]
-            e3 = ax.errorbar(comps, np.median(total_arr,0), yerr=total_errbar, label=methodname+' Total Error', fmt='D', color=color)
-            e3[-1][0].set_linestyle('-.')
-
-        # e1[-1][0].set_linestyle('dotted')
-        # e2[-1][0].set_linestyle('dotted')
-
-        ax.set_ylabel("Imputation Error")
-
+            if showLegend: label = f"{methodname} Fitted Error"
+            e3 = ax.errorbar(comps, np.median(total_arr,0), yerr=total_errbar,label=label, fmt='D', color=color)
+            e3[-1][0].set_linestyle('.')
+        
+        
     ax.set_xlabel("Number of Components")
+    ax.set_ylabel("Imputation Error")
     ax.set_xticks([x for x in comps])
     ax.set_xticklabels([x for x in comps])
-    ax.legend(loc="upper right")
+
     if log:
         ax.set_yscale("log")
         ax.set_ylim(10**logbound,endbound)

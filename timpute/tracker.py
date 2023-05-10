@@ -2,7 +2,7 @@ import numpy as np
 import time
 import pickle
 from .cmtf import calcR2X
-import matplotlib.patches as mpatches
+from matplotlib.lines import Line2D
 
 class tracker():
     """ Tracks next unfilled entry & runtime, holds tracked name for plotting """
@@ -84,7 +84,7 @@ class tracker():
 
 
     """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
-    def plot_iteration(self, ax, methodname='Method', grouped=True,
+    def plot_iteration(self, ax, methodname=None, grouped=True, showLegend=False,
                        rep=None, plot_total=False, offset=0,
                        log=True, logbound=-3.5, color='blue'):
         if not self.combined: self.combine()
@@ -92,20 +92,22 @@ class tracker():
             imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
             fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
 
-            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+0.6-offset*0.2, np.nanmedian(self.imputed_array,0), color=color,
-                             yerr=imputed_errbar, label=methodname+' Imputed Error', ls='-.', errorevery=5)
-            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1])-offset*0.2, np.nanmedian(self.fitted_array,0), color=color,
-                             yerr=fitted_errbar, label=methodname+' Fitted Error', errorevery=5)
+            label=None
+            if showLegend: label = f"{methodname} Imputed Error"
+            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+0.333-offset*0.333, np.nanmedian(self.imputed_array,0), label=label, color=color,
+                             yerr = imputed_errbar, ls='--', errorevery=5)
+            if showLegend: label = f"{methodname} Fitted Error"
+            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1])+0.333-offset*0.333, np.nanmedian(self.fitted_array,0), label=label, color=color,
+                             yerr = fitted_errbar, errorevery=(1,5))
             e1[-1][0].set_linestyle('dotted')
             # e2[-1][0].set_linestyle('dotted')
 
             if plot_total:
                 total_errbar = [np.percentile(self.total_array,25,0),np.percentile(self.total_array,75,0)]
-                e3 = ax.errorbar(np.arange(self.total_array.shape[1]), np.nanmedian(self.total_array,0), color=color,
-                                 yerr=total_errbar, label=methodname+' Total Error', ls = '--', errorevery=5)
+                if showLegend: label = f"{methodname} Total Error"
+                e3 = ax.errorbar(np.arange(self.total_array.shape[1]), np.nanmedian(self.total_array,0), label=label, color=color,
+                                 yerr=total_errbar, ls = '--', errorevery=5)
                 e3[-1][0].set_linestyle('dotted')
-
-            ax.legend(loc='upper right')
         elif rep == None: pass
 
         ax.set_xlim((-2, self.fitted_array.shape[1]))
