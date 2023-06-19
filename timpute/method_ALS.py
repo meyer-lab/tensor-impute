@@ -10,7 +10,7 @@ from tensorly.cp_tensor import (
     validate_cp_rank,
 )
 from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao
-from .initialize_fac import initialize_fac
+from .initialization import initialize_fac
 
 # Authors: Jean Kossaifi <jean.kossaifi+tensors@gmail.com>
 #          Chris Swierczewski <csw@amazon.com>

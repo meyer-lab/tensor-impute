@@ -4,7 +4,7 @@ Tensor decomposition methods
 import numpy as np
 from scipy.optimize import minimize
 import tensorly as tl
-from .initialize_fac import initialize_fac
+from .initialization import initialize_fac
 from tensorly.cp_tensor import cp_normalize, cp_lstsq_grad
 from .test.simulated_tensors import createUnknownRank
 

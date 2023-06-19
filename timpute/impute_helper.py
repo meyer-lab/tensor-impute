@@ -1,4 +1,25 @@
 import numpy as np
+import tensorly as tl
+
+def calcR2X(tFac:tl.cp_tensor.CPTensor, tIn:np.ndarray, calcError:bool=False, mask:np.ndarray=None) -> float:
+    """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix.
+    Mask is for imputation and must be of same shape as tIn/tFac, with 0s indicating artifically dropped values
+    """
+    vTop, vBottom = 0.0, 0.0
+
+    tOrig = np.copy(tIn)
+    if mask is not None:
+        recons_tFac = tl.cp_to_tensor(tFac)*mask
+        tOrig = tOrig*mask
+    else:
+        recons_tFac = tl.cp_to_tensor(tFac)
+    tMask = np.isfinite(tOrig)
+    tOrig = np.nan_to_num(tOrig)
+    vTop += np.linalg.norm(recons_tFac * tMask - tOrig)**2.0
+    vBottom += np.linalg.norm(tOrig)**2.0
+
+    if calcError: return vTop / vBottom
+    else: return 1 - vTop / vBottom
 
 def entry_drop(tensor, drop, dropany=False, seed=None):
     """

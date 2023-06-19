@@ -7,7 +7,8 @@ import numpy as np
 import tensorly as tl
 from tensorly.random import random_cp
 from ..decomposition import Decomposition
-from ..cmtf import perform_CLS, calcR2X
+from ..method_CLS import perform_CLS
+from ..impute_helper import calcR2X
 from tensordata.atyeo import data as atyeo
 from ..SVD_impute import IterativeSVD
 

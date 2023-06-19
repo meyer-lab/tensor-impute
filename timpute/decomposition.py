@@ -1,12 +1,15 @@
 import pickle
 import numpy as np
 import tensorly as tl
-from .tracker import tracker
-from .cmtf import perform_CLS, calcR2X
 from tensorly.tenalg import svd_interface
-from .initialize_fac import initialize_fac
 from .SVD_impute import IterativeSVD
+
+from .tracker import tracker
+from .initialization import initialize_fac
 from .impute_helper import entry_drop, chord_drop
+from .impute_helper import calcR2X
+from .method_CLS import perform_CLS
+
 from copy import deepcopy
 from time import process_time
 
@@ -161,8 +164,7 @@ class Decomposition():
                     callback(CPinit)
                     if alpha is not None:
                         tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
-                    else:
-                        tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
+                    else:tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
                     
                 # not tracking iteration
                 else:

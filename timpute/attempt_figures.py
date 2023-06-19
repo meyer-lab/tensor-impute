@@ -7,14 +7,14 @@ from time import process_time
 import os
 from copy import deepcopy
 
-from timpute.test.simulated_tensors import createKnownRank, createUnknownRank, createNoise
+from .test.simulated_tensors import createKnownRank, createUnknownRank, createNoise
 from tensordata.atyeo import data as atyeo
 from tensordata.zohar import data as zohar
 from tensordata.alter import data as alter
-from timpute.initialize_fac import initialize_fac
-from timpute.direct_opt import perform_DO
-from timpute.tensorly_als import perform_ALS
-from timpute.cmtf import perform_CLS
+from .initialization import initialize_fac
+from .method_DO import perform_DO
+from .method_ALS import perform_ALS
+from .method_CLS import perform_CLS
 
 
 """ Exploratory Analysis Graphs """
@@ -167,7 +167,6 @@ def rgbs(color = 0, transparency = None):
         return tuple(preTran)
     else: return color_rgbs[color]
 
-
 def sim_data(tensortype = 'known', name = 'simulated_reg', tSize = (10,10,10), useCallback=True, best_comp = [6,6,6],
              impute_perc = 0.1, init = 'svd', impEntry = True, impChord = True,
              tensor_samples = 5, impute_reps = 5, seed = 5, printRuntime = True):
@@ -228,8 +227,6 @@ def sim_data(tensortype = 'known', name = 'simulated_reg', tSize = (10,10,10), u
 
     return m_decomp, m_track
 
-
-
 def comp_iter_graph(dirname, ax, ax_start, plot_total = False, showLegend=False,
                     logComp = True, logTrack = True, logbound=-3.5, endbound=1):
 
@@ -250,7 +247,6 @@ def comp_iter_graph(dirname, ax, ax_start, plot_total = False, showLegend=False,
                  plot_total=plot_total, offset=mID, log=logComp, logbound=logbound, endbound=endbound, showLegend=showLegend)
         m_track.plot_iteration(ax[ax_start+2], color=rgbs(mID, transparency=0.8),
                                plot_total=plot_total, offset=mID, log=logTrack, logbound=logbound)
-
 
 def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=True, showLegend=False,
                     logbound=-3.5, logComp = True, logTrack = True, type='chord'):

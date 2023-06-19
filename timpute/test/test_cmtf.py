@@ -4,9 +4,9 @@ Unit test file.
 import numpy as np
 import tensorly as tl
 import warnings
-from ..cmtf import perform_CLS, censored_lstsq
+from ..method_CLS import perform_CLS, censored_lstsq
 from tensorly.tenalg import khatri_rao
-from ..initialize_fac import initialize_fac
+from ..initialization import initialize_fac
 from sklearn.linear_model import Ridge
 
 

@@ -1,8 +1,7 @@
 import numpy as np
 import time
 import pickle
-from .cmtf import calcR2X
-from matplotlib.lines import Line2D
+from .impute_helper import calcR2X
 
 class tracker():
     """ Tracks next unfilled entry & runtime, holds tracked name for plotting """

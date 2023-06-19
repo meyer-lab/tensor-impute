@@ -1,7 +1,7 @@
 import pandas as pd
 import xarray as xr
 import numpy as np
-from .cmtf import perform_CP
+from .method_CLS import perform_CLS
 from matplotlib import gridspec, pyplot as plt
 import seaborn as sns
 import scipy.cluster.hierarchy as sch
@@ -14,7 +14,7 @@ def xplot_reduction(data:xr.DataArray):
 
 def xplot_components(data:xr.DataArray, rank: int, reorder=[]):
     """ Plot the heatmaps of each components from an xarray-formatted data. """
-    cp = perform_CP(data.to_numpy(), rank)
+    cp = perform_CLS(data.to_numpy(), rank)
     ddims = len(data.coords)
     axes_names = list(data.coords)
 
