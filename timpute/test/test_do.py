@@ -9,11 +9,11 @@ from timpute.plot import q2xentry
 
 def test_decomp_dopt(plot=False, method = perform_DO):
     tensor = generateTensor('known', shape = (10,10,10))
-    decomp = Decomposition(tensor, max_rr = 6, method = method)
+    decomp = Decomposition(tensor, max_rr = 6)
     track = tracker(tensor)
 
     # average Q2X for components 1-6 (n=10) for a single test tensor with 10% imputation
-    decomp.Q2X_entry(drop=100, repeat=10, callback=track)
+    decomp.imputation(drop=100, repeat=10, callback=track, type='entry')
     print("average Q2X: " + np.array2string(np.average(decomp.entry_error, axis=0)))
     print("average fitted Q2X: " + np.array2string(np.average(decomp.fitted_entry_error, axis=0)))
     print("average imputed Q2X: " + np.array2string(np.average(decomp.imputed_entry_error, axis=0)))

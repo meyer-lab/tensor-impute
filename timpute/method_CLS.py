@@ -7,6 +7,7 @@ import tensorly as tl
 from tensorly.cp_tensor import cp_normalize
 from tensorly.tenalg import khatri_rao
 from .initialization import initialize_fac
+from .impute_helper import calcR2X
 from tqdm import tqdm
 from sklearn.linear_model import Ridge
 
