@@ -89,30 +89,33 @@ class tracker():
                        log=True, logbound=-3.5, color='blue'):
         if not self.combined: self.combine()
         if grouped:
-            imputed_errbar = [np.percentile(self.imputed_array,25,0),np.percentile(self.imputed_array,75,0)]
-            fitted_errbar = [np.percentile(self.fitted_array,25,0),np.percentile(self.fitted_array,75,0)]
+            imputed_errbar = np.vstack((-(np.percentile(self.imputed_array,25,0) - np.nanmedian(self.imputed_array,0)),
+                                        np.percentile(self.imputed_array,75,0) - np.nanmedian(self.imputed_array,0),))
+            fitted_errbar = np.vstack((-(np.percentile(self.fitted_array,25,0) - np.nanmedian(self.fitted_array,0)),
+                                       np.percentile(self.fitted_array,75,0) - np.nanmedian(self.fitted_array,0)))
 
-            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+0.333-offset*0.333, np.nanmedian(self.imputed_array,0), label=f"{methodname} Imputed Error", color=color,
+            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(self.imputed_array,0), label=f"{methodname} Imputed Error", color=color,
                              yerr = imputed_errbar, ls='--', errorevery=5)
-            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1])+0.333-offset*0.333, np.nanmedian(self.fitted_array,0), label=f"{methodname} Fitted Error", color=color,
+            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(self.fitted_array,0), label=f"{methodname} Fitted Error", color=color,
                              yerr = fitted_errbar, errorevery=(1,5))
-            e1[-1][0].set_linestyle('dotted')
+            e1[-1][0].set_linestyle('--')
             # e2[-1][0].set_linestyle('dotted')
 
             if plot_total:
-                total_errbar = [np.percentile(self.total_array,25,0),np.percentile(self.total_array,75,0)]
+                total_errbar = np.vstack((-(np.percentile(self.total_array,25,0) - np.nanmedian(self.total_array,0)),
+                                          np.percentile(self.total_array,75,0) - np.nanmedian(self.total_array,0)))
                 e3 = ax.errorbar(np.arange(self.total_array.shape[1]), np.nanmedian(self.total_array,0), label=f"{methodname} Total Error", color=color,
-                                 yerr=total_errbar, ls = '--', errorevery=5)
-                e3[-1][0].set_linestyle('dotted')
+                                 yerr=total_errbar, ls = 'dotted', errorevery=5)
+                # e3[-1][0].set_linestyle('dotted')
         elif rep == None: pass
 
         if not showLegend: ax.legend().remove()
-        ax.set_xlim((-2, self.fitted_array.shape[1]))
+        ax.set_xlim((0, 52))
         ax.set_xlabel('Iteration')
         ax.set_ylabel('Error')
         if log:
             ax.set_yscale("log")
-            ax.set_ylim(10**logbound,2)
+            ax.set_ylim(10**logbound,1)
         else:
             ax.set_ylim(0,1)
 
@@ -137,8 +140,12 @@ class tracker():
     
     def time_thresholds(self, threshold = 0.25):
         if not self.combined: self.combine()
-        thres_iter = np.argmax(self.imputed_array <= threshold, axis=1)
-        thres_time = [self.time_array[i,thres_iter[i]] for i in range(self.imputed_array.shape[0])]
+        thres_arr = self.imputed_array <= threshold
+        met_rows = np.argwhere(np.sum(thres_arr, axis=1)).flatten()
+        thres_arr = thres_arr[met_rows,:]
+
+        thres_iter = np.argmax(thres_arr, axis=1)
+        thres_time = [self.time_array[i,thres_iter[ID]] for ID,i in enumerate(met_rows)]
         return thres_time
     
     def unmet_thresholds(self, threshold = 0.25):

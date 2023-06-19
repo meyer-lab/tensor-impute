@@ -5,6 +5,7 @@ from timpute.common import *
 from timpute.plot import *
 from time import process_time
 import os
+from copy import deepcopy
 
 from timpute.test.simulated_tensors import createKnownRank, createUnknownRank, createNoise
 from tensordata.atyeo import data as atyeo
@@ -167,7 +168,7 @@ def rgbs(color = 0, transparency = None):
     else: return color_rgbs[color]
 
 
-def sim_data(name = None, tSize = (10,10,10), useCallback=True, best_comp = [6,6,6],
+def sim_data(tensortype = 'known', name = 'simulated_reg', tSize = (10,10,10), useCallback=True, best_comp = [6,6,6],
              impute_perc = 0.1, init = 'svd', impEntry = True, impChord = True,
              tensor_samples = 5, impute_reps = 5, seed = 5, printRuntime = True):
     """ Generates a figure of method for `tensor_samples` tensors, each run `impute_reps` times. Identical initializations for each method's run per tensor."""
@@ -176,17 +177,21 @@ def sim_data(name = None, tSize = (10,10,10), useCallback=True, best_comp = [6,6
     np.random.seed(seed)
     max_rr = 6
 
-    dirname = f"figures/simulated_{name or ''}_{impute_perc}"
+    dirname = f"figures/{name or ''}_{impute_perc}"
     if os.path.isdir(dirname) == False: os.makedirs(dirname)
 
     # for each tensor
     tstart = process_time()
     for i in range(tensor_samples):
         # generate tensor
-        tensor = generateTensor('known',r=max_rr,shape=tSize,missingness=0)
+        tensor = generateTensor(tensortype,r=max_rr,shape=tSize,missingness=0)
         entry_drop = int(impute_perc*np.sum(np.isfinite(tensor)))
         chord_drop = int(impute_perc*tensor.size/tensor.shape[0])
-        inits = [[initialize_fac(tensor, rr, init) for _ in range(impute_reps)] for rr in range(1,max_rr+1)]
+        if init=='random': inits='random'
+        elif init=='svd':
+            inits = [initialize_fac(tensor, rr) for rr in range(1,max_rr+1)]
+            inits = [[deepcopy(i) for _ in range(impute_reps)] for i in inits]
+
         for j, m in enumerate(methods):
             # initialize objects
             decomp = Decomposition(tensor, method=m, max_rr=max_rr)
@@ -201,6 +206,7 @@ def sim_data(name = None, tSize = (10,10,10), useCallback=True, best_comp = [6,6
                 if useCallback:
                     m_track.load(f"./{dirname}/{m.__name__}-track")
                     m_track.new()
+                    
             # run imputation, tracking for chords
             if impEntry and impChord:
                 decomp.Q2X_entry(drop=chord_drop, repeat=impute_reps, init=inits)
@@ -223,6 +229,7 @@ def sim_data(name = None, tSize = (10,10,10), useCallback=True, best_comp = [6,6
     return m_decomp, m_track
 
 
+
 def comp_iter_graph(dirname, ax, ax_start, plot_total = False, showLegend=False,
                     logComp = True, logTrack = True, logbound=-3.5, endbound=1):
 
@@ -235,6 +242,7 @@ def comp_iter_graph(dirname, ax, ax_start, plot_total = False, showLegend=False,
         m_track.load(f"./{dirname}/{m.__name__}-track")
         m_track.combine()
 
+        print(m.__name__)
         # plot graphs
         q2x_plot(ax[ax_start], m.__name__, m_decomp.entry_imputed, m_decomp.entry_fitted, m_decomp.entry_total, color=rgbs(mID, transparency=0.8),
                  plot_total=plot_total, offset=mID, log=logComp, logbound=logbound, endbound=endbound, showLegend=showLegend)
@@ -244,8 +252,8 @@ def comp_iter_graph(dirname, ax, ax_start, plot_total = False, showLegend=False,
                                plot_total=plot_total, offset=mID, log=logTrack, logbound=logbound)
 
 
-def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=False, showLegend=False,
-                    logbound=-3.5, logComp = True, logTrack = True, type='entry'):
+def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=True, showLegend=False,
+                    logbound=-3.5, logComp = True, logTrack = True, type='chord'):
     """ only run entry graph, comparing for each method by initialization """
     assert type == 'entry' or type == 'chord'
     dirname = f"figures/{figname}"
@@ -292,7 +300,10 @@ def runtime_graph(dirname, ax, ax_start, threshold=0.1, timebound=0.1,
     for mID,m in enumerate(methods):
         m_track.load(f"./{dirname}/{m.__name__}-track")
         m_track.combine()
-        ax[ax_start].hist(m_track.time_thresholds(threshold), label=m.__name__, fc=rgbs(mID, transparency=0.25), edgecolor=rgbs(mID), bins=50, range=(0,timebound))
+        thresholds = m_track.time_thresholds(threshold)
+        ax[ax_start].hist(thresholds, label=f"{m.__name__} ({len(thresholds)})", fc=rgbs(mID, transparency=0.25), edgecolor=rgbs(mID), bins=50, range=(0,timebound))
+        print(np.mean(thresholds))
+        ax[ax_start].axvline(np.mean(thresholds), color=rgbs(mID), linestyle='dashed', linewidth=1)
         unmet.append(m_track.unmet_thresholds(threshold))
 
     if graph_threshold:
@@ -300,9 +311,11 @@ def runtime_graph(dirname, ax, ax_start, threshold=0.1, timebound=0.1,
         ax[ax_start].set_xlabel('Runtime')
         ax[ax_start].set_ylabel('Count')
         if graph_unmet:
+            unmet[:] = [x / m_track.imputed_array.shape[0] * 100 for x in unmet]
             ax[ax_start+1].bar(methodnames, unmet)
             ax[ax_start+1].set_xlabel('Method')
-            ax[ax_start+1].set_ylabel('Count')
+            ax[ax_start+1].set_ylabel('Percent Unmet')
+            ax[ax_start+1].yaxis.set_major_formatter(mtick.PercentFormatter(decimals=0))
     elif graph_unmet:
         ax[ax_start].bar(methodnames, unmet)
         ax[ax_start].set_xlabel('Method')

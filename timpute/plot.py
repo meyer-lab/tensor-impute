@@ -93,7 +93,7 @@ def q2xentry(ax, decomp, methodname = "CP", detailed=True):
 
 
 def q2x_plot(ax, methodname:str = None, imputed_arr:np.ndarray = None, fitted_arr:np.ndarray = None, total_arr:np.ndarray = None,
-             detailed = True, plot_total = False, showLegend=False, offset = 0,
+             detailed = True, plot_total = False, showLegend = False, offset = 0,
              log = True, logbound = -3.5, endbound=1, color='blue'):
 
     if not detailed:
@@ -114,21 +114,41 @@ def q2x_plot(ax, methodname:str = None, imputed_arr:np.ndarray = None, fitted_ar
         if plot_total: assert total_arr is not None
         comps = np.arange(1,imputed_arr.shape[1]+1)
 
-        imputed_errbar = [np.percentile(imputed_arr,25,0),np.percentile(imputed_arr,75,0)]
-        fitted_errbar = [np.percentile(fitted_arr,25,0),np.percentile(fitted_arr,75,0)]
+        imputed_errbar = np.vstack(( -(np.percentile(imputed_arr,25,0) - np.nanmedian(imputed_arr,0)),
+                                   np.percentile(imputed_arr,75,0) - np.nanmedian(imputed_arr,0) ))
+        fitted_errbar = np.vstack((-(np.percentile(fitted_arr,25,0) - np.nanmedian(fitted_arr,0)),
+                                   np.percentile(fitted_arr,75,0) - np.nanmedian(fitted_arr,0)))
         e1 = ax.errorbar(comps+0.025+offset*0.05, np.median(imputed_arr,0), label=f"{methodname} Imputed Error" , yerr=imputed_errbar, fmt='^', color=color)
         e2 = ax.errorbar(comps-0.125+offset*0.05, np.median(fitted_arr,0), label=f"{methodname} Fitted Error", yerr=fitted_errbar, fmt='.', color=color)
+        print(np.median(imputed_arr,0))
+        print(np.median(fitted_arr,0))
+        print(np.median(total_arr,0))
+        print("\n")
         e1[-1][0].set_linestyle('-.')
         # e2[-1][0].set_linestyle('-.')
 
         if plot_total:
-            total_errbar = [np.percentile(total_arr,25,0),np.percentile(total_arr,75,0)]
+            total_errbar = np.vstack((-(np.percentile(total_arr,25,0) - np.nanmedian(total_arr,0)),
+                                      np.percentile(total_arr,75,0) - np.nanmedian(total_arr,0)))
             e3 = ax.errorbar(comps, np.median(total_arr,0), yerr=total_errbar,label=f"{methodname} Fitted Error", fmt='D', color=color)
-            e3[-1][0].set_linestyle('.')
+            e3[-1][0].set_linestyle('--')
+
+    # else:
+    #     assert imputed_arr is not None and fitted_arr is not None
+    #     if plot_total: assert total_arr is not None
+    #     ax.errorbar(comps+0.1, np.median(imputed_arr,0), label=f"{methodname} Imputed Error", fmt='^', markersize=6, color=color)
+    #     ax.errorbar(comps-0.1, np.median(fitted_arr,0), label=f"{methodname} Fitted Error", fmt='o', markersize=5, color=color)
+    #     print(np.median(imputed_arr,0))
+    #     print(np.median(fitted_arr,0))
+    #     print(np.median(total_arr,0))
+    #     print("\n")
+
+    #     if plot_total:
+    #         e3 = ax.errorbar(comps, np.median(total_arr,0), label=f"{methodname} Fitted Error", fmt='D', markersize=10, color=color)
         
     if not showLegend: ax.legend().remove()
     ax.set_xlabel("Number of Components")
-    ax.set_ylabel("Imputation Error")
+    ax.set_ylabel("Error")
     ax.set_xticks([x for x in comps])
     ax.set_xticklabels([x for x in comps])
 
