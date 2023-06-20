@@ -134,11 +134,9 @@ dmypy.json
 
 # Testing (Ethan)
 *.ipynb
-CoHcomponents/
-methodruns/
 figures/
-CoHcomponents/
 methodruns/
-figures/
+analysis/
+CoHcomponents/
 final_figs.py
 test.py
