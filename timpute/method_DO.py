@@ -5,6 +5,7 @@ import numpy as np
 from scipy.optimize import minimize
 import tensorly as tl
 from .initialization import initialize_fac
+from .tracker import tracker
 from tensorly.cp_tensor import cp_normalize, cp_lstsq_grad
 from .test.simulated_tensors import createUnknownRank
 
@@ -26,7 +27,7 @@ def cost(pIn, tensor: np.ndarray, tmask: np.ndarray):
 
 
 class do_callback:
-    def __init__(self, callback, shape):
+    def __init__(self, callback:tracker, shape:tuple):
         self.callback = callback
         self.shape = shape
 
@@ -36,7 +37,7 @@ class do_callback:
 
 
 def perform_DO(
-    tensorOrig=None, rank=6, n_iter_max=5_000, callback=None, init=None, mask=None
+    tensorOrig:np.ndarray=None, rank:int=6, n_iter_max:int=5_000, callback:tracker=None, init=None
 ) -> tl.cp_tensor.CPTensor:
     """Perform CP decomposition."""
     if tensorOrig is None:

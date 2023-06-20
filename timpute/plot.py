@@ -4,10 +4,7 @@ This file makes all standard plots for tensor analysis. Requires a Decomposition
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
-from matplotlib.ticker import ScalarFormatter
-from .decomposition import Decomposition
-from matplotlib.lines import Line2D
+
 
 def q2xchord(ax, decomp, methodname = "CP", detailed=True):
     """

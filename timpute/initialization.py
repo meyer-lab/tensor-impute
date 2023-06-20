@@ -1,8 +1,8 @@
 import numpy as np
-from tensorly.tenalg import svd_interface
 import tensorly as tl
-from .SVD_impute import IterativeSVD
+from tensorly.tenalg import svd_interface
 from tensorly.random import random_cp
+from .SVD_impute import IterativeSVD
 
 def initialize_fac(tensor: np.ndarray, rank: int, method='svd'):
     """Initialize factors used in `parafac`.

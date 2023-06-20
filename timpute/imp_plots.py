@@ -170,7 +170,10 @@ def rgbs(color = 0, transparency = None):
 def sim_data(tensortype = 'known', name = 'simulated_reg', tSize = (10,10,10), useCallback=True, best_comp = [6,6,6],
              impute_perc = 0.1, init = 'svd', impEntry = True, impChord = True,
              tensor_samples = 5, impute_reps = 5, seed = 5, printRuntime = True):
-    """ Generates a figure of method for `tensor_samples` tensors, each run `impute_reps` times. Identical initializations for each method's run per tensor."""
+    """
+    Generates a figure of method for `tensor_samples` tensors, each run `impute_reps` times.
+    Identical initializations for each method's run per tensor via np.seed
+    """
     assert init == 'svd' or init == 'random'
     assert impChord or impEntry
     np.random.seed(seed)
@@ -183,17 +186,11 @@ def sim_data(tensortype = 'known', name = 'simulated_reg', tSize = (10,10,10), u
     tstart = process_time()
     for i in range(tensor_samples):
         # generate tensor
-        tensor = generateTensor(tensortype,r=max_rr,shape=tSize,missingness=0)
-        entry_drop = int(impute_perc*np.sum(np.isfinite(tensor)))
-        chord_drop = int(impute_perc*tensor.size/tensor.shape[0])
-        if init=='random': inits='random'
-        elif init=='svd':
-            inits = [initialize_fac(tensor, rr) for rr in range(1,max_rr+1)]
-            inits = [[deepcopy(i) for _ in range(impute_reps)] for i in inits]
+        tensor = generateTensor(type=tensortype, r=max_rr, shape=tSize, missingness=0)
 
         for j, m in enumerate(methods):
             # initialize objects
-            decomp = Decomposition(tensor, method=m, max_rr=max_rr)
+            decomp = Decomposition(tensor, max_rr=max_rr)
             if i == 0:
                 if useCallback:
                     m_track = tracker(tensor,track_runtime=True)
@@ -208,10 +205,10 @@ def sim_data(tensortype = 'known', name = 'simulated_reg', tSize = (10,10,10), u
                     
             # run imputation, tracking for chords
             if impEntry and impChord:
-                decomp.Q2X_entry(drop=chord_drop, repeat=impute_reps, init=inits)
-                decomp.Q2X_chord(drop=chord_drop, repeat=impute_reps, init=inits, callback=m_track, callback_r=best_comp[j])
-            elif not impChord: decomp.Q2X_entry(drop=entry_drop, repeat=impute_reps, init=inits, callback=m_track, callback_r=best_comp[j])
-            elif not impEntry: decomp.Q2X_chord(drop=chord_drop, repeat=impute_reps, init=inits, callback=m_track, callback_r=best_comp[j])
+                decomp.imputation(type='entry', drop=impute_perc, repeat=impute_reps, init=init)
+                decomp.imputation(type='chord', drop=impute_perc, repeat=impute_reps, init=init, callback=m_track, callback_r=best_comp[j])
+            elif not impChord: decomp.imputation(type='entry', drop=impute_perc, repeat=impute_reps, init=init, callback=m_track, callback_r=best_comp[j])
+            elif not impEntry: decomp.imputation(type='chord', drop=impute_perc, repeat=impute_reps, init=init, callback=m_track, callback_r=best_comp[j])
 
             # save runs
             if i == 0: m_decomp = MultiDecomp(decomp, impEntry, impChord)

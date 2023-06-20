@@ -1,7 +1,7 @@
 import numpy as np
 import tensorly as tl
 
-def calcR2X(tFac:tl.cp_tensor.CPTensor, tIn:np.ndarray, calcError:bool=False, mask:np.ndarray=None) -> float:
+def calcR2X(tFac: tl.cp_tensor.CPTensor, tIn: np.ndarray, calcError=False, mask: np.ndarray=None) -> float:
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix.
     Mask is for imputation and must be of same shape as tIn/tFac, with 0s indicating artifically dropped values
     """
@@ -21,7 +21,7 @@ def calcR2X(tFac:tl.cp_tensor.CPTensor, tIn:np.ndarray, calcError:bool=False, ma
     if calcError: return vTop / vBottom
     else: return 1 - vTop / vBottom
 
-def entry_drop(tensor, drop, dropany=False, seed=None):
+def entry_drop(tensor:np.ndarray, drop:int, dropany=False, seed:int=None):
     """
     Drops random values within a tensor. Finds a bare minimum cube before dropping values to ensure PCA remains viable.
 
@@ -79,7 +79,7 @@ def entry_drop(tensor, drop, dropany=False, seed=None):
     
     return np.array(data_pattern, dtype=bool)
 
-def chord_drop(tensor, drop, seed=None):
+def chord_drop(tensor: np.ndarray, drop: int, seed: int=None):
     """
     Removes chords along axis = 0 of a tensor.
 

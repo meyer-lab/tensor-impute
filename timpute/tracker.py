@@ -46,11 +46,17 @@ class tracker():
             self.timer.append([np.full((1, 0), 0)])
         self.rep += 1
 
+    def reset(self):
+        self.total_error = [np.full((1, 0), 0)]
+        self.fitted_error = [np.full((1, 0), 0)]
+        self.imputed_error = [np.full((1, 0), 0)]
+        if self.track_runtime: self.timer = [np.full((1, 0), 0)]
+
     def combine(self, remove_outliers=False):
-        """ Combines all runs into a single np.ndarray. MUST RUN BEFORE PLOTTING """
-        max = 0
+        """ Combines all runs into a single np.ndarray."""
 
         # in case any run doesn't hit maximum iterations, make them all the same size
+        max = 0
         for i in range(self.rep+1):
             assert(self.fitted_error[i].size == self.fitted_error[i].size)
             current = self.fitted_error[i].size
@@ -74,13 +80,6 @@ class tracker():
         self.imputed_array = np.vstack(tuple(self.imputed_error))
         if self.track_runtime: self.time_array = np.vstack(tuple(self.timer))
         self.combined = True
-
-    def reset(self):
-        self.total_error = [np.full((1, 0), 0)]
-        self.fitted_error = [np.full((1, 0), 0)]
-        self.imputed_error = [np.full((1, 0), 0)]
-        if self.track_runtime: self.timer = [np.full((1, 0), 0)]
-
 
     """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
     def plot_iteration(self, ax, methodname=None, grouped=True, showLegend=False,
@@ -117,25 +116,6 @@ class tracker():
             ax.set_ylim(10**logbound,1)
         else:
             ax.set_ylim(0,1)
-
-        #     for i in range(self.rep+1):
-        #         ax.plot(np.arange(self.fitted_array.shape[1]), self.fitted_array[i], color='blue')
-        #         ax.plot(np.arange(self.imputed_array.shape[1]), self.imputed_array[i], color='green')
-        #         if plot_total: ax.plot(np.arange(self.total_array.shape[1]), self.total_array[i], color='red')
-        #     leg1 = mpatches.Patch(color='blue', label=methodname+'Fitted Error')
-        #     leg2 = mpatches.Patch(color='green', label=methodname+'Imputation Error')
-        #     if plot_total: leg3 = mpatches.Patch(color='red', label=methodname+'Total Error')
-        #     ax.legend(loc='upper right', handles=[leg1, leg2])
-        # elif isinstance(rep, int):
-        #     assert rep < self.rep + 1
-        #     ax.plot(np.arange(self.fitted_array.shape[1]), self.fitted_array[rep-1], color='blue')
-        #     ax.plot(np.arange(self.imputed_array.shape[1]), self.imputed_array[rep-1], color='green')
-        #     leg1 = mpatches.Patch(color='blue', label=methodname+'Fitted Error'+str(rep))
-        #     leg2 = mpatches.Patch(color='green', label=methodname+'Imputed Error'+str(rep))
-        #     if plot_total:
-        #         ax.plot(np.arange(self.total_array.shape[1]), self.total_array[i], color='red')
-        #         leg3 = mpatches.Patch(color='red', label=methodname+'Total Error'+str(rep))
-        #     ax.legend(loc='upper right', handles=[leg1, leg2])
     
     def time_thresholds(self, threshold = 0.25):
         if not self.combined: self.combine()
