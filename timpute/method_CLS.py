@@ -6,31 +6,13 @@ import numpy as np
 import tensorly as tl
 from tensorly.cp_tensor import cp_normalize
 from tensorly.tenalg import khatri_rao
-from .initialize_fac import initialize_fac
+from .initialization import initialize_fac
+from .impute_helper import calcR2X
 from tqdm import tqdm
 from sklearn.linear_model import Ridge
 
 
 tl.set_backend('numpy')
-
-
-def calcR2X(tFac, tIn, calcError=False, mask=None):
-    """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix. """
-    vTop, vBottom = 0.0, 0.0
-
-    tOrig = np.copy(tIn)
-    if mask is not None:
-        recons_tFac = tl.cp_to_tensor(tFac)*mask
-        tOrig = tOrig*mask
-    else:
-        recons_tFac = tl.cp_to_tensor(tFac)
-    tMask = np.isfinite(tOrig)
-    tOrig = np.nan_to_num(tOrig)
-    vTop += np.linalg.norm(recons_tFac * tMask - tOrig)**2.0
-    vBottom += np.linalg.norm(tOrig)**2.0
-
-    if calcError: return vTop / vBottom
-    else: return 1 - vTop / vBottom
 
 
 def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) -> np.ndarray:
@@ -67,12 +49,11 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) ->
     return X.T
 
   
-def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None, init=None, mask=None):
+def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None, init=None, mask=None)  -> tl.cp_tensor.CPTensor:
     """ Perform CP decomposition. """
 
     if init==None: tFac = initialize_fac(tOrig, rank)
     else: tFac = init
-    if callback: callback(tFac)
     
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]

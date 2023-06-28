@@ -10,7 +10,7 @@ from tensorly.cp_tensor import (
     validate_cp_rank,
 )
 from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao
-from .initialize_fac import initialize_fac
+from .initialization import initialize_fac
 
 # Authors: Jean Kossaifi <jean.kossaifi+tensors@gmail.com>
 #          Chris Swierczewski <csw@amazon.com>
@@ -130,7 +130,7 @@ def perform_ALS(
     svd_mask_repeats=5,
     linesearch=False,
     callback=None,
-):
+)  -> tl.cp_tensor.CPTensor:
     """CANDECOMP/PARAFAC decomposition via alternating least squares (ALS)
     Computes a rank-`rank` decomposition of `tensor` [1]_ such that:
 
@@ -255,21 +255,6 @@ def perform_ALS(
         else:
             sparsity = int(sparsity)
 
-    if callback is not None:
-        cp_tensor = CPTensor((weights, factors))
-        unnorml_rec_error, _, norm_tensor = error_calc(
-            tensor, norm_tensor, weights, factors, sparsity, mask
-        )
-        callback_error = unnorml_rec_error / norm_tensor
-
-        if sparsity:
-            sparse_component = sparsify_tensor(
-                tensor - cp_to_tensor((weights, factors)), sparsity
-            )
-            callback((cp_tensor, sparse_component), callback_error)
-        else:
-            callback(cp_tensor, callback_error)
-
     for iteration in range(n_iter_max):
         if orthogonalise and iteration <= orthogonalise:
             factors = [
@@ -376,7 +361,7 @@ def perform_ALS(
                 )
                 retVal = callback((cp_tensor, sparse_component), rec_error)
             else:
-                retVal = callback(cp_tensor, rec_error)
+                retVal = callback(cp_tensor)
 
         if tol is not None:
             if iteration >= 1:

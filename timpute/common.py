@@ -4,6 +4,7 @@ This file contains functions that are used in multiple figures.
 import seaborn as sns
 from string import ascii_lowercase
 import matplotlib
+import matplotlib.ticker as mtick
 from matplotlib import gridspec, pyplot as plt
 import svgutils.transform as st
 
@@ -19,11 +20,12 @@ matplotlib.rcParams["legend.handlelength"] = 0.5
 matplotlib.rcParams["legend.framealpha"] = 0.5
 matplotlib.rcParams["legend.markerscale"] = 0.7
 matplotlib.rcParams["legend.borderpad"] = 0.35
+matplotlib.rcParams["svg.fonttype"] = "none"
 
 
 def getSetup(figsize, gridd, multz=None, empts=None):
     """ Establish figure set-up with subplots. """
-    sns.set(style="whitegrid", font_scale=0.7, color_codes=True, palette="colorblind", rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6})
+    sns.set(style="whitegrid", font_scale=1, color_codes=True, palette="colorblind", rc={"grid.linestyle": "dotted", "axes.linewidth": 0.6})
 
     # create empty list if empts isn't specified
     if empts is None:

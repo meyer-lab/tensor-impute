@@ -132,8 +132,11 @@ dmypy.json
 
 .DS_Store
 
-# Other jupyter files
+# Testing (Ethan)
 *.ipynb
-CoHcomponents/
-methodruns/
 figures/
+methodruns/
+analysis/
+CoHcomponents/
+final_figs.py
+test.py
