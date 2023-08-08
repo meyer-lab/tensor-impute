@@ -1,13 +1,13 @@
-from impute_helper import *
-from imp_plots import generateTensor
-from initialization import initialize_fac
-from method_DO import perform_DO
-from method_ALS import perform_ALS
-from method_CLS import perform_CLS
-from tracker import tracker
+from .impute_helper import *
+from .imp_plots import generateTensor
+from .initialization import initialize_fac
+from .method_DO import perform_DO
+from .method_ALS import perform_ALS
+from .method_CLS import perform_CLS
+from .tracker import tracker
 
-from figures import q2x_plot, rgbs
-from common import *
+from .imp_plots import q2x_plot, rgbs
+from .common import *
 
 from time import process_time
 import numpy as np
@@ -15,20 +15,51 @@ import pickle
 import os
 
 
-def figure_2_data(impute_type = 'entry', reps = 50, track_rrs = [6,1,6], drop_perc = 0.1, testReg = False, save = False):
+
+def impute_data(impute_type = 'entry',
+                  data = 'zohar',
+                  reps = 10,
+                  methods = [perform_CLS, perform_ALS, perform_DO],
+                  track_rrs = [6,1,6],
+                  drop_perc = 0.1,
+                  testReg = False, save = False):
+
+    """Runs entry/chord imputation for a dataset and saves the decomposition R2X values.
+
+    Parameters
+    ----------
+    impute_type : string
+        'entry' or 'chord'
+    data : string
+        generates a default tensor from `generateTensor()` -- see `timpute/imp_plots`
+    reps : int
+        number of time to impute the tensor on
+    methods : list
+        list of functions, representing algorithms to solve factorizations
+    track_rrs : list
+        list of ints, representing the optimal component to track metrics per i teration
+    drop_perc : float
+        x ∃ [0,1) representing the drop percentage
+    save : bool
+        save to `figures/[dataname]-nonDecomp/[impute_type]`
+
+    Returns
+    -------
+    ndarray of shape tensor.shape
+    """
+
     assert impute_type == 'entry' or impute_type == 'chord'
 
     if save:
-        dirname = "./figures/zohar-nonDecomp/" + impute_type
+        dirname = f"./figures/{data}-nonDecomp/{impute_type}"
         if os.path.isdir(dirname) == False: os.makedirs(dirname)
 
-    tensor = generateTensor()
+    tensor = generateTensor(type=data)
     maxRank = 6
     imp = dict()
     fit = dict()
     tot = dict()
 
-    methods = [perform_CLS, perform_ALS, perform_DO]
     # for aID, a in enumerate(alphas):
     for mID, m in enumerate(methods):
         savename = m.__name__
@@ -53,7 +84,7 @@ def figure_2_data(impute_type = 'entry', reps = 50, track_rrs = [6,1,6], drop_pe
 
             for rr in range(1,maxRank+1):
                 np.random.seed(rep)
-                CPinit = initialize_fac(tensor, rank=rr, method='random')
+                CPinit = initialize_fac(np.copy(tensor), rank=rr, method='random')
                 if rr == track_rrs[mID]:
                     track.begin()
                     tfac = m(missingCube, rank=rr, init=CPinit, n_iter_max=50, callback=track)
@@ -143,8 +174,11 @@ def figure_2_data(impute_type = 'entry', reps = 50, track_rrs = [6,1,6], drop_pe
         with open(f"{dirname}/fit-array", "wb") as output_file: pickle.dump(fit, output_file)
         with open(f"{dirname}/tot-array", "wb") as output_file: pickle.dump(tot, output_file)
 
-def figure_2(imp_type = 'chord', names = ["perform_CLS", "perform_ALS", "perform_DO"], save=False):
+def impute_plot(imp_type = 'chord',
+                methods = [perform_CLS, perform_ALS, perform_DO],
+                save=False):
 
+    names = [m.__name__ for m in methods]
     dirname = f"./figures/zohar-nonDecomp/{imp_type}"
     
     with open(f"{dirname}/imp-array", "rb") as input_file: imp = pickle.load(input_file)
@@ -156,6 +190,7 @@ def figure_2(imp_type = 'chord', names = ["perform_CLS", "perform_ALS", "perform
 
     threshold = 0.1
     unmet = list()
+
     for nID, n in enumerate(names):
         m_track.load(f"{dirname}/{n}-track")
         q2x_plot(ax[0], n, imp[n], fit[n], tot[n], color=rgbs(nID), offset=nID, logbound=-2)
@@ -170,11 +205,13 @@ def figure_2(imp_type = 'chord', names = ["perform_CLS", "perform_ALS", "perform
     ax[2].legend(loc='upper right')
     ax[2].set_xlabel('Runtime')
     ax[2].set_ylabel('Count')
+
     unmet[:] = [x / m_track.imputed_array.shape[0] * 100 for x in unmet]
     ax[3].bar(names, unmet)
     ax[3].set_xlabel('Method')
     ax[3].set_ylabel('Percent Unmet')
     ax[3].yaxis.set_major_formatter(mtick.PercentFormatter(decimals=0))
+    
     if save: f.savefig(f"{dirname}.png", bbox_inches="tight", format="png")
 
 
