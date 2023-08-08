@@ -115,7 +115,7 @@ def perform_ALS(
     rank,
     n_iter_max=100,
     init=None,
-    svd="truncated_svd",
+    svd="svd",
     normalize_factors=False,
     orthogonalise=False,
     tol=1e-8,
@@ -222,7 +222,9 @@ def perform_ALS(
         max_fail = 4  # Increase acc_pow with one after max_fail failure
 
     
-    if init is None: init = initialize_fac(tensor,rank)
+    if init is None: init = initialize_fac(tensor,rank,method='random')
+
+    
     weights, factors = init
 
     rec_errors = []
