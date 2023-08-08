@@ -19,7 +19,7 @@ from .method_CLS import perform_CLS
 
 """ Exploratory Analysis Graphs """
 
-def generateTensor(type=None, r=6, shape=(20,25,30), scale=2, distribution='gamma', par=2, missingness=0.1, noise_scale=50):
+def generateTensor(type=None, r=6, shape=(10,10,10), scale=2, distribution='gamma', par=2, missingness=0.1, noise_scale=50):
     """ Tensor options: 'zohar', 'atyeo', 'alter', 'unknown', 'known', defaulting to 'known' """
     if type == 'zohar': return zohar().to_numpy()
     elif type == 'atyeo': return atyeo().to_numpy()
@@ -167,19 +167,22 @@ def rgbs(color = 0, transparency = None):
         return tuple(preTran)
     else: return color_rgbs[color]
 
-def sim_data(tensortype = 'known', name = 'simulated_reg', tSize = (10,10,10), useCallback=True, best_comp = [6,6,6],
-             impute_perc = 0.1, init = 'svd', impEntry = True, impChord = True,
-             tensor_samples = 5, impute_reps = 5, seed = 5, printRuntime = True):
+def sim_data(tensortype = 'known', name = 'simulated', tSize = (10,10,10),
+             init = 'svd', methods = methods,
+             useCallback=True, best_comp = [6,6,6],
+             impute_perc = 0.1, impute_reps = 1, tensor_samples = 20,
+             impEntry = True, impChord = True,
+             seed = 5, printRuntime = True):
     """
-    Generates a figure of method for `tensor_samples` tensors, each run `impute_reps` times.
-    Identical initializations for each method's run per tensor via np.seed
+    Generates a figure of method for `tensor_samples` tensors, each run `impute_reps` times for components 1 to 6 (max_rr).
+    Identical initializations for each method run per tensor via np.random.seed.
     """
     assert init == 'svd' or init == 'random'
     assert impChord or impEntry
     np.random.seed(seed)
     max_rr = 6
 
-    dirname = f"figures/{name or ''}_{impute_perc}"
+    dirname = f"figures/{name}_{impute_perc}"
     if os.path.isdir(dirname) == False: os.makedirs(dirname)
 
     # for each tensor
@@ -207,12 +210,17 @@ def sim_data(tensortype = 'known', name = 'simulated_reg', tSize = (10,10,10), u
             if impEntry and impChord:
                 decomp.imputation(method=m, type='entry', drop=impute_perc, repeat=impute_reps, init=init)
                 decomp.imputation(method=m, type='chord', drop=impute_perc, repeat=impute_reps, init=init, callback=m_track, callback_r=best_comp[j])
-            elif not impChord: decomp.imputation(method=m, type='entry', drop=impute_perc, repeat=impute_reps, init=init, callback=m_track, callback_r=best_comp[j])
-            elif not impEntry: decomp.imputation(method=m, type='chord', drop=impute_perc, repeat=impute_reps, init=init, callback=m_track, callback_r=best_comp[j])
+            elif not impChord:
+                decomp.imputation(method=m, type='entry', drop=impute_perc, repeat=impute_reps, init=init, callback=m_track, callback_r=best_comp[j])
+            elif not impEntry:
+                decomp.imputation(method=m, type='chord', drop=impute_perc, repeat=impute_reps, init=init, callback=m_track, callback_r=best_comp[j])
 
             # save runs
-            if i == 0: m_decomp = MultiDecomp(decomp, impEntry, impChord)
-            else: m_decomp(decomp)
+            if i == 0:
+                m_decomp = MultiDecomp(decomp, impEntry, impChord)
+            else:
+                m_decomp(decomp)
+
             m_decomp.save(f"./{dirname}/{m.__name__}-decomp")
             if useCallback: m_track.save(f"./{dirname}/{m.__name__}-track")
 
@@ -224,8 +232,17 @@ def sim_data(tensortype = 'known', name = 'simulated_reg', tSize = (10,10,10), u
 
     return m_decomp, m_track
 
-def comp_iter_graph(dirname, ax, ax_start, plot_total = False, showLegend=False,
+def full_graph(dirname, ax, ax_start, plot_total = False, showLegend=False,
                     logComp = True, logTrack = True, logbound=-3.5, endbound=1):
+    """
+    Generate graphs based on runs from sim_data().
+    Requires saving runs from sim_data in MultiDecomp and tracker objects, with the proper naming (see outermost loop).
+    a) Entry imputation for each method, component vs error
+    b) Chord imputation for each method, component vs error
+    c) Chord imputation for specified components (see sim_data(best_comp = ))
+    d) Runtimes for specified components
+    e) Number that hit threshold for specified components
+    """
 
     m_decomp = MultiDecomp()
     m_track = tracker()
@@ -245,9 +262,18 @@ def comp_iter_graph(dirname, ax, ax_start, plot_total = False, showLegend=False,
         m_track.plot_iteration(ax[ax_start+2], color=rgbs(mID, transparency=0.8),
                                plot_total=plot_total, offset=mID, log=logTrack, logbound=logbound)
 
-def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=True, showLegend=False,
+def single_graph(figname, ax, ax_start, plot_total=False, use_tracker=True, showLegend=False,
                     logbound=-3.5, logComp = True, logTrack = True, type='chord'):
-    """ only run entry graph, comparing for each method by initialization """
+    """
+    Generate graphs based on runs from sim_data() (only chooses chord OR entry imputation).
+    Requires saving runs from sim_data in MultiDecomp and tracker objects, with the proper naming (see outermost loop).
+    a) Entry/Chord imputation (henceforth, "Imputation") for each method, component vs error
+    b) Imputation for specified components (see sim_data(best_comp = ))
+    c) Runtimes for specified components
+    d) Number that hit threshold for specified components
+
+    * typically used to create a row for SVD & random initialized decompositions
+    """
     assert type == 'entry' or type == 'chord'
     dirname = f"figures/{figname}"
     m_decomp = MultiDecomp()
@@ -267,9 +293,13 @@ def comp_init_graph(figname, ax, ax_start, plot_total=False, use_tracker=True, s
             m_track.combine()
             m_track.plot_iteration(ax[ax_start+1], plot_total=plot_total, offset=mID, log=logTrack, logbound=logbound, color=rgbs(mID, transparency))
 
-def comp_dim_graph(figname, ax, ax_start, plot_total=False, showLegend=False,
+def comp_graph(figname, ax, ax_start, plot_total=False, showLegend=False,
                    logComp = True, logbound=-3.5, type='entry'):
-    """ only run entry graph, NO TRACKER, comparing for each case by initialization """
+    """
+    Generate graphs based on runs from sim_data() (only chooses chord OR entry imputation).
+    Requires saving runs from sim_data in MultiDecomp object, with the proper naming (see outermost loop).
+    a) Entry/Chord imputation for each method, component vs error
+    """
     assert type == 'entry' or type == 'chord'
     dirname = f"figures/{figname}"
     m_decomp = MultiDecomp()
@@ -284,8 +314,16 @@ def comp_dim_graph(figname, ax, ax_start, plot_total=False, showLegend=False,
                                        plot_total=plot_total, offset=mID, log=logComp, logbound=logbound, color=rgbs(mID, transparency))
 
 def runtime_graph(dirname, ax, ax_start, threshold=0.1, timebound=0.1,
-                  graph_threshold=True, graph_unmet=True):
-    assert graph_threshold or graph_unmet
+                  graph_runtime=True, graph_unmet=True):
+    """
+    Generate graphs based on runs from sim_data() (only chooses chord OR entry imputation).
+    Requires saving runs from sim_data in tracker objects, with the proper naming (see outermost loop).
+    May choose one or both of these plots
+    a) Runtimes for specified components
+    b) Number that hit threshold for specified components
+    """
+
+    assert graph_runtime or graph_unmet
     m_track = tracker()
     unmet = list()
     methodnames = [m.__name__ for m in methods]
@@ -299,7 +337,7 @@ def runtime_graph(dirname, ax, ax_start, threshold=0.1, timebound=0.1,
         ax[ax_start].axvline(np.mean(thresholds), color=rgbs(mID), linestyle='dashed', linewidth=1)
         unmet.append(m_track.unmet_thresholds(threshold))
 
-    if graph_threshold:
+    if graph_runtime:
         ax[ax_start].legend(loc='upper right')
         ax[ax_start].set_xlabel('Runtime')
         ax[ax_start].set_ylabel('Count')
