@@ -7,7 +7,7 @@ import tensorly as tl
 from .initialization import initialize_fac
 from .tracker import Tracker
 from tensorly.cp_tensor import cp_normalize, cp_lstsq_grad
-from .test.simulated_tensors import createUnknownRank
+from .generateTensor import generateTensor
 
 tl.set_backend("numpy")
 
@@ -46,7 +46,7 @@ def perform_DO(
 ) -> tl.cp_tensor.CPTensor:
     """Perform CP decomposition."""
     if tensorOrig is None:
-        tensorOrig = createUnknownRank()
+        tensorOrig = generateTensor('unknown')
     if init == None:
         init = initialize_fac(tensorOrig, rank)
     if callback:
