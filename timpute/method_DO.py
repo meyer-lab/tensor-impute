@@ -37,7 +37,12 @@ class do_callback:
 
 
 def perform_DO(
-    tensorOrig:np.ndarray=None, rank:int=6, n_iter_max:int=5_000, callback:tracker=None, init=None
+    tensorOrig:np.ndarray=None,
+    rank:int=6,
+    n_iter_max:int=5_000,
+    callback:tracker=None,
+    init=None,
+    **kwargs
 ) -> tl.cp_tensor.CPTensor:
     """Perform CP decomposition."""
     if tensorOrig is None:

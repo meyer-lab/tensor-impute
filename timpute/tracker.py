@@ -3,12 +3,12 @@ import time
 import pickle
 from .impute_helper import calcR2X
 
-class tracker():
+class Tracker():
     """ Tracks next unfilled entry & runtime, holds tracked name for plotting """
         
     def __init__(self, tOrig = [0], mask=None, track_runtime=False):
         """ self.data should be the original tensor (e.g. prior to running imputation) """
-        self.data = tOrig
+        self.data = tOrig.copy()
         self.mask = mask   # mask represents untouched (1) vs dropped (0) entries
         self.track_runtime = track_runtime
         self.rep = 0
@@ -51,6 +51,9 @@ class tracker():
         self.fitted_error = [np.full((1, 0), 0)]
         self.imputed_error = [np.full((1, 0), 0)]
         if self.track_runtime: self.timer = [np.full((1, 0), 0)]
+        self.mask = None
+        self.start = None
+        self.rep = 0
 
     def combine(self, remove_outliers=False):
         """ Combines all runs into a single np.ndarray."""
@@ -80,45 +83,10 @@ class tracker():
         self.imputed_array = np.vstack(tuple(self.imputed_error))
         if self.track_runtime: self.time_array = np.vstack(tuple(self.timer))
         self.combined = True
-
-    """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
-    def plot_iteration(self, ax, methodname=None, grouped=True, showLegend=False,
-                       rep=None, plot_total=False, offset=0,
-                       log=True, logbound=-3.5, color='blue'):
-        if not self.combined: self.combine()
-        if grouped:
-            imputed_errbar = np.vstack((-(np.percentile(self.imputed_array,25,0) - np.nanmedian(self.imputed_array,0)),
-                                        np.percentile(self.imputed_array,75,0) - np.nanmedian(self.imputed_array,0),))
-            fitted_errbar = np.vstack((-(np.percentile(self.fitted_array,25,0) - np.nanmedian(self.fitted_array,0)),
-                                       np.percentile(self.fitted_array,75,0) - np.nanmedian(self.fitted_array,0)))
-
-            e1 = ax.errorbar(np.arange(self.imputed_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(self.imputed_array,0), label=f"{methodname} Imputed Error", color=color,
-                             yerr = imputed_errbar, ls='--', errorevery=5)
-            e2 = ax.errorbar(np.arange(self.fitted_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(self.fitted_array,0), label=f"{methodname} Fitted Error", color=color,
-                             yerr = fitted_errbar, errorevery=(1,5))
-            e1[-1][0].set_linestyle('--')
-            # e2[-1][0].set_linestyle('dotted')
-
-            if plot_total:
-                total_errbar = np.vstack((-(np.percentile(self.total_array,25,0) - np.nanmedian(self.total_array,0)),
-                                          np.percentile(self.total_array,75,0) - np.nanmedian(self.total_array,0)))
-                e3 = ax.errorbar(np.arange(self.total_array.shape[1]), np.nanmedian(self.total_array,0), label=f"{methodname} Total Error", color=color,
-                                 yerr=total_errbar, ls = 'dotted', errorevery=5)
-                # e3[-1][0].set_linestyle('dotted')
-        elif rep == None: pass
-
-        if not showLegend: ax.legend().remove()
-        ax.set_xlim((0, 52))
-        ax.set_xlabel('Iteration')
-        ax.set_ylabel('Error')
-        if log:
-            ax.set_yscale("log")
-            ax.set_ylim(10**logbound,1)
-        else:
-            ax.set_ylim(0,1)
     
     def time_thresholds(self, threshold = 0.25):
         if not self.combined: self.combine()
+        # check 
         thres_arr = self.imputed_array <= threshold
         met_rows = np.argwhere(np.sum(thres_arr, axis=1)).flatten()
         thres_arr = thres_arr[met_rows,:]
@@ -127,9 +95,9 @@ class tracker():
         thres_time = [self.time_array[i,thres_iter[ID]] for ID,i in enumerate(met_rows)]
         return thres_time
     
-    def unmet_thresholds(self, threshold = 0.25):
+    def unmet_threshold_count(self, threshold = 0.25):
         if not self.combined: self.combine()
-        return np.sum(np.amin(self.imputed_array,axis=1) > threshold)
+        return np.sum(np.nanmin(self.imputed_array,axis=1) > threshold)
 
 
     def save(self, pfile):

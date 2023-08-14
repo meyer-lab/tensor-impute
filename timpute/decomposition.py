@@ -38,8 +38,9 @@ class Decomposition():
                    drop:int=0.05,
                    chord_mode:int=0, 
                    method=perform_CLS,
-                   init='svd',
+                   init='random',
                    maxiter:int=50,
+                   seed = 1,
                    callback:tracker=None, callback_r:int=None,
                    printRuntime=False):
         """
@@ -81,7 +82,7 @@ class Decomposition():
             calculated for components 1 to max_rr.
         """
         if callback_r is None: callback_r = max(self.rrs)
-        if callback_r is not None: assert(callback_r >= 0 and callback_r <= np.max(self.rrs))
+        if callback_r is not None: assert(callback_r > 0 and callback_r <= np.max(self.rrs))
         assert(chord_mode >= 0 and chord_mode < self.data.ndim)
         assert(drop <= 1 and drop >= 0)
 
@@ -130,22 +131,24 @@ class Decomposition():
                 TODO: I was not sure how to handle initialization;
                 sometimes I'm sending in a string, a CPTensor, or a list of lists of CPTensors
                 """
-                if isinstance(init,tl.cp_tensor.CPTensor):
+                
+                if isinstance(init,str):
+                    np.random.seed(int(x*seed))
+                    CPinit = initialize_fac(missingCube.copy(), rr, init)
+                elif isinstance(init,tl.cp_tensor.CPTensor):
                     CPinit = deepcopy(init)
                 elif isinstance(init,list):
                     CPinit = deepcopy(init[rr-1][x])
-                elif isinstance(init,str):
-                    np.seed.random(x)
-                    CPinit = initialize_fac(np.copy(missingCube), rr, init)
                 else:
                     raise ValueError(f'Initialization method "{init}" not recognized')
                 
                 # run method
-                if callback & rr == callback_r:
+                if callback is not None and rr == callback_r:
                     if callback.track_runtime:
                         callback.begin()
                     callback(CPinit)
-                tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
+
+                tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
 
                 # save error/Q2X
                 error[x,rr-1] = calcR2X(tFac, tIn=tImp, calcError=True)
@@ -174,14 +177,14 @@ class Decomposition():
                 #     self.entryQ2XPCA = Q2XPCA
         
         if type == 'entry':
-            self.entry_error = error
-            self.imputed_entry_error = imputed_error
-            self.fitted_entry_error = fitted_error
+            self.entry_total = error
+            self.entry_imputed = imputed_error
+            self.entry_fitted = fitted_error
 
         elif type == 'chord': 
-            self.chord_error = error
-            self.imputed_chord_error = imputed_error
-            self.fitted_chord_error = fitted_error
+            self.chord_total = error
+            self.chord_imputed = imputed_error
+            self.chord_fitted = fitted_error
             
     def save(self, pfile):
         with open(pfile, "wb") as output_file:
@@ -204,14 +207,14 @@ class MultiDecomp():
             self.hasChord = chord
 
             if entry:
-                self.entry_total = decomp.entry_error
-                self.entry_imputed = decomp.imputed_entry_error
-                self.entry_fitted = decomp.fitted_entry_error
+                self.entry_total = decomp.entry_total
+                self.entry_imputed = decomp.entry_imputed
+                self.entry_fitted = decomp.entry_fitted
 
             if chord:
-                self.chord_total = decomp.chord_error
-                self.chord_imputed = decomp.imputed_chord_error
-                self.chord_fitted = decomp.fitted_chord_error
+                self.chord_total = decomp.chord_total
+                self.chord_imputed = decomp.chord_imputed
+                self.chord_fitted = decomp.chord_fitted
 
     def __call__(self, decomp:Decomposition):
         if self.hasEntry:
