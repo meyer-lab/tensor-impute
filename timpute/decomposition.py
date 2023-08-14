@@ -2,7 +2,7 @@ import pickle
 import numpy as np
 import tensorly as tl
 
-from .tracker import tracker
+from .tracker import Tracker
 from .initialization import initialize_fac
 from .impute_helper import entry_drop, chord_drop
 from .impute_helper import calcR2X
@@ -41,7 +41,7 @@ class Decomposition():
                    init='random',
                    maxiter:int=50,
                    seed = 1,
-                   callback:tracker=None, callback_r:int=None,
+                   callback:Tracker=None, callback_r:int=None,
                    printRuntime=False):
         """
         Performs imputation (chord or entry) from the [self.data] using [method] for factor decomposition,

@@ -58,7 +58,7 @@ def perform_CLS(tOrig,
                 progress=False,
                 callback=None,
                 **kwargs
-                )  -> tl.cp_tensor.CPTensor:
+)  -> tl.cp_tensor.CPTensor:
     """ Perform CP decomposition. """
 
     if init==None: tFac = initialize_fac(tOrig, rank)

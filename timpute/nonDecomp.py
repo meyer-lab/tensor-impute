@@ -1,13 +1,12 @@
 from .impute_helper import *
-from .imp_plots import generateTensor
+from .generateTensor import generateTensor
 from .initialization import initialize_fac
 from .method_DO import perform_DO
 from .method_ALS import perform_ALS
 from .method_CLS import perform_CLS
 from .tracker import tracker
 
-from .imp_plots import q2x_plot, rgbs
-from .common import *
+from .plot import *
 
 from time import process_time
 import numpy as np
