@@ -6,7 +6,7 @@ from .impute_helper import calcR2X
 class Tracker():
     """ Tracks next unfilled entry & runtime, holds tracked name for plotting """
         
-    def __init__(self, tOrig = [0], mask=None, track_runtime=False):
+    def __init__(self, tOrig = [0], mask=None, track_runtime = True):
         """ self.data should be the original tensor (e.g. prior to running imputation) """
         self.data = tOrig.copy()
         self.mask = mask   # mask represents untouched (1) vs dropped (0) entries
@@ -55,7 +55,7 @@ class Tracker():
         self.start = None
         self.rep = 0
 
-    def combine(self, remove_outliers=False, imputed=True):
+    def combine(self, remove_outliers=False):
         """ Combines all runs into a single np.ndarray."""
 
         # in case any run doesn't hit maximum iterations, make them all the same size
@@ -100,6 +100,58 @@ class Tracker():
         if not self.combined: self.combine()
         return np.sum(np.nanmin(self.imputed_array,axis=1) > threshold)
 
+
+    def save(self, pfile):
+        with open(pfile, "wb") as output_file:
+            pickle.dump(self.__dict__, output_file)
+
+    def load(self, pfile):
+        with open(pfile, "rb") as input_file:
+            tmp_dict = pickle.load(input_file)
+            self.__dict__.update(tmp_dict)
+
+
+class MultiTracker():
+    '''
+    Saves tracker results for many Tracker objects.
+    '''
+    def __init__(self, track_runtime = True):
+        self.initialized = False
+        self.track_runtime = track_runtime
+        self.combined = True
+
+
+    def __call__(self, tracker:Tracker):
+        if self.initialized is True:
+            self.total_array = np.vstack((self.total_array,tracker.total_array))
+            self.imputed_array = np.vstack((self.imputed_array,tracker.imputed_array))
+            self.fitted_array = np.vstack((self.fitted_array,tracker.fitted_array))
+            if self.track_runtime:
+                self.time_array = np.vstack((self.time_array,tracker.time_array))
+        else:
+            self.initialized = True
+            self.total_array = tracker.total_array
+            self.imputed_array = tracker.imputed_array
+            self.fitted_array = tracker.fitted_array
+            if self.track_runtime:
+                self.time_array = tracker.time_array
+
+    
+
+    def time_thresholds(self, threshold = 0.25, total = False):
+        if total:
+            thres_arr = self.total_array <= threshold
+        else:
+            thres_arr = self.imputed_array <= threshold
+        met_rows = np.argwhere(np.sum(thres_arr, axis=1)).flatten()
+        thres_arr = thres_arr[met_rows,:]
+
+        thres_iter = np.argmax(thres_arr, axis=1)
+        thres_time = [self.time_array[i,thres_iter[ID]] for ID,i in enumerate(met_rows)]
+        return thres_time
+    
+    def unmet_threshold_count(self, threshold = 0.25):
+        return np.sum(np.nanmin(self.imputed_array,axis=1) > threshold)
 
     def save(self, pfile):
         with open(pfile, "wb") as output_file:

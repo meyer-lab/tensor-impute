@@ -5,7 +5,6 @@ This file makes all standard plots for tensor analysis. Requires a Decomposition
 import numpy as np
 import pandas as pd
 from .decomposition import Decomposition
-from .tracker import Tracker
 from .common import getSetup
 import matplotlib.ticker as mtick
 
@@ -119,7 +118,7 @@ def q2x_plot(ax,
 
 def iteration_plot(ax,
                    methodname:str,
-                   tracker:Tracker,
+                   tracker,
                    plot_impute=True,
                    plot_total=False, 
                    showLegend=False,
@@ -161,7 +160,7 @@ def iteration_plot(ax,
 
 def runtime_plot(ax,
                  methodname:str,
-                 tracker:Tracker,
+                 tracker,
                  plotTotal = False,
                  threshold = 0.1,
                  timebound = (0,0.1),
