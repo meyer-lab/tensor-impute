@@ -20,7 +20,7 @@ class Tracker():
         
         self.combined = False
 
-    def __call__(self, tFac, error=None):
+    def __call__(self, tFac, **kwargs):
         """ Takes a CP tensor object """
         self.total_error[self.rep] = np.append(self.fitted_error[self.rep], calcR2X(tFac, self.data, True))
         if self.mask is not None:
@@ -55,15 +55,14 @@ class Tracker():
         self.start = None
         self.rep = 0
 
-    def combine(self, remove_outliers=False):
+    def combine(self, remove_outliers=False, imputed=True):
         """ Combines all runs into a single np.ndarray."""
 
         # in case any run doesn't hit maximum iterations, make them all the same size
         max = 0
         for i in range(self.rep+1):
-            assert(self.fitted_error[i].size == self.fitted_error[i].size)
-            current = self.fitted_error[i].size
-            if remove_outliers and np.max(self.fitted_error[i]) > 1: self.fitted_error[i][:] = np.nan
+            current = self.total_error[i].size
+            if remove_outliers and np.max(self.total_error[i]) > 1: self.total_error[i][:] = np.nan
 
             if (current > max):
                 for j in range(i):
@@ -84,10 +83,12 @@ class Tracker():
         if self.track_runtime: self.time_array = np.vstack(tuple(self.timer))
         self.combined = True
     
-    def time_thresholds(self, threshold = 0.25):
+    def time_thresholds(self, threshold = 0.25, total = False):
         if not self.combined: self.combine()
-        # check 
-        thres_arr = self.imputed_array <= threshold
+        if total:
+            thres_arr = self.total_array <= threshold
+        else:
+            thres_arr = self.imputed_array <= threshold
         met_rows = np.argwhere(np.sum(thres_arr, axis=1)).flatten()
         thres_arr = thres_arr[met_rows,:]
 

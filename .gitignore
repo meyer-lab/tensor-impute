@@ -134,7 +134,8 @@ dmypy.json
 
 # Testing (Ethan)
 *.ipynb
-figures/
+figure/
+saves/
 methodruns/
 analysis/
 CoHcomponents/

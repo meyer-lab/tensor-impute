@@ -7,7 +7,7 @@ from tensordata.atyeo import data as atyeo
 from tensordata.zohar import data as zohar
 from tensordata.alter import data as alter
 
-def generateTensor(type=None, r=6, shape=(10,10,10), scale=2, distribution='gamma', par=2, missingness=0.1, noise_scale=50):
+def generateTensor(type=None, r=6, shape=(10,10,10), scale=2, distribution='gamma', par=2, missingness=0.0, noise_scale=50):
     """ Tensor options: 'zohar', 'atyeo', 'alter', 'unknown', 'known', defaulting to 'known' """
     if type == 'zohar': return zohar().to_numpy().copy()
     elif type == 'atyeo': return atyeo().to_numpy().copy()

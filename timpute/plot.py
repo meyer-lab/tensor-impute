@@ -68,51 +68,41 @@ def q2xentry(ax, decomp:Decomposition, methodname = "CP", detailed=True):
 def q2x_plot(ax,
              methodname:str,
              imputed_arr:np.ndarray = None, fitted_arr:np.ndarray = None, total_arr:np.ndarray = None,
-             detailed = True,
+             plot_impute = True,
              plot_total = False,
              showLegend = False,
              offset = 0,
              log = True, logbound = -3.5, endbound = 1,
              color='blue', s = 5,
              printvalues = False):
-
-    if not detailed:
-        assert(total_arr is not None)
-        comps = np.arange(1,total_arr.shape[1]+1)
-        entry_df = pd.DataFrame(total_arr).T
-        entry_df.index = comps
-        entry_df['mean'] = entry_df.median(axis=1)
-        entry_df['sem'] = entry_df.iqr(axis=1)
-        TR2X = entry_df['mean']
-        TErr = entry_df['sem']
-        ax.plot(comps, TR2X, ".", label=methodname)
-        ax.errorbar(comps - 0.05, TR2X, yerr=TErr, fmt='none', ecolor='b')
-        ax.set_ylabel("Q2X of Entry Imputation")
     
-    else:
+
+    comps = np.arange(1,imputed_arr.shape[1]+1)
+
+    if plot_impute:
         assert imputed_arr is not None and fitted_arr is not None
         if plot_total: assert total_arr is not None
-        comps = np.arange(1,imputed_arr.shape[1]+1)
 
         imputed_errbar = np.vstack(( -(np.percentile(imputed_arr,25,0) - np.nanmedian(imputed_arr,0)),
                                    np.percentile(imputed_arr,75,0) - np.nanmedian(imputed_arr,0) ))
         fitted_errbar = np.vstack((-(np.percentile(fitted_arr,25,0) - np.nanmedian(fitted_arr,0)),
                                    np.percentile(fitted_arr,75,0) - np.nanmedian(fitted_arr,0)))
+        
         e1 = ax.errorbar(comps+offset, np.median(imputed_arr,0), label=f"{methodname} Imputed Error" , yerr=imputed_errbar, fmt='^', color=color, markersize=s)
         e2 = ax.errorbar(comps+offset, np.median(fitted_arr,0), label=f"{methodname} Fitted Error", yerr=fitted_errbar, fmt='.', color=color, markersize=s*2)
         if printvalues:
             print(np.median(imputed_arr,0))
             print(np.median(fitted_arr,0))
             print(np.median(total_arr,0))
-        e1[-1][0].set_linestyle('solid')
-        e1[-1][0].set_linestyle('solid')
+        e1[-1][0].set_linestyle('--')
+        e1[-1][0].set_linestyle('-.')
         # e2[-1][0].set_linestyle('-.')
 
-        if plot_total:
-            total_errbar = np.vstack((-(np.percentile(total_arr,25,0) - np.nanmedian(total_arr,0)),
-                                      np.percentile(total_arr,75,0) - np.nanmedian(total_arr,0)))
-            e3 = ax.errorbar(comps, np.median(total_arr,0), yerr=total_errbar,label=f"{methodname} Fitted Error", fmt='D', color=color, markersize=s/2.5)
-            e3[-1][0].set_linestyle('--')
+    if plot_total:
+        assert(total_arr is not None)
+        total_errbar = np.vstack((abs(np.percentile(total_arr,25,0) - np.nanmedian(total_arr,0)),
+                                  abs(np.percentile(total_arr,75,0) - np.nanmedian(total_arr,0))))
+        e3 = ax.errorbar(comps+offset, np.median(total_arr,0), yerr=total_errbar,label=f"{methodname} Total Error", fmt='D', color=color, markersize=s/2.5)
 
     if showLegend: ax.legend(loc="upper right")
     ax.set_xlabel("Number of Components")
@@ -130,6 +120,7 @@ def q2x_plot(ax,
 def iteration_plot(ax,
                    methodname:str,
                    tracker:Tracker,
+                   plot_impute=True,
                    plot_total=False, 
                    showLegend=False,
                    offset=0,
@@ -138,27 +129,27 @@ def iteration_plot(ax,
     """ Plots are designed to track the error of the method for the highest rank imputation of tOrig """
     
     if not tracker.combined: tracker.combine()
-    imputed_errbar = np.vstack((-(np.percentile(tracker.imputed_array,25,0) - np.nanmedian(tracker.imputed_array,0)),
-                                np.percentile(tracker.imputed_array,75,0) - np.nanmedian(tracker.imputed_array,0),))
-    fitted_errbar = np.vstack((-(np.percentile(tracker.fitted_array,25,0) - np.nanmedian(tracker.fitted_array,0)),
-                                np.percentile(tracker.fitted_array,75,0) - np.nanmedian(tracker.fitted_array,0)))
+    if plot_impute:
+        imputed_errbar = np.vstack((-(np.percentile(tracker.imputed_array,25,0) - np.nanmedian(tracker.imputed_array,0)),
+                                    np.percentile(tracker.imputed_array,75,0) - np.nanmedian(tracker.imputed_array,0),))
+        fitted_errbar = np.vstack((-(np.percentile(tracker.fitted_array,25,0) - np.nanmedian(tracker.fitted_array,0)),
+                                    np.percentile(tracker.fitted_array,75,0) - np.nanmedian(tracker.fitted_array,0)))
 
-    e1 = ax.errorbar(np.arange(tracker.imputed_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(tracker.imputed_array,0), label=f"{methodname} Imputed Error", color=color,
-                        yerr = imputed_errbar, ls='--', errorevery=5)
-    e2 = ax.errorbar(np.arange(tracker.fitted_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(tracker.fitted_array,0), label=f"{methodname} Fitted Error", color=color,
-                        yerr = fitted_errbar, errorevery=(1,5))
-    e1[-1][0].set_linestyle('--')
-    # e2[-1][0].set_linestyle('dotted')
+        e1 = ax.errorbar(np.arange(tracker.imputed_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(tracker.imputed_array,0), label=f"{methodname} Imputed Error", color=color,
+                            yerr = imputed_errbar, ls='--', errorevery=5)
+        e2 = ax.errorbar(np.arange(tracker.fitted_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(tracker.fitted_array,0), label=f"{methodname} Fitted Error", color=color,
+                            yerr = fitted_errbar, ls='-.', errorevery=(1,5))
+        e1[-1][0].set_linestyle('--')
+        e2[-1][0].set_linestyle('-.')
 
     if plot_total:
         total_errbar = np.vstack((-(np.percentile(tracker.total_array,25,0) - np.nanmedian(tracker.total_array,0)),
                                     np.percentile(tracker.total_array,75,0) - np.nanmedian(tracker.total_array,0)))
-        e3 = ax.errorbar(np.arange(tracker.total_array.shape[1]), np.nanmedian(tracker.total_array,0), label=f"{methodname} Total Error", color=color,
-                            yerr=total_errbar, ls = 'dotted', errorevery=5)
-        # e3[-1][0].set_linestyle('dotted')
+        ax.errorbar(np.arange(tracker.total_array.shape[1]), np.nanmedian(tracker.total_array,0), label=f"{methodname} Total Error", color=color,
+                            yerr=total_errbar, ls = 'solid', errorevery=5)
 
-    if not showLegend: ax.legend().remove()
-    ax.set_xlim((0, 52))
+    if showLegend: ax.legend()
+    ax.set_xlim((0, tracker.total_array.shape[1]))
     ax.set_xlabel('Iteration')
     ax.set_ylabel('Error')
     if log:
@@ -171,21 +162,23 @@ def iteration_plot(ax,
 def runtime_plot(ax,
                  methodname:str,
                  tracker:Tracker,
+                 plotTotal = False,
                  threshold = 0.1,
                  timebound = (0,0.1),
-                 color='blue',
-                 printvalues=True):
+                 color = 'blue',
+                 printvalues = False):
 
-    thresholds = tracker.time_thresholds(threshold)
-    ax.hist(thresholds, label=f"{methodname} ({len(thresholds)})", fc=color, edgecolor=color, bins=50, range=timebound)
+    thresholds = tracker.time_thresholds(threshold, plotTotal)
+    ax.hist(thresholds, label=f"{methodname} ({len(thresholds)})", fc=color, edgecolor=color[:3], bins=50, range=timebound)
     if printvalues:
         print(f"mean: {np.mean(thresholds)}")
         print(f"max: {np.max(thresholds)}")
-    ax.axvline(np.mean(thresholds), color=color, linestyle='dashed', linewidth=1)
+    ax.axvline(np.mean(thresholds), color=color[:3], linestyle='dashed', linewidth=1)
 
     ax.legend(loc='upper right')
     ax.set_xlabel('Runtime')
     ax.set_ylabel('Count')
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter(decimals=0))
 
 
 # def l2_plot(ax, decomp, alpha, methodname = "CP", comp=None):

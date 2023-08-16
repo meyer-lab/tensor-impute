@@ -13,7 +13,7 @@ from time import process_time
 
 
 class Decomposition():
-    def __init__(self, data, max_rr=5):
+    def __init__(self, data=np.ndarray([0]), max_rr=5):
         """
         Decomposition object designed for plotting. Capable of handling a single tensor.
 
@@ -29,7 +29,7 @@ class Decomposition():
             Takes a factorization method. Default set to perform_CLS() from cmtf.py
             other methods include: tucker_decomp
         """
-        self.data = data
+        self.data = data.copy()
         self.rrs = np.arange(1,max_rr+1)
 
     def imputation(self,
@@ -84,7 +84,7 @@ class Decomposition():
         if callback_r is None: callback_r = max(self.rrs)
         if callback_r is not None: assert(callback_r > 0 and callback_r <= np.max(self.rrs))
         assert(chord_mode >= 0 and chord_mode < self.data.ndim)
-        assert(drop <= 1 and drop >= 0)
+        assert(drop < 1 and drop >= 0)
 
         if type=='entry':
             drop = int(drop*np.sum(np.isfinite(self.data)))
@@ -98,6 +98,7 @@ class Decomposition():
         fitted_error = np.zeros((repeat,self.rrs[-1]))
 
 
+
         # Calculate Q2X for each number of components
         if isinstance(init,list):
             assert(len(init) == np.max(self.rrs))
@@ -109,19 +110,21 @@ class Decomposition():
             - `tImp` is a copy of data, used a reference for imputation accuracy
             - `missingCube` is where values are dropped
             """
-            tImp = np.copy(self.data)           # avoid editing in-place of data
+            tImp = self.data.copy()           # avoid editing in-place of data
             np.moveaxis(tImp,chord_mode,0)      # reshaping for correct chord dropping
-            missingCube = np.copy(tImp)
-            if type=='entry':
-                mask = entry_drop(missingCube, drop)
-            elif type=='chord':
-                mask = chord_drop(missingCube, drop)
-            
+            missingCube = tImp.copy()
+
             """ track masks 
             - `imputed_vals` has a 1 where values were artifically dropped
             - `fitted_vals` has a 1 where values were not artifically dropped (considers non-imputed values)
             """
-            if callback: callback.set_mask(mask)
+            if type=='entry':
+                mask = entry_drop(missingCube, drop)
+            elif type=='chord':
+                mask = chord_drop(missingCube, drop)
+
+            if callback is not None:
+                callback.set_mask(mask)
             imputed_vals = np.ones_like(missingCube) - mask
             fitted_vals = np.ones_like(missingCube) - imputed_vals
             
@@ -131,7 +134,6 @@ class Decomposition():
                 TODO: I was not sure how to handle initialization;
                 sometimes I'm sending in a string, a CPTensor, or a list of lists of CPTensors
                 """
-                
                 if isinstance(init,str):
                     np.random.seed(int(x*seed))
                     CPinit = initialize_fac(missingCube.copy(), rr, init)
@@ -143,17 +145,19 @@ class Decomposition():
                     raise ValueError(f'Initialization method "{init}" not recognized')
                 
                 # run method
-                if callback is not None and rr == callback_r:
+                if rr == callback_r and isinstance(callback, Tracker):
+                    callback(CPinit)
                     if callback.track_runtime:
                         callback.begin()
-                    callback(CPinit)
-
-                tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
-
-                # save error/Q2X
+                    tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit, callback=callback)
+                else:
+                    tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
+                
                 error[x,rr-1] = calcR2X(tFac, tIn=tImp, calcError=True)
-                imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
-                fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
+                
+                if drop > 0:
+                    imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
+                    fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
 
             if (printRuntime and (x+1)%round(repeat*0.2) == 0):
                 print(f"({method.__name__}) Average runtime for {x+1} tensors: {(process_time())/(x+1)} seconds")
