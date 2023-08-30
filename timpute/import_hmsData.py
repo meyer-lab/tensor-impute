@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+import xarray as xa
 
 
 def separate_cellLines():
@@ -17,9 +18,16 @@ def separate_cellLines():
         tmp_df = df.loc[df['cell_line'] == val]
         df_dict[val] = tmp_df
 
-    return df_dict
+    del df_dict['BT474']
 
-def import_cellLine(cellline_name: str, cellline_df):
+    # includes ['AZD1775', 'AZD2014', 'AZD5363', 'AZD6738', 'BJP-6-5-3', 'BMS-265246', 'BSJ-01-175', 'BSJ-03-123', 'BSJ-03-124', 'BVD523', 'FMF-03-146-1', 'FMF-04-107-2', 'FMF-04-112-1', 'Flavopiridol', 'GSK2334470', 'LEE011/Ribociclib', 'LY3023414', 'Pin1-3', 'R0-3306',  'Rucaparib', 'SHP099', 'THZ-P1-2', 'THZ-P1-2R', 'THZ1', 'THZ531', 'YKL-5-124', 'ZZ1-33B', 'senexin b']
+    common = set(df_dict['AU565']['agent'].unique())
+    for i in df_dict.keys():
+        common = common & set(df_dict[i]['agent'].unique())
+
+    return df_dict, list(sorted(common))
+
+def import_cellLine(cellline_name: str, cellline_df, agents):
     """Choose between the following list to import the data for that specific cell line, then pass the dataframe to this function to get the tensor of cell numbers.
     ['AU565', 'PDX1328', 'BT20', 'BT549', 'HCC1806', 'HCC1954', 'HCC70', 'MCF10A', 'MDAMB231', 'SUM1315', 'SUM149', 'SUM159', 'HTERTHME1', 'SUM190PT', 'SUM44PE', 'MDAMB330', 'SUM185PE', 'SUM229PE', 'SUM52PE', 'UACC893', 'ZR751', 'MCF12A', 'EFM19', 'ZR7530', 'BT474', 'HS578T', 'MCF7', 'T47D', 'MGH312', 'CAL120', 'CAL51', 'CAL851', 'CAMA1', 'MCF10A (GM)', 'SKBR3', 'MDAMB361', 'MDAMB436', 'MDAMB453', 'MDAMB468', 'HCC1143', 'HCC1395', 'HCC1419', 'HCC1937', 'HCC38', '184A1', 'HCC202', 'MDAMB175VII', 'MDAMB415', 'UACC812', 'EVSAT', 'HCC1187', 'HCC1569', 'PDX1206', 'PDX1258', 'PDXHCI002']
     Returns
@@ -38,10 +46,6 @@ def import_cellLine(cellline_name: str, cellline_df):
     cwd = f'{os.getcwd()}/timpute/data'
     ctr = pd.read_csv(f"{cwd}/baseline_fractions.csv")
 
-    # agents = list(cellline_df['agent'].unique())
-    agents = ['AZD1775', 'AZD2014', 'AZD5363', 'AZD6738', 'BJP-6-5-3', 'BMS-265246', 'BSJ-01-175', 'BSJ-03-123', 'BSJ-03-124', 'BVD523',
-              'FMF-03-146-1', 'FMF-04-107-2', 'FMF-04-112-1', 'Flavopiridol', 'GSK2334470', 'LEE011/Ribociclib', 'LY3023414', 'Pin1-3',
-              'R0-3306',  'Rucaparib', 'SHP099', 'THZ-P1-2', 'THZ-P1-2R', 'THZ1', 'THZ531', 'YKL-5-124', 'ZZ1-33B', 'senexin b']
     
     concentrations, targets = [], []
     tensor = np.zeros((4, 2, 4, 10, len(agents))) # first dim = G1, S, G2M, abnormal/dead 
@@ -94,18 +98,22 @@ def import_cellLine(cellline_name: str, cellline_df):
     return tensor, agents, concentrations, targets
 
 def hms_tensor():
-    df_dict = separate_cellLines()
-    del df_dict['BT474']
+    df_dict, common = separate_cellLines()
 
     slices = list()
     for line in df_dict:
-        output = import_cellLine(line, df_dict[line])
-        dat = output[0].reshape((8,4,280))
-        # dat = output[0].reshape((8,4,10,28))
-        # dat = dat.swapaxes(0,3).swapaxes(1,2)
-        # dat = dat.reshape(280,4,8)
-        sheet = np.nanmean(dat, axis=1)
+        output = import_cellLine(line, df_dict[line], common)
+        xoutput = xa.DataArray(output[0],
+                                coords={'phase': ["G1", "S", "G2M", "D"], 'timepoint': [2, 72],
+                                        'replicate': range(1,4+1), 'dose level': range(1,10+1), 'agent': output[1]}, 
+                                dims=["phase", "timepoint", "replicate", "dose level", "agent"])
+        xoutput = xoutput.stack(phase_timepoint = ('phase', 'timepoint'), agent_level = ('dose level', 'agent'))
+        sheet = xoutput.mean(dim='replicate')
+        sheet = sheet.expand_dims(dim='cell line', axis=2)
         slices.append(sheet)
     
-    return np.stack(slices,2)
+    tensor = xa.concat(slices, 'cell line')
+    tensor.coords['cell line'] = list(df_dict.keys())
+    
+    return tensor
     
