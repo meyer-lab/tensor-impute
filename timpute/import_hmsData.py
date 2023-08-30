@@ -21,11 +21,13 @@ def separate_cellLines():
     del df_dict['BT474']
 
     # includes ['AZD1775', 'AZD2014', 'AZD5363', 'AZD6738', 'BJP-6-5-3', 'BMS-265246', 'BSJ-01-175', 'BSJ-03-123', 'BSJ-03-124', 'BVD523', 'FMF-03-146-1', 'FMF-04-107-2', 'FMF-04-112-1', 'Flavopiridol', 'GSK2334470', 'LEE011/Ribociclib', 'LY3023414', 'Pin1-3', 'R0-3306',  'Rucaparib', 'SHP099', 'THZ-P1-2', 'THZ-P1-2R', 'THZ1', 'THZ531', 'YKL-5-124', 'ZZ1-33B', 'senexin b']
-    common = set(df_dict['AU565']['agent'].unique())
+    agents = set(df_dict['AU565']['agent'].unique())
     for i in df_dict.keys():
-        common = common & set(df_dict[i]['agent'].unique())
+        agents = agents & set(df_dict[i]['agent'].unique())
 
-    return df_dict, list(sorted(common))
+    common_agents = list(sorted(agents))
+
+    return df_dict, common_agents
 
 def import_cellLine(cellline_name: str, cellline_df, agents):
     """Choose between the following list to import the data for that specific cell line, then pass the dataframe to this function to get the tensor of cell numbers.

@@ -3,9 +3,7 @@ This file makes all standard plots for tensor analysis. Requires a Decomposition
 """
 
 import numpy as np
-import pandas as pd
 from .decomposition import Decomposition
-from .common import getSetup
 import matplotlib.ticker as mtick
 
 def rgbs(color = 0, transparency = None):
@@ -69,6 +67,9 @@ def q2x_plot(ax,
              imputed_arr:np.ndarray = None, fitted_arr:np.ndarray = None, total_arr:np.ndarray = None,
              plot_impute = True,
              plot_total = False,
+             total_fmt = 'D',
+             total_fmtScale = 1/2.5,
+             showLabels = True,
              showLegend = False,
              offset = 0,
              log = True, logbound = -3.5, endbound = 1,
@@ -93,15 +94,17 @@ def q2x_plot(ax,
             print(np.median(imputed_arr,0))
             print(np.median(fitted_arr,0))
             print(np.median(total_arr,0))
-        e1[-1][0].set_linestyle('--')
-        e1[-1][0].set_linestyle('-.')
+        e1[-1][0].set_linestyle((0, (5, 1)))
+        e2[-1][0].set_linestyle((0, (1, 1)))
         # e2[-1][0].set_linestyle('-.')
 
     if plot_total:
         assert(total_arr is not None)
+        if showLabels: label = f"{methodname} Total Error"
+        else: label = None
         total_errbar = np.vstack((abs(np.percentile(total_arr,25,0) - np.nanmedian(total_arr,0)),
                                   abs(np.percentile(total_arr,75,0) - np.nanmedian(total_arr,0))))
-        e3 = ax.errorbar(comps+offset, np.median(total_arr,0), yerr=total_errbar,label=f"{methodname} Total Error", fmt='D', color=color, markersize=s/2.5)
+        e3 = ax.errorbar(comps+offset, np.median(total_arr,0), yerr=total_errbar,label=label, fmt=total_fmt, color=color, markersize=s*total_fmtScale)
 
     if showLegend: ax.legend(loc="upper right")
     ax.set_xlabel("Number of Components")
@@ -121,6 +124,8 @@ def iteration_plot(ax,
                    tracker,
                    plot_impute=True,
                    plot_total=False, 
+                   total_ls='solid',
+                   showLabels=True,
                    showLegend=False,
                    offset=0,
                    log=True, logbound=-3.5,
@@ -138,14 +143,17 @@ def iteration_plot(ax,
                             yerr = imputed_errbar, ls='--', errorevery=5)
         e2 = ax.errorbar(np.arange(tracker.fitted_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(tracker.fitted_array,0), label=f"{methodname} Fitted Error", color=color,
                             yerr = fitted_errbar, ls='-.', errorevery=(1,5))
-        e1[-1][0].set_linestyle('--')
-        e2[-1][0].set_linestyle('-.')
+        e1[-1][0].set_linestyle((0, (5, 1)))
+        e2[-1][0].set_linestyle((0, (1, 1)))
 
     if plot_total:
+        if showLabels: label = f"{methodname} Total Error"
+        else: label = None
         total_errbar = np.vstack((-(np.percentile(tracker.total_array,25,0) - np.nanmedian(tracker.total_array,0)),
                                     np.percentile(tracker.total_array,75,0) - np.nanmedian(tracker.total_array,0)))
-        ax.errorbar(np.arange(tracker.total_array.shape[1]), np.nanmedian(tracker.total_array,0), label=f"{methodname} Total Error", color=color,
-                            yerr=total_errbar, ls = 'solid', errorevery=5)
+        
+        e3 = ax.errorbar(np.arange(tracker.total_array.shape[1]), np.nanmedian(tracker.total_array,0), label=label, color=color,
+                            yerr=total_errbar, ls = total_ls, errorevery=5)
 
     if showLegend: ax.legend()
     ax.set_xlim((0, tracker.total_array.shape[1]))
@@ -177,7 +185,7 @@ def runtime_plot(ax,
     ax.legend(loc='upper right')
     ax.set_xlabel('Runtime')
     ax.set_ylabel('Count')
-    ax.yaxis.set_major_formatter(mtick.PercentFormatter(decimals=0))
+    ax.yaxis.set_major_locator(mtick.MaxNLocator(integer=True))
 
 
 # def l2_plot(ax, decomp, alpha, methodname = "CP", comp=None):
