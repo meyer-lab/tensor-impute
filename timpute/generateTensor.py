@@ -17,10 +17,10 @@ def generateTensor(type=None, r=6, shape=(10,10,10), scale=2, distribution='gamm
         temp = createUnknownRank(drop_perc=missingness, size=shape, distribution=distribution, scale=scale, par=par)
         return createNoise(temp,noise_scale)
     elif type == 'known':
-        temp = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
+        temp, _ = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
         return createNoise(temp,noise_scale)
     elif type == 'hms':
-        return hms_tensor()
+        return hms_tensor().to_numpy().copy()
     else:
         temp = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
         return createNoise(temp,noise_scale)
@@ -67,4 +67,4 @@ def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma"
     if noise: 
         tensor = np.add(np.random.normal(0.5,0.15, size),temp)
     entry_drop(tensor, int(drop_perc*tensor.size), dropany=True)
-    return tensor
+    return tensor, factors
