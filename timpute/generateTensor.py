@@ -6,7 +6,7 @@ from .impute_helper import entry_drop
 from tensordata.atyeo import data as atyeo
 from tensordata.zohar import data as zohar
 from tensordata.alter import data as alter
-from .import_hmsData import *
+from .import_hmsData import hms_tensor
 
 def generateTensor(type=None, r=6, shape=(10,10,10), scale=2, distribution='gamma', par=2, missingness=0.0, noise_scale=50):
     """ Tensor options: 'zohar', 'atyeo', 'alter', 'unknown', 'known', defaulting to 'known' """
@@ -14,11 +14,13 @@ def generateTensor(type=None, r=6, shape=(10,10,10), scale=2, distribution='gamm
     elif type == 'atyeo': return atyeo().to_numpy().copy()
     elif type == 'alter': return alter()['Fc'].to_numpy().copy()
     elif type == 'unknown':
-            temp = createUnknownRank(drop_perc=missingness, size=shape, distribution=distribution, scale=scale, par=par)
-            return createNoise(temp,noise_scale)
+        temp = createUnknownRank(drop_perc=missingness, size=shape, distribution=distribution, scale=scale, par=par)
+        return createNoise(temp,noise_scale)
     elif type == 'known':
-            temp = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
-            return createNoise(temp,noise_scale)
+        temp = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
+        return createNoise(temp,noise_scale)
+    elif type == 'hms':
+        return hms_tensor()
     else:
             temp = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
             return createNoise(temp,noise_scale)

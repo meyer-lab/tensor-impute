@@ -92,3 +92,20 @@ def import_cellLine(cellline_name: str, cellline_df):
         tensor[3, 1, :l, 0, i] = np.array(df1['dead_count__ctrl'])[0] + np.array(cont_72.loc[cont_72['cell_line'] == cellline_name]['subG1']) * np.array(df1['cell_count__ctrl'].unique())[0]
     
     return tensor, agents, concentrations, targets
+
+def hms_tensor():
+    df_dict = separate_cellLines()
+    del df_dict['BT474']
+
+    slices = list()
+    for line in df_dict:
+        output = import_cellLine(line, df_dict[line])
+        dat = output[0].reshape((8,4,280))
+        # dat = output[0].reshape((8,4,10,28))
+        # dat = dat.swapaxes(0,3).swapaxes(1,2)
+        # dat = dat.reshape(280,4,8)
+        sheet = np.nanmean(dat, axis=1)
+        slices.append(sheet)
+    
+    return np.stack(slices,2)
+    
