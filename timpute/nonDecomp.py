@@ -4,7 +4,7 @@ from .initialization import initialize_fac
 from .method_DO import perform_DO
 from .method_ALS import perform_ALS
 from .method_CLS import perform_CLS
-from .tracker import tracker
+from .tracker import Tracker
 
 from .plot import *
 
@@ -64,7 +64,7 @@ def impute_data(impute_type = 'entry',
         savename = m.__name__
 
         start = process_time()
-        track = tracker(tensor, track_runtime=True)
+        track = Tracker(tensor, track_runtime=True)
         for rep in range(reps):
             missingCube = np.copy(tensor)
             if impute_type == 'chord':
@@ -122,7 +122,7 @@ def impute_data(impute_type = 'entry',
             savename = m.__name__ + "-Ridge"
 
             start = process_time()
-            track = tracker(tensor, track_runtime=True)
+            track = Tracker(tensor, track_runtime=True)
             for rep in range(reps):
                 missingCube = np.copy(tensor)
                 mask = chord_drop(missingCube, int(drop_perc*tensor.size/tensor.shape[0]))
@@ -185,7 +185,7 @@ def impute_plot(imp_type = 'chord',
     with open(f"{dirname}/tot-array", "rb") as input_file: tot = pickle.load(input_file)
 
     ax,f = getSetup((15,15), (2,2))
-    m_track = tracker()
+    m_track = Tracker()
 
     threshold = 0.1
     unmet = list()

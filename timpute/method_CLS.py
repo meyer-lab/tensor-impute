@@ -85,8 +85,8 @@ def perform_CLS(tOrig,
         # assert tFac.R2X > 0.0
         if callback: callback(tFac)
 
-        # if tFac.R2X - R2X_last < tol:
-        #     break
+        if tFac.R2X - R2X_last < tol:
+            break
 
     tFac = cp_normalize(tFac)
     tFac.R2X = calcR2X(tFac, tOrig)

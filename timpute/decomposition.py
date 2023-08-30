@@ -81,8 +81,10 @@ class Decomposition():
             Each value in a row represents error of the FITTED (not dropped, not missing) values of the tensor
             calculated for components 1 to max_rr.
         """
-        if callback_r is None: callback_r = max(self.rrs)
-        if callback_r is not None: assert(callback_r > 0 and callback_r <= np.max(self.rrs))
+        if callback_r is None:
+            callback_r = max(self.rrs)
+        else:
+            assert(callback_r > 0 and callback_r <= np.max(self.rrs))
         assert(chord_mode >= 0 and chord_mode < self.data.ndim)
         assert(drop < 1 and drop >= 0)
 
@@ -134,12 +136,12 @@ class Decomposition():
                 TODO: I was not sure how to handle initialization;
                 sometimes I'm sending in a string, a CPTensor, or a list of lists of CPTensors
                 """
-                if isinstance(init,str):
+                if isinstance(init, str):
                     np.random.seed(int(x*seed))
                     CPinit = initialize_fac(missingCube.copy(), rr, init)
-                elif isinstance(init,tl.cp_tensor.CPTensor):
+                elif isinstance(init, tl.cp_tensor.CPTensor):
                     CPinit = deepcopy(init)
-                elif isinstance(init,list):
+                elif isinstance(init, list):
                     CPinit = deepcopy(init[rr-1][x])
                 else:
                     raise ValueError(f'Initialization method "{init}" not recognized')
@@ -165,6 +167,7 @@ class Decomposition():
             if callback:
                 if x+1 < repeat: callback.new()
                 
+                # TODO: remove these or make a separate function for these
                 # # Calculate Q2X for each number of principal components using PCA for factorization as comparison
                 # if comparePCA:
                 #     Q2XPCA = np.zeros((repeat,self.rrs[-1]))

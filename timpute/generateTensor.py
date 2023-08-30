@@ -22,8 +22,8 @@ def generateTensor(type=None, r=6, shape=(10,10,10), scale=2, distribution='gamm
     elif type == 'hms':
         return hms_tensor()
     else:
-            temp = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
-            return createNoise(temp,noise_scale)
+        temp = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
+        return createNoise(temp,noise_scale)
 
 
 def createNoise(tensor,scale=1.0):
