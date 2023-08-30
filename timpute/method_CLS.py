@@ -49,7 +49,16 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) ->
     return X.T
 
   
-def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=False, callback=None, init=None, mask=None)  -> tl.cp_tensor.CPTensor:
+def perform_CLS(tOrig,
+                rank=6,
+                init=None, 
+                alpha=None,
+                tol=1e-6,
+                n_iter_max=50,
+                progress=False,
+                callback=None,
+                **kwargs
+)  -> tl.cp_tensor.CPTensor:
     """ Perform CP decomposition. """
 
     if init==None: tFac = initialize_fac(tOrig, rank)
@@ -76,8 +85,8 @@ def perform_CLS(tOrig, rank=6, alpha=None, tol=1e-6, n_iter_max=50, progress=Fal
         # assert tFac.R2X > 0.0
         if callback: callback(tFac)
 
-        # if tFac.R2X - R2X_last < tol:
-        #     break
+        if tFac.R2X - R2X_last < tol:
+            break
 
     tFac = cp_normalize(tFac)
     tFac.R2X = calcR2X(tFac, tOrig)

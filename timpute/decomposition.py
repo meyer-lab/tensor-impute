@@ -2,7 +2,7 @@ import pickle
 import numpy as np
 import tensorly as tl
 
-from .tracker import tracker
+from .tracker import Tracker
 from .initialization import initialize_fac
 from .impute_helper import entry_drop, chord_drop
 from .impute_helper import calcR2X
@@ -13,7 +13,7 @@ from time import process_time
 
 
 class Decomposition():
-    def __init__(self, data, max_rr=5):
+    def __init__(self, data=np.ndarray([0]), max_rr=5):
         """
         Decomposition object designed for plotting. Capable of handling a single tensor.
 
@@ -29,13 +29,20 @@ class Decomposition():
             Takes a factorization method. Default set to perform_CLS() from cmtf.py
             other methods include: tucker_decomp
         """
-        self.data = data
+        self.data = data.copy()
         self.rrs = np.arange(1,max_rr+1)
 
-    def imputation(self, type:str='chord', drop:int=0.05, repeat:int=3, maxiter:int=50,
-                   mode:int=0, alpha=None, method=perform_CLS,
-                   single:bool=False, init='svd',
-                   callback:tracker=None, callback_r:int=None, printRuntime=False):
+    def imputation(self,
+                   type:str='chord',
+                   repeat:int=3, 
+                   drop:int=0.05,
+                   chord_mode:int=0, 
+                   method=perform_CLS,
+                   init='random',
+                   maxiter:int=50,
+                   seed = 1,
+                   callback:Tracker=None, callback_r:int=None,
+                   printRuntime=False):
         """
         Performs imputation (chord or entry) from the [self.data] using [method] for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -44,22 +51,21 @@ class Decomposition():
         ----------
         type : str
             'chord' or 'entry' imputation
-        drop : int
-            Percent dropped from tensor during imputation.
         repeat : int
-        maxiter : int
-        mode : int
-            Defaults to mode corresponding to axis = 0. Can be set to any mode of the tensor.
-        alpha : int
-            Describes ridge regression alpha value for CLS.
-        single : boolean
-            Looks at only the final component (useful for plotting)
+            Number of repetitions to run imputation (for every component up to self.max_rr). Defaults to 3.
+        drop : int
+            Percent dropped from tensor during imputation (rounded to int). Defaults to 5%.
+        chord_mode : 0 ≤ int < self.data.ndim
+            Mode to drop chords along (ignore for entry drop). Defaults to 0.
+        method : function
         init : str // CPTensor // list of list of CPTensors
             Valid strings include 'svd' and 'random'. Otherwise, an initial guess for the CPTensor must be provided.
-        callback : tracker class
+        maxiter : int
+            Max iterations to cap method at. Defaults to 50.
+        callback : tracker class.
             Optional callback class to track R2X over iteration/runtime for the factorization with max_rr components.
         callback_r : int
-            Optional component to look atl; defaulted to the max component if not specified.
+            Optional component to look at; defaulted to the max component if not specified.
 
 
 
@@ -75,10 +81,12 @@ class Decomposition():
             Each value in a row represents error of the FITTED (not dropped, not missing) values of the tensor
             calculated for components 1 to max_rr.
         """
-        if callback_r is None: callback_r = max(self.rrs)
-        if callback_r is not None: assert(callback_r >= 0 and callback_r <= np.max(self.rrs))
-        assert(mode >= 0 and mode < self.data.ndim)
-        assert(drop <= 1 and drop >= 0)
+        if callback_r is None:
+            callback_r = max(self.rrs)
+        else:
+            assert(callback_r > 0 and callback_r <= np.max(self.rrs))
+        assert(chord_mode >= 0 and chord_mode < self.data.ndim)
+        assert(drop < 1 and drop >= 0)
 
         if type=='entry':
             drop = int(drop*np.sum(np.isfinite(self.data)))
@@ -92,6 +100,7 @@ class Decomposition():
         fitted_error = np.zeros((repeat,self.rrs[-1]))
 
 
+
         # Calculate Q2X for each number of components
         if isinstance(init,list):
             assert(len(init) == np.max(self.rrs))
@@ -99,62 +108,58 @@ class Decomposition():
             assert(isinstance(init[0][0],tl.cp_tensor.CPTensor) or isinstance(init[0],tl.cp_tensor.CPTensor))
         
         for x in range(repeat):
-            # drop values (in-place)
-            tImp = np.copy(self.data)
-            np.moveaxis(tImp,mode,0)
-            missingCube = np.copy(tImp)
+            """ drop values (in-place)
+            - `tImp` is a copy of data, used a reference for imputation accuracy
+            - `missingCube` is where values are dropped
+            """
+            tImp = self.data.copy()           # avoid editing in-place of data
+            np.moveaxis(tImp,chord_mode,0)      # reshaping for correct chord dropping
+            missingCube = tImp.copy()
+
+            """ track masks 
+            - `imputed_vals` has a 1 where values were artifically dropped
+            - `fitted_vals` has a 1 where values were not artifically dropped (considers non-imputed values)
+            """
             if type=='entry':
                 mask = entry_drop(missingCube, drop)
             elif type=='chord':
                 mask = chord_drop(missingCube, drop)
-            
-            # track masks
-            if callback: callback.set_mask(mask)
+
+            if callback is not None:
+                callback.set_mask(mask)
             imputed_vals = np.ones_like(missingCube) - mask
             fitted_vals = np.ones_like(missingCube) - imputed_vals
             
             # for each component up to max, run method
             for rr in self.rrs:
-                # tracking iteration
-                if callback and rr == callback_r:
-                    # handle initialization
-                    if isinstance(init,tl.cp_tensor.CPTensor):
-                        CPinit = deepcopy(init)
-                    elif isinstance(init,list):
-                        CPinit = deepcopy(init[rr-1][x])
-                    else:
-                        np.random.seed(x)
-                        CPinit = initialize_fac(missingCube, rr, init)
-                    
-                    # run method
+                """ handle initialization
+                TODO: I was not sure how to handle initialization;
+                sometimes I'm sending in a string, a CPTensor, or a list of lists of CPTensors
+                """
+                if isinstance(init, str):
+                    np.random.seed(int(x*seed))
+                    CPinit = initialize_fac(missingCube.copy(), rr, init)
+                elif isinstance(init, tl.cp_tensor.CPTensor):
+                    CPinit = deepcopy(init)
+                elif isinstance(init, list):
+                    CPinit = deepcopy(init[rr-1][x])
+                else:
+                    raise ValueError(f'Initialization method "{init}" not recognized')
+                
+                # run method
+                if rr == callback_r and isinstance(callback, Tracker):
+                    callback(CPinit)
                     if callback.track_runtime:
                         callback.begin()
-                    callback(CPinit)
-                    if alpha is not None:
-                        tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
-                    else:tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
-                    
-                # not tracking iteration
+                    tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit, callback=callback)
                 else:
-                    # handle initialization
-                    if isinstance(init,tl.cp_tensor.CPTensor):
-                        CPinit = deepcopy(init)
-                    elif isinstance(init,list):
-                        CPinit = deepcopy(init[rr-1][x])
-                    else:
-                        np.random.seed(x)
-                        CPinit = initialize_fac(missingCube, rr, init)
-
-                    # run method
-                    if alpha is not None:
-                        tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit, alpha=alpha)
-                    else:
-                        tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
-
-                # save error/Q2X
+                    tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
+                
                 error[x,rr-1] = calcR2X(tFac, tIn=tImp, calcError=True)
-                imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
-                fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
+                
+                if drop > 0:
+                    imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
+                    fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
 
             if (printRuntime and (x+1)%round(repeat*0.2) == 0):
                 print(f"({method.__name__}) Average runtime for {x+1} tensors: {(process_time())/(x+1)} seconds")
@@ -162,6 +167,7 @@ class Decomposition():
             if callback:
                 if x+1 < repeat: callback.new()
                 
+                # TODO: remove these or make a separate function for these
                 # # Calculate Q2X for each number of principal components using PCA for factorization as comparison
                 # if comparePCA:
                 #     Q2XPCA = np.zeros((repeat,self.rrs[-1]))
@@ -178,53 +184,14 @@ class Decomposition():
                 #     self.entryQ2XPCA = Q2XPCA
         
         if type == 'entry':
-            self.entry_error = error
-            self.imputed_entry_error = imputed_error
-            self.fitted_entry_error = fitted_error
+            self.entry_total = error
+            self.entry_imputed = imputed_error
+            self.entry_fitted = fitted_error
+
         elif type == 'chord': 
-            self.chord_error = error
-            self.imputed_chord_error = imputed_error
-            self.fitted_chord_error = fitted_error
-
-        if single:
-            #     for x in range(repeat):
-            #         # drop values
-            #         tImp = np.copy(self.data)
-            #         np.moveaxis(tImp,mode,0)
-            #         missingCube = np.copy(tImp)
-            #         mask = chord_drop(missingCube, drop)
-                    
-            #         # track masks
-            #         if callback: callback.set_mask(mask)
-            #         imputed_vals = np.ones_like(missingCube) - mask
-            #         fitted_vals = np.isfinite(tImp) - imputed_vals
-
-            #         # method chunk
-            #         if callback:
-            #             # handle initialization
-            #             if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
-            #             else: CPinit = initialize_fac(missingCube, rr, init)
-
-            #             # run method
-            #             if callback.track_runtime:
-            #                 callback.begin()
-            #             callback(CPinit)
-            #             if alpha is not None: tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
-            #             else: tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
-            #         else:   # not tracking iteration
-            #             # handle initialization
-            #             if isinstance(init,tl.cp_tensor.CPTensor): CPinit = init
-            #             else: CPinit = initialize_fac(missingCube, rr, init)
-
-            #             # run method
-            #             if alpha is not None: tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit, alpha=alpha)
-            #             else: tFac = method(missingCube, rank=rr, n_iter_max=maxiter, mask=mask, callback=callback, init=CPinit)
-
-            #         # save error/Q2X
-            #         Q2X[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp)
-            #         imputed_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
-            #         fitted_error[x,max(self.rrs)-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
-            pass
+            self.chord_total = error
+            self.chord_imputed = imputed_error
+            self.chord_fitted = fitted_error
             
     def save(self, pfile):
         with open(pfile, "wb") as output_file:
@@ -235,37 +202,39 @@ class Decomposition():
             tmp_dict = pickle.load(input_file)
             self.__dict__.update(tmp_dict)
 
-
 class MultiDecomp():
     '''
     Saves decomposition results for many Decomposition objects.
     '''
-    def __init__(self, decomp:Decomposition = None, entry = True, chord = True):
-        if decomp is not None:
-            assert entry or chord
-            self.rr = decomp.rrs[-1]
-            self.hasEntry = entry
-            self.hasChord = chord
+    def __init__(self, entry = True, chord = True):
+        assert entry or chord
+        self.hasEntry = entry
+        self.hasChord = chord
+        self.initialized = False
 
-            if entry:
-                self.entry_total = decomp.entry_error
-                self.entry_imputed = decomp.imputed_entry_error
-                self.entry_fitted = decomp.fitted_entry_error
-
-            if chord:
-                self.chord_total = decomp.chord_error
-                self.chord_imputed = decomp.imputed_chord_error
-                self.chord_fitted = decomp.fitted_chord_error
 
     def __call__(self, decomp:Decomposition):
-        if self.hasEntry:
-            self.entry_total = np.vstack((self.entry_total,decomp.entry_error))
-            self.entry_imputed = np.vstack((self.entry_imputed,decomp.imputed_entry_error))
-            self.entry_fitted = np.vstack((self.entry_fitted,decomp.fitted_entry_error))
-        if self.hasChord:
-            self.chord_total = np.vstack((self.chord_total,decomp.chord_error))
-            self.chord_imputed = np.vstack((self.chord_imputed,decomp.imputed_chord_error))
-            self.chord_fitted = np.vstack((self.chord_fitted,decomp.fitted_chord_error))
+        if self.initialized:
+            if self.hasEntry:
+                self.entry_total = np.vstack((self.entry_total,decomp.entry_total))
+                self.entry_imputed = np.vstack((self.entry_imputed,decomp.entry_imputed))
+                self.entry_fitted = np.vstack((self.entry_fitted,decomp.entry_fitted))
+            if self.hasChord:
+                self.chord_total = np.vstack((self.chord_total,decomp.chord_total))
+                self.chord_imputed = np.vstack((self.chord_imputed,decomp.chord_imputed))
+                self.chord_fitted = np.vstack((self.chord_fitted,decomp.chord_fitted))
+        else:
+            self.initialized = True
+            self.rr = decomp.rrs[-1]
+            if self.hasEntry:
+                self.entry_total = decomp.entry_total
+                self.entry_imputed = decomp.entry_imputed
+                self.entry_fitted = decomp.entry_fitted
+            if self.hasChord:
+                self.chord_total = decomp.chord_total
+                self.chord_imputed = decomp.chord_imputed
+                self.chord_fitted = decomp.chord_fitted
+
 
     def save(self, pfile):
         with open(pfile, "wb") as output_file:

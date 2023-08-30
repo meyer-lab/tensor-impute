@@ -7,12 +7,13 @@ def calcR2X(tFac: tl.cp_tensor.CPTensor, tIn: np.ndarray, calcError=False, mask:
     """
     vTop, vBottom = 0.0, 0.0
 
-    tOrig = np.copy(tIn)
-    if mask is not None:
-        recons_tFac = tl.cp_to_tensor(tFac)*mask
-        tOrig = tOrig*mask
-    else:
+    if mask is None:
+        tOrig = np.copy(tIn)
         recons_tFac = tl.cp_to_tensor(tFac)
+    else:
+        tOrig = np.copy(tIn)*mask
+        recons_tFac = tl.cp_to_tensor(tFac)*mask
+        
     tMask = np.isfinite(tOrig)
     tOrig = np.nan_to_num(tOrig)
     vTop += np.linalg.norm(recons_tFac * tMask - tOrig)**2.0
@@ -88,7 +89,7 @@ def chord_drop(tensor: np.ndarray, drop: int, seed: int=None):
     tensor : ndarray
         Takes a tensor of any shape.
     drop : int
-        To set a percentage, multiply int(tensor.size/tensor.shape[0]) by the percentage
+        To set a percentage, multiply tensor.shape[0] by the percentage
         to find the relevant drop value, rounding to nearest int.
 
     Returns
