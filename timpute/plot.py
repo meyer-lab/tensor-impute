@@ -5,6 +5,7 @@ This file makes all standard plots for tensor analysis. Requires a Decomposition
 import numpy as np
 from .decomposition import Decomposition
 import matplotlib.ticker as mtick
+from matplotlib import pyplot as plt
 
 def rgbs(color = 0, transparency = None):
     color_rgbs = [(0.00392156862745098, 0.45098039215686275, 0.6980392156862745),
@@ -22,6 +23,13 @@ def rgbs(color = 0, transparency = None):
         preTran.append(transparency)
         return tuple(preTran)
     else: return color_rgbs[color]
+
+
+def set_boxplot_color(bp, color):
+    plt.setp(bp['boxes'], color=color)
+    plt.setp(bp['whiskers'], color=color)
+    plt.setp(bp['caps'], color=color)
+    plt.setp(bp['medians'], color=color)
 
 
 def q2xchord(ax, decomp:Decomposition, methodname = "CP", detailed=True):
