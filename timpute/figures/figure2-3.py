@@ -88,104 +88,113 @@ def figure23(simulated=True, zohar=True, mills=True):
         
 
 
-def figure2_graph():
-    ax, f = getSetup((12,6), (1,2))
-    dirname = f"timpute/figures/saves/figure2"
+def figure2_graph(simulated=True, real=True):
+    if simulated is True:
+        dirname = f"timpute/figures/saves/figure2"
+        ax, f = getSetup((12,6), (1,2))
+        savename = "/simulated/"
 
-    savename = "/simulated/"
-    
-    for mID, m in enumerate(methods):
-        impType = 'entry'
-        run, _ = loadMultiImputation(impType, m, dirname+savename)
-        # figure 2a
-        q2x_plot(ax[0], methodname = m.__name__,
-                imputed_arr = run.entry_imputed, fitted_arr = run.entry_fitted, total_arr = run.entry_total,
-                plot_impute = True, plot_total = False,
-                showLegend = True,
-                offset = -0.1 + (mID*0.1),
-                color = rgbs(mID, 0.7),
-                logbound = -4)
+        for mID, m in enumerate(methods):
+            impType = 'entry'
+            run, _ = loadMultiImputation(impType, m, dirname+savename)
+            # figure 2a
+            q2x_plot(ax[0], methodname = m.__name__,
+                    imputed_arr = run.entry_imputed, fitted_arr = run.entry_fitted, total_arr = run.entry_total,
+                    plot_impute = True, plot_total = False,
+                    showLegend = True,
+                    offset = -0.1 + (mID*0.1),
+                    color = rgbs(mID, 0.7),
+                    logbound = -4)
+            
+            impType = 'chord'
+            run, _ = loadMultiImputation(impType, m, dirname+savename)
+            # figure 2b
+            q2x_plot(ax[1], methodname = m.__name__,
+                    imputed_arr = run.chord_imputed, fitted_arr = run.chord_fitted, total_arr = run.chord_total,
+                    plot_impute = True, plot_total = False,
+                    showLegend = False,
+                    offset = -0.1 + (mID*0.1),
+                    color = rgbs(mID, 0.7),
+                    logbound = -4)
         
-        impType = 'chord'
-        run, _ = loadMultiImputation(impType, m, dirname+savename)
-        # figure 2b
-        q2x_plot(ax[1], methodname = m.__name__,
-                imputed_arr = run.chord_imputed, fitted_arr = run.chord_fitted, total_arr = run.chord_total,
-                plot_impute = True, plot_total = False,
-                showLegend = False,
-                offset = -0.1 + (mID*0.1),
-                color = rgbs(mID, 0.7),
-                logbound = -4)
-
-    f.savefig(dirname+'.png', bbox_inches="tight", format='png')
+        dirname = f"timpute/figures/saves/figure2"
+        f.savefig(dirname+'.png', bbox_inches="tight", format='png')
     
+
     #################################
 
-    # figure 2c
-    savename = "/zohar/"
-    data = dict()
-
-    impType = 'entry'
-    for mID, m in enumerate(methods):
-        tmplist = list()
-        run, _ = loadImputation(impType, m, dirname+savename)
-        impMatrix = run.entry_imputed
-        impDist = impMatrix[:, np.median(impMatrix, axis=0).argmin()]
-        tmplist.append(impDist)
-        data[m.__name__] = tmplist
-        print(np.median(impMatrix, axis=0).argmin())
-        # 7, 7, 7
-
-    impType = 'chord'
-    for mID, m in enumerate(methods):
-        run, _ = loadImputation(impType, m, dirname+savename)
-        impMatrix = run.chord_imputed
-        impDist = impMatrix[:, np.median(impMatrix, axis=0).argmin()]
-        data[m.__name__].append(impDist)
-        print(np.median(impMatrix, axis=0).argmin())
-        # 6, 2, 6       
     
-    savename = "/mills/"
+    if real is True:
+        # figure 2c
+        dirname = f"timpute/figures/saves/figure2"
+        savename = "/zohar/"
+        data = dict()
 
-    impType = 'entry'
-    for mID, m in enumerate(methods):
-        tmplist = list()
-        run, _ = loadImputation(impType, m, dirname+savename)
-        impMatrix = run.entry_imputed
-        impDist = impMatrix[:, np.median(impMatrix, axis=0).argmin()]
-        tmplist.append(impDist)
-        data[m.__name__] = tmplist
-        print(np.median(impMatrix, axis=0).argmin())
-        # 7, 4, 7
+        impType = 'entry'
+        for mID, m in enumerate(methods):
+            tmplist = list()
+            run, _ = loadImputation(impType, m, dirname+savename)
+            impMatrix = run.entry_imputed
+            impDist = impMatrix[:, np.median(impMatrix, axis=0).argmin()]
+            tmplist.append(impDist)
+            data[m.__name__] = tmplist
+            print(np.median(impMatrix, axis=0).argmin())
+            # 7, 7, 7
 
-    impType = 'chord'
-    for mID, m in enumerate(methods):
-        run, _ = loadImputation(impType, m, dirname+savename)
-        impMatrix = run.chord_imputed
-        impDist = impMatrix[:, np.median(impMatrix, axis=0).argmin()]
-        data[m.__name__].append(impDist)
-        print(np.median(impMatrix, axis=0).argmin())
-        # 6, 3, 5
+        impType = 'chord'
+        for mID, m in enumerate(methods):
+            run, _ = loadImputation(impType, m, dirname+savename)
+            impMatrix = run.chord_imputed
+            impDist = impMatrix[:, np.median(impMatrix, axis=0).argmin()]
+            data[m.__name__].append(impDist)
+            print(np.median(impMatrix, axis=0).argmin())
+            # 6, 2, 6       
 
-    plt.figure()
-    ticks = ['Zohar (entry)', 'Zohar (chord)', 'Mills (entry)', 'Mills (chord)']
+        savename = "/mills/"
 
-    bar_spacing = 0.3
-    bar_width = 0.25
-    exp_spacing = 2
-    bpDO = plt.boxplot(data['perform_DO'], positions=np.array(range(len(data['perform_DO']))) * exp_spacing - bar_spacing, sym='', widths=bar_width)
-    bpALS = plt.boxplot(data['perform_ALS'], positions=np.array(range(len(data['perform_ALS']))) * exp_spacing, sym='', widths=bar_width)
-    bpCLS = plt.boxplot(data['perform_CLS'], positions=np.array(range(len(data['perform_CLS']))) * exp_spacing + bar_spacing, sym='', widths=bar_width)
-    set_boxplot_color(bpDO, rgbs(0))
-    set_boxplot_color(bpALS, rgbs(1))
-    set_boxplot_color(bpCLS, rgbs(2))
-    plt.xticks(range(0, len(ticks) * exp_spacing, exp_spacing), ticks)
+        impType = 'entry'
+        for mID, m in enumerate(methods):
+            tmplist = list()
+            run, _ = loadImputation(impType, m, dirname+savename)
+            impMatrix = run.entry_imputed
+            impDist = impMatrix[:, np.median(impMatrix, axis=0).argmin()]
+            tmplist.append(impDist)
+            data[m.__name__].append(impDist)
+            print(np.median(impMatrix, axis=0).argmin())
+            # 7, 4, 7
 
-    for i,m in enumerate(methods):
-        plt.plot([], c=rgbs(i), label=m.__name__)
-    plt.legend()
+        impType = 'chord'
+        for mID, m in enumerate(methods):
+            run, _ = loadImputation(impType, m, dirname+savename)
+            impMatrix = run.chord_imputed
+            impDist = impMatrix[:, np.median(impMatrix, axis=0).argmin()]
+            data[m.__name__].append(impDist)
+            print(np.median(impMatrix, axis=0).argmin())
+            # 6, 3, 5
 
-    plt.savefig(dirname+'c.png', bbox_inches="tight", format='png')
+        plt.figure()
+        ticks = ['Zohar (entry)', 'Zohar (chord)', 'Mills (entry)', 'Mills (chord)']
+
+        bar_spacing = 0.5
+        bar_width = 0.4
+        exp_spacing = 2
+        bpDO = plt.boxplot(data['perform_DO'], positions=np.array(range(len(data['perform_DO']))) * exp_spacing - bar_spacing, sym='', widths=bar_width)
+        bpALS = plt.boxplot(data['perform_ALS'], positions=np.array(range(len(data['perform_ALS']))) * exp_spacing, sym='', widths=bar_width)
+        bpCLS = plt.boxplot(data['perform_CLS'], positions=np.array(range(len(data['perform_CLS']))) * exp_spacing + bar_spacing, sym='', widths=bar_width)
+        set_boxplot_color(bpDO, rgbs(0))
+        set_boxplot_color(bpALS, rgbs(1))
+        set_boxplot_color(bpCLS, rgbs(2))
+        plt.xticks(range(0, len(ticks) * exp_spacing, exp_spacing), ticks)
+        plt.xlim(right=7)
+        plt.ylim(1e-2,1)
+        plt.yscale('log')
+
+        for i,m in enumerate(methods):
+            plt.plot([], c=rgbs(i), label=m.__name__)
+        plt.legend()
+
+        dirname = f"timpute/figures/saves/figure2c"
+        plt.savefig(dirname+'.png', bbox_inches="tight", format='png')
 
 
 
@@ -405,5 +414,5 @@ def figure3_graph_expanded():
     f.savefig(dirname+'-expanded.png', bbox_inches="tight", format='png')
 
 # figure23()
-figure2_graph()
+figure2_graph(simulated=False)
 # figure3_graph_expanded()
