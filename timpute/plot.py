@@ -82,10 +82,13 @@ def q2x_plot(ax,
              offset = 0,
              log = True, logbound = -3.5, endbound = 1,
              color='blue', s = 5,
-             printvalues = False):
+             printvalues = False,
+             customComp = None):
     
-
-    comps = np.arange(1,imputed_arr.shape[1]+1)
+    if customComp is not None:
+        comps = customComp
+    else:
+        comps = np.arange(1,imputed_arr.shape[1]+1)
 
     if plot_impute:
         assert imputed_arr is not None and fitted_arr is not None

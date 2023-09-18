@@ -5,8 +5,10 @@ import tensorly as tl
 from .tracker import Tracker
 from .initialization import initialize_fac
 from .impute_helper import entry_drop, chord_drop
-from .impute_helper import calcR2X
+from .impute_helper import calcR2X, matricize
 from .method_CLS import perform_CLS
+
+from .SVD_impute import IterativeSVD
 
 from copy import deepcopy
 from time import process_time
@@ -40,9 +42,10 @@ class Decomposition():
                    method=perform_CLS,
                    init='random',
                    maxiter:int=50,
-                   seed = 1,
+                   seed=1,
                    callback:Tracker=None, callback_r:int=None,
-                   printRuntime=False):
+                   printRuntime=False,
+                   dropany=False):
         """
         Performs imputation (chord or entry) from the [self.data] using [method] for factor decomposition,
         comparing each component. Drops in Q2X from one component to the next may signify overfitting.
@@ -99,8 +102,6 @@ class Decomposition():
         imputed_error = np.zeros((repeat,self.rrs[-1]))
         fitted_error = np.zeros((repeat,self.rrs[-1]))
 
-
-
         # Calculate Q2X for each number of components
         if isinstance(init,list):
             assert(len(init) == np.max(self.rrs))
@@ -121,9 +122,9 @@ class Decomposition():
             - `fitted_vals` has a 1 where values were not artifically dropped (considers non-imputed values)
             """
             if type=='entry':
-                mask = entry_drop(missingCube, drop)
+                mask = entry_drop(missingCube, drop, dropany, seed*x)
             elif type=='chord':
-                mask = chord_drop(missingCube, drop)
+                mask = chord_drop(missingCube, drop, dropany, seed*x)
 
             if callback is not None:
                 callback.set_mask(mask)
@@ -137,7 +138,7 @@ class Decomposition():
                 sometimes I'm sending in a string, a CPTensor, or a list of lists of CPTensors
                 """
                 if isinstance(init, str):
-                    np.random.seed(int(x*seed))
+                    np.random.seed(x*seed)
                     CPinit = initialize_fac(missingCube.copy(), rr, init)
                 elif isinstance(init, tl.cp_tensor.CPTensor):
                     CPinit = deepcopy(init)
@@ -166,22 +167,6 @@ class Decomposition():
 
             if callback:
                 if x+1 < repeat: callback.new()
-                
-                # TODO: remove these or make a separate function for these
-                # # Calculate Q2X for each number of principal components using PCA for factorization as comparison
-                # if comparePCA:
-                #     Q2XPCA = np.zeros((repeat,self.rrs[-1]))
-                #     si = IterativeSVD(rank=max(self.rrs), random_state=1)
-                #     missingMat = np.reshape(np.moveaxis(missingCube, 0, 0), (missingCube.shape[0], -1))
-                #     mImp = np.reshape(np.moveaxis(tImp, 0, 0), (tImp.shape[0], -1))
-
-                #     missingMat = si.fit_transform(missingMat)
-                #     U, S, V = svd_interface(matrix=missingMat, n_eigenvecs=max(self.rrs))
-                #     scores = U @ np.diag(S)
-                #     loadings = V
-                #     recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
-                #     Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
-                #     self.entryQ2XPCA = Q2XPCA
         
         if type == 'entry':
             self.entry_total = error
@@ -192,7 +177,45 @@ class Decomposition():
             self.chord_total = error
             self.chord_imputed = imputed_error
             self.chord_fitted = fitted_error
-            
+        
+        self.CP_size = np.asarray([rr * sum(self.data.shape) for rr in self.rrs])
+    
+    def PCA(self, repeat:int=5, drop:int=0.05, seed:int=1):
+        self.PCA_error = np.zeros((repeat,self.rrs[-1]))
+        self.PCA_imputed_error = np.zeros((repeat,self.rrs[-1]))
+        self.PCA_fitted_error = np.zeros((repeat,self.rrs[-1]))
+
+        tImp = self.data.copy()
+        drop = int(drop*np.sum(np.isfinite(tImp)))
+
+        for x in range(repeat):
+            missingCube = tImp.copy()
+            mask = entry_drop(missingCube, drop, False, seed*x)
+            imputed_vals = np.ones_like(missingCube) - mask
+            fitted_vals = np.ones_like(missingCube) - imputed_vals
+
+            missingMat = matricize(missingCube)
+            mImp = matricize(missingCube)
+            mImpMask = matricize(imputed_vals)
+            mFitMask  = matricize(fitted_vals)
+
+            si = IterativeSVD(rank=max(self.rrs), random_state=1)
+            imputedMat = si.fit_transform(missingMat.copy())
+
+            U, S, V = tl.svd_interface(matrix=imputedMat, n_eigenvecs=max(self.rrs))
+            scores = U @ np.diag(S)
+            loadings = V
+            recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
+    
+            self.PCA_error[x] = [calcR2X(c, mImp, calcError=True, matrix=True) for c in recon]
+            self.PCA_imputed_error[x] = [calcR2X(c, mImp, mask=mImpMask, calcError=True, matrix=True) for c in recon]
+            self.PCA_fitted_error[x] = [calcR2X(c, mImp, mask=mFitMask, calcError=True, matrix=True) for c in recon]
+        
+        self.PCA_size = np.asarray([sum(matricize(tImp).shape) * rr for rr in self.rrs])
+
+        
+        
+
     def save(self, pfile):
         with open(pfile, "wb") as output_file:
             pickle.dump(self.__dict__, output_file)

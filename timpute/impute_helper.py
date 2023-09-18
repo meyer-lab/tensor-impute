@@ -1,18 +1,21 @@
 import numpy as np
 import tensorly as tl
 
-def calcR2X(tFac: tl.cp_tensor.CPTensor, tIn: np.ndarray, calcError=False, mask: np.ndarray=None) -> float:
+def calcR2X(tFac: tl.cp_tensor.CPTensor, tIn: np.ndarray, calcError=False, mask: np.ndarray=None, matrix=False) -> float:
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix.
     Mask is for imputation and must be of same shape as tIn/tFac, with 0s indicating artifically dropped values
     """
     vTop, vBottom = 0.0, 0.0
 
-    if mask is None:
-        tOrig = np.copy(tIn)
+    tOrig = tIn.copy()
+    if matrix is False:
         recons_tFac = tl.cp_to_tensor(tFac)
     else:
-        tOrig = np.copy(tIn)*mask
-        recons_tFac = tl.cp_to_tensor(tFac)*mask
+        recons_tFac = tFac.copy()
+    
+    if mask is not None:
+        recons_tFac = recons_tFac * mask
+        tOrig = tOrig * mask
         
     tMask = np.isfinite(tOrig)
     tOrig = np.nan_to_num(tOrig)
@@ -118,3 +121,6 @@ def chord_drop(tensor: np.ndarray, drop: int, seed: int=None):
             tensor[dropidxs[i]] = np.nan
 
     return np.array(data_pattern, dtype=bool)
+
+def matricize(tens):
+    return np.reshape(np.moveaxis(tens, 0, 0), (tens.shape[0], -1))
