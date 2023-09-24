@@ -24,7 +24,7 @@ def generateTensor(type=None, r=6, shape=(10,10,10), scale=2, distribution='gamm
     elif type == 'zohar': return zohar().to_numpy().copy()
     elif type == 'atyeo': return atyeo().to_numpy().copy()
     elif type == 'alter': return alter()['Fc'].to_numpy().copy()
-    elif type == 'hms':   return hms_tensor()
+    elif type == 'hms':   return hms_tensor().to_numpy().copy()
     elif type == 'coh_receptor':
         receptor = xr.open_dataarray(f"{os.getcwd()}/timpute/data/CoH/CoH_Rec.nc")
         return receptor.to_numpy().copy()
