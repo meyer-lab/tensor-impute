@@ -132,10 +132,6 @@ class Decomposition():
             
             # for each component up to max, run method
             for rr in self.rrs:
-                """ handle initialization
-                TODO: I was not sure how to handle initialization;
-                sometimes I'm sending in a string, a CPTensor, or a list of lists of CPTensors
-                """
                 if isinstance(init, str):
                     np.random.seed(int(x*seed))
                     CPinit = initialize_fac(missingCube.copy(), rr, init)
@@ -166,22 +162,6 @@ class Decomposition():
 
             if callback:
                 if x+1 < repeat: callback.new()
-                
-                # TODO: remove these or make a separate function for these
-                # # Calculate Q2X for each number of principal components using PCA for factorization as comparison
-                # if comparePCA:
-                #     Q2XPCA = np.zeros((repeat,self.rrs[-1]))
-                #     si = IterativeSVD(rank=max(self.rrs), random_state=1)
-                #     missingMat = np.reshape(np.moveaxis(missingCube, 0, 0), (missingCube.shape[0], -1))
-                #     mImp = np.reshape(np.moveaxis(tImp, 0, 0), (tImp.shape[0], -1))
-
-                #     missingMat = si.fit_transform(missingMat)
-                #     U, S, V = svd_interface(matrix=missingMat, n_eigenvecs=max(self.rrs))
-                #     scores = U @ np.diag(S)
-                #     loadings = V
-                #     recon = [scores[:, :rr] @ loadings[:rr, :] for rr in self.rrs]
-                #     Q2XPCA[x,:] = [calcR2X(c, mIn = mImp) for c in recon]
-                #     self.entryQ2XPCA = Q2XPCA
         
         if type == 'entry':
             self.entry_total = error

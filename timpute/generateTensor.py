@@ -1,5 +1,7 @@
 import numpy as np
 import tensorly as tl
+import xarray as xr
+import os
 from tensorly.cp_tensor import CPTensor
 from .impute_helper import entry_drop
 
@@ -9,20 +11,28 @@ from tensordata.alter import data as alter
 from .import_hmsData import hms_tensor
 
 def generateTensor(type=None, r=6, shape=(10,10,10), scale=2, distribution='gamma', par=2, missingness=0.0, noise_scale=50):
-    """ Tensor options: 'zohar', 'atyeo', 'alter', 'unknown', 'known', defaulting to 'known' """
-    if type == 'zohar': return zohar().to_numpy().copy()
-    elif type == 'atyeo': return atyeo().to_numpy().copy()
-    elif type == 'alter': return alter()['Fc'].to_numpy().copy()
+    """
+    Tensor options: 'known', 'unknown', 'zohar', 'atyeo', 'alter', 'hms', 'coh_receptor', or 'coh response'.
+    Defaults to 'known'
+    """
+    if type == 'known':
+        temp, _ = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
+        return createNoise(temp,noise_scale)
     elif type == 'unknown':
         temp = createUnknownRank(drop_perc=missingness, size=shape, distribution=distribution, scale=scale, par=par)
         return createNoise(temp,noise_scale)
-    elif type == 'known':
-        temp, _ = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
-        return createNoise(temp,noise_scale)
-    elif type == 'hms':
-        return hms_tensor().to_numpy().copy()
+    elif type == 'zohar': return zohar().to_numpy().copy()
+    elif type == 'atyeo': return atyeo().to_numpy().copy()
+    elif type == 'alter': return alter()['Fc'].to_numpy().copy()
+    elif type == 'hms':   return hms_tensor().to_numpy().copy()
+    elif type == 'coh_receptor':
+        receptor = xr.open_dataarray(f"{os.getcwd()}/timpute/data/CoH/CoH_Rec.nc")
+        return receptor.to_numpy().copy()
+    elif type == 'coh_response':
+        response = xr.open_dataarray(f"{os.getcwd()}/timpute/data/CoH/CoH_Tensor_DataSet.nc")
+        return response.to_numpy().copy()
     else:
-        temp = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
+        temp, _ = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
         return createNoise(temp,noise_scale)
 
 
