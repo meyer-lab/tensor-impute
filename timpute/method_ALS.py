@@ -118,7 +118,7 @@ def perform_ALS(
     svd="svd",
     normalize_factors=False,
     orthogonalise=False,
-    tol=1e-8,
+    tol=1e-6,
     random_state=None,
     verbose=0,
     return_errors=False,

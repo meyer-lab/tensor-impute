@@ -4,7 +4,14 @@ from time import time
 from ..decomposition import Decomposition, MultiDecomp
 from ..tracker import Tracker, MultiTracker
 
-def runImputation(data:np.ndarray, max_rr:int, impType:str, method, savename:str, save=True, **kwargs):
+def runImputation(data:np.ndarray,
+                  max_rr:int,
+                  impType:str,
+                  savename:str, 
+                  method,
+                  save = True,
+                  printRuntime = False,
+                  **kwargs):
     assert impType == 'entry' or impType == 'chord'
     start = time()
     decomposition = Decomposition(data, max_rr)
@@ -21,7 +28,9 @@ def runImputation(data:np.ndarray, max_rr:int, impType:str, method, savename:str
         decomposition.save(f"./{savename}{impType}-{method.__name__}.decomposition")
         tracker.save(f"./{savename}{impType}-{method.__name__}.tracker")
 
-    print(f"{method.__name__} runtime for components 1-{max_rr}: {time()-start}")
+    if printRuntime:
+        print(f"{method.__name__} runtime for components 1-{max_rr}: {time()-start}")
+
     return decomposition, tracker
     
 def runMultiImputation(data:np.ndarray, number:int,
@@ -29,6 +38,7 @@ def runMultiImputation(data:np.ndarray, number:int,
                        impType:str,
                        savename:str, 
                        method,
+                       printRuntime = False,
                        **kwargs):
     assert impType == 'entry' or impType == 'chord'
     if number == 0:
@@ -40,7 +50,7 @@ def runMultiImputation(data:np.ndarray, number:int,
     else:
         decomposition, tracker = loadMultiImputation(impType,method,savename)
 
-    tmpDec, tmpTra = runImputation(data=data, max_rr=max_rr, impType=impType, method=method, savename=savename, save=False, **kwargs)
+    tmpDec, tmpTra = runImputation(data=data, max_rr=max_rr, impType=impType, method=method, savename=savename, save=False, printRuntime=printRuntime, **kwargs)
     
     decomposition(tmpDec)
     tracker(tmpTra)
