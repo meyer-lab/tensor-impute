@@ -58,18 +58,32 @@ def createUnknownRank(drop_perc=0.0, size=(10, 20, 25), distribution="gamma", sc
 def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", scale=1, par=1, noise=True):
     r"""
     Creates a random tensor following a set of possible distributions:
-    "gamma", "chisquare", "logistic", "exponential", "uniform", "normal"
+    `distribution` = "gamma", "chisquare", "logistic", "exponential", "uniform", "normal"
+    may also a tuple of distributions w/ same order as `size`
     """
     rng = np.random.default_rng(10)
 
     factors = []
-    for i in size:
-        if distribution == "gamma": factors.append(rng.gamma(par, scale, size=(i,rank)))
-        if distribution == "chisquare": factors.append(rng.chisquare(par, size=(i,rank)))
-        if distribution == "logistic": factors.append(rng.logistic(size=(i,rank)))
-        if distribution == "exponential": factors.append(rng.exponential(size=(i,rank)))
-        if distribution == "uniform": factors.append(rng.uniform(size=(i,rank)))
-        if distribution == "normal": factors.append(rng.normal(size=(i,rank)))
+
+    if type(distribution) == str:
+        for i in size:
+            if distribution == "gamma": factors.append(rng.gamma(par, scale, size=(i,rank)))
+            if distribution == "chisquare": factors.append(rng.chisquare(par, size=(i,rank)))
+            if distribution == "logistic": factors.append(rng.logistic(size=(i,rank)))
+            if distribution == "exponential": factors.append(rng.exponential(size=(i,rank)))
+            if distribution == "uniform": factors.append(rng.uniform(size=(i,rank)))
+            if distribution == "normal": factors.append(rng.normal(size=(i,rank)))
+    
+    else:
+        assert len(distribution) == len(size)
+        for i in size:
+            if distribution[i] == "gamma": factors[1] = rng.gamma(par, scale, size=(i,rank))
+            if distribution[i] == "chisquare": factors[1] = rng.chisquare(par, size=(i,rank))
+            if distribution[i] == "logistic": factors[1] = rng.logistic(size=(i,rank))
+            if distribution[i] == "exponential": factors[1] = rng.exponential(size=(i,rank))
+            if distribution[i] == "uniform": factors[1] = rng.uniform(size=(i,rank))
+            if distribution[i] == "normal": factors[1] = rng.normal(size=(i,rank))
+        
 
     if scale != 1:
         for i in factors: i *= scale
