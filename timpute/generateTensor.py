@@ -55,7 +55,7 @@ def createUnknownRank(drop_perc=0.0, size=(10, 20, 25), distribution="gamma", sc
     entry_drop(tensor, int(drop_perc*tensor.size), dropany=True)
     return tensor
 
-def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", scale=1, par=1, noise=False):
+def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", scale=1, par=1):
     r"""
     Creates a random tensor following a set of possible distributions:
     `distribution` = "gamma", "chisquare", "logistic", "exponential", "uniform", "normal"
@@ -77,18 +77,16 @@ def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma"
     else:
         assert len(distribution) == len(size)
         for d,i in enumerate(size):
-            if distribution[d] == "gamma": factors[1] = rng.gamma(par, scale, size=(i,rank))
-            if distribution[d] == "chisquare": factors[1] = rng.chisquare(par, size=(i,rank))
-            if distribution[d] == "logistic": factors[1] = rng.logistic(size=(i,rank))
-            if distribution[d] == "exponential": factors[1] = rng.exponential(size=(i,rank))
-            if distribution[d] == "uniform": factors[1] = rng.uniform(size=(i,rank))
-            if distribution[d] == "normal": factors[1] = rng.normal(size=(i,rank))
+            if distribution[d] == "gamma": factors.append(rng.gamma(par, scale, size=(i,rank)))
+            if distribution[d] == "chisquare": factors.append(rng.chisquare(par, size=(i,rank)))
+            if distribution[d] == "logistic": factors.append(rng.logistic(size=(i,rank)))
+            if distribution[d] == "exponential": factors.append(rng.exponential(size=(i,rank)))
+            if distribution[d] == "uniform": factors.append(rng.uniform(size=(i,rank)))
+            if distribution[d] == "normal": factors.append(rng.normal(size=(i,rank)))
         
 
     if scale != 1:
         for i in factors: i *= scale
-    temp = tl.cp_to_tensor(CPTensor((None, factors)))
-    if noise: 
-        tensor = np.add(np.random.normal(0.5, 0.15, size),temp)
+    tensor = tl.cp_to_tensor(CPTensor((None, factors)))
     entry_drop(tensor, int(drop_perc*tensor.size), dropany=True)
     return tensor, factors
