@@ -74,6 +74,7 @@ def q2x_plot(ax,
              methodname:str,
              imputed_arr:np.ndarray = None, fitted_arr:np.ndarray = None, total_arr:np.ndarray = None,
              plot_impute = True,
+             plot_fitted = False,
              plot_total = False,
              total_fmt = 'D',
              total_fmtScale = 1/2.5,
@@ -81,8 +82,7 @@ def q2x_plot(ax,
              showLegend = False,
              offset = 0,
              log = True, logbound = -3.5, endbound = 1,
-             color='blue', s = 5,
-             printvalues = False):
+             color='blue', s = 5):
     
 
     comps = np.arange(1,imputed_arr.shape[1]+1)
@@ -93,17 +93,15 @@ def q2x_plot(ax,
 
         imputed_errbar = np.vstack(( -(np.percentile(imputed_arr,25,0) - np.nanmedian(imputed_arr,0)),
                                    np.percentile(imputed_arr,75,0) - np.nanmedian(imputed_arr,0) ))
-        fitted_errbar = np.vstack((-(np.percentile(fitted_arr,25,0) - np.nanmedian(fitted_arr,0)),
-                                   np.percentile(fitted_arr,75,0) - np.nanmedian(fitted_arr,0)))
-        
         e1 = ax.errorbar(comps+offset, np.median(imputed_arr,0), label=f"{methodname} Imputed Error" , yerr=imputed_errbar, fmt='^', color=color, markersize=s)
-        e2 = ax.errorbar(comps+offset, np.median(fitted_arr,0), label=f"{methodname} Fitted Error", yerr=fitted_errbar, fmt='.', color=color, markersize=s*2)
-        if printvalues:
-            print(np.median(imputed_arr,0))
-            print(np.median(fitted_arr,0))
-            print(np.median(total_arr,0))
         e1[-1][0].set_linestyle((0, (5, 1)))
-        e2[-1][0].set_linestyle((0, (1, 1)))
+
+        if plot_fitted:
+            fitted_errbar = np.vstack((-(np.percentile(fitted_arr,25,0) - np.nanmedian(fitted_arr,0)),
+                                    np.percentile(fitted_arr,75,0) - np.nanmedian(fitted_arr,0)))
+            e2 = ax.errorbar(comps+offset, np.median(fitted_arr,0), label=f"{methodname} Fitted Error", yerr=fitted_errbar, fmt='.', color=color, markersize=s*2)
+            e2[-1][0].set_linestyle((0, (1, 1)))
+
         # e2[-1][0].set_linestyle('-.')
 
     if plot_total:

@@ -136,7 +136,6 @@ class MultiTracker():
             if self.track_runtime:
                 self.time_array = tracker.time_array
 
-    
 
     def time_thresholds(self, threshold = 0.25, total = False):
         if total:
@@ -152,6 +151,7 @@ class MultiTracker():
     
     def unmet_threshold_count(self, threshold = 0.25):
         return np.sum(np.nanmin(self.imputed_array,axis=1) > threshold)
+
 
     def save(self, pfile):
         with open(pfile, "wb") as output_file:
