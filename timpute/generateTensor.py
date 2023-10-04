@@ -55,7 +55,7 @@ def createUnknownRank(drop_perc=0.0, size=(10, 20, 25), distribution="gamma", sc
     entry_drop(tensor, int(drop_perc*tensor.size), dropany=True)
     return tensor
 
-def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", scale=1, par=1, noise=True):
+def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", scale=1, par=1, noise=False):
     r"""
     Creates a random tensor following a set of possible distributions:
     `distribution` = "gamma", "chisquare", "logistic", "exponential", "uniform", "normal"
@@ -76,19 +76,19 @@ def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma"
     
     else:
         assert len(distribution) == len(size)
-        for i in size:
-            if distribution[i] == "gamma": factors[1] = rng.gamma(par, scale, size=(i,rank))
-            if distribution[i] == "chisquare": factors[1] = rng.chisquare(par, size=(i,rank))
-            if distribution[i] == "logistic": factors[1] = rng.logistic(size=(i,rank))
-            if distribution[i] == "exponential": factors[1] = rng.exponential(size=(i,rank))
-            if distribution[i] == "uniform": factors[1] = rng.uniform(size=(i,rank))
-            if distribution[i] == "normal": factors[1] = rng.normal(size=(i,rank))
+        for d,i in enumerate(size):
+            if distribution[d] == "gamma": factors[1] = rng.gamma(par, scale, size=(i,rank))
+            if distribution[d] == "chisquare": factors[1] = rng.chisquare(par, size=(i,rank))
+            if distribution[d] == "logistic": factors[1] = rng.logistic(size=(i,rank))
+            if distribution[d] == "exponential": factors[1] = rng.exponential(size=(i,rank))
+            if distribution[d] == "uniform": factors[1] = rng.uniform(size=(i,rank))
+            if distribution[d] == "normal": factors[1] = rng.normal(size=(i,rank))
         
 
     if scale != 1:
         for i in factors: i *= scale
     temp = tl.cp_to_tensor(CPTensor((None, factors)))
     if noise: 
-        tensor = np.add(np.random.normal(0.5,0.15, size),temp)
+        tensor = np.add(np.random.normal(0.5, 0.15, size),temp)
     entry_drop(tensor, int(drop_perc*tensor.size), dropany=True)
     return tensor, factors
