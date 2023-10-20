@@ -4,6 +4,16 @@ from time import time
 from ..decomposition import Decomposition, MultiDecomp
 from ..tracker import Tracker, MultiTracker
 
+from ..method_ALS import perform_ALS
+from ..method_CLS import perform_CLS
+from ..method_DO import perform_DO
+methods = (perform_DO, perform_ALS, perform_CLS)
+methodname = ["DO","ALS","CLS"]
+datanames = ['Zohar', 'Alter', 'Mills', 'CoH']
+linestyles = ('dashdot', (0,(1,1)), 'solid', (3,(3,1,1,1,1,1)), 'dotted', (0,(5,1)))
+drops = (0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5)
+
+
 def runImputation(data:np.ndarray,
                   max_rr:int,
                   impType:str,
@@ -20,7 +30,7 @@ def runImputation(data:np.ndarray,
     # run method & save
     tracker.begin()
     # include **kwargs include: repeat=reps, drop=drop_perc, init=init_type, callback_r=max_rr
-    decomposition.imputation(type=impType, method=method, callback=tracker, **kwargs)
+    decomposition.imputation(type=impType, method=method, callback=tracker, printRuntime=printRuntime, **kwargs)
     tracker.combine()
 
     if save is True:
@@ -28,8 +38,7 @@ def runImputation(data:np.ndarray,
         decomposition.save(f"./{savename}{impType}-{method.__name__}.decomposition")
         tracker.save(f"./{savename}{impType}-{method.__name__}.tracker")
 
-    if printRuntime:
-        print(f"{method.__name__} runtime for components 1-{max_rr}: {time()-start}")
+    # print(f"{method.__name__} runtime for components 1-{max_rr}: {time()-start}")
 
     return decomposition, tracker
     
