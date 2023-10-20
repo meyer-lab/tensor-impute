@@ -5,11 +5,11 @@ import tensorly as tl
 from .tracker import Tracker
 from .initialization import initialize_fac
 from .impute_helper import entry_drop, chord_drop
-from .impute_helper import calcR2X
+from .impute_helper import calcR2X, corcondia
 from .method_CLS import perform_CLS
 
 from copy import deepcopy
-from time import process_time
+from tqdm import tqdm
 
 
 class Decomposition():
@@ -38,10 +38,12 @@ class Decomposition():
                    drop:int=0.05,
                    chord_mode:int=0, 
                    method=perform_CLS,
+                   tol=1e-6,
                    init='random',
                    maxiter:int=50,
                    seed = 1,
                    callback:Tracker=None, callback_r:int=None,
+                   trackCoreConsistency=False,
                    printRuntime=False):
         """
         Performs imputation (chord or entry) from the [self.data] using [method] for factor decomposition,
@@ -98,7 +100,9 @@ class Decomposition():
         error = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
         fitted_error = np.zeros((repeat,self.rrs[-1]))
-
+        if trackCoreConsistency is True:
+            assert drop == 0
+            corcon = np.zeros((repeat,self.rrs[-1]))
 
 
         # Calculate Q2X for each number of components
@@ -107,7 +111,12 @@ class Decomposition():
             assert(len(init[0]) == repeat)
             assert(isinstance(init[0][0],tl.cp_tensor.CPTensor) or isinstance(init[0],tl.cp_tensor.CPTensor))
         
-        for x in range(repeat):
+        if printRuntime:
+            missingpatterns = tqdm(range(repeat), desc=f"Decomposing {repeat} tensors using {method.__name__}")
+        else:
+            missingpatterns = range(repeat)
+
+        for x in missingpatterns:
             """ drop values (in-place)
             - `tImp` is a copy of data, used a reference for imputation accuracy
             - `missingCube` is where values are dropped
@@ -137,31 +146,29 @@ class Decomposition():
                     CPinit = initialize_fac(missingCube.copy(), rr, init)
                 elif isinstance(init, tl.cp_tensor.CPTensor):
                     CPinit = deepcopy(init)
-                elif isinstance(init, list):
-                    CPinit = deepcopy(init[rr-1][x])
                 else:
                     raise ValueError(f'Initialization method "{init}" not recognized')
                 
+                # track rank & repetition
+                if str(rr) in callback.total_error:
+                    callback.existing_rank(rr)
+                else:
+                    callback.new_rank(rr)
+
                 # run method
-                if rr == callback_r and isinstance(callback, Tracker):
-                    callback(CPinit)
+                if isinstance(callback, Tracker):
                     if callback.track_runtime:
                         callback.begin()
-                    tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit, callback=callback)
-                else:
-                    tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit)
+                    callback(CPinit)
+                    tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit, callback=callback, tol=tol)
                 
+                # update error metrics
                 error[x,rr-1] = calcR2X(tFac, tIn=tImp, calcError=True)
-                
                 if drop > 0:
                     imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
                     fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
-
-            if (printRuntime and (x+1)%round(repeat*0.2) == 0):
-                print(f"({method.__name__}) Average runtime for {x+1} tensors: {(process_time())/(x+1)} seconds")
-
-            if callback:
-                if x+1 < repeat: callback.new()
+                if trackCoreConsistency is True:
+                    corcon[x,rr-1] = corcondia(tFac)
         
         if type == 'entry':
             self.entry_total = error
@@ -172,6 +179,10 @@ class Decomposition():
             self.chord_total = error
             self.chord_imputed = imputed_error
             self.chord_fitted = fitted_error
+        
+        if trackCoreConsistency is True:
+            self.corcondia = corcon
+
             
     def save(self, pfile):
         with open(pfile, "wb") as output_file:
