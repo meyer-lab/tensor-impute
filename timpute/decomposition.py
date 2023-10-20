@@ -42,7 +42,7 @@ class Decomposition():
                    init='random',
                    maxiter:int=50,
                    seed = 1,
-                   callback:Tracker=None, callback_r:int=None,
+                   callback:Tracker=None, 
                    trackCoreConsistency=False,
                    printRuntime=False):
         """
@@ -66,8 +66,6 @@ class Decomposition():
             Max iterations to cap method at. Defaults to 50.
         callback : tracker class.
             Optional callback class to track R2X over iteration/runtime for the factorization with max_rr components.
-        callback_r : int
-            Optional component to look at; defaulted to the max component if not specified.
 
 
 
@@ -83,13 +81,8 @@ class Decomposition():
             Each value in a row represents error of the FITTED (not dropped, not missing) values of the tensor
             calculated for components 1 to max_rr.
         """
-        if callback_r is None:
-            callback_r = max(self.rrs)
-        else:
-            assert(callback_r > 0 and callback_r <= np.max(self.rrs))
         assert(chord_mode >= 0 and chord_mode < self.data.ndim)
         assert(drop < 1 and drop >= 0)
-
         if type=='entry':
             drop = int(drop*np.sum(np.isfinite(self.data)))
         elif type=='chord': 
@@ -103,13 +96,6 @@ class Decomposition():
         if trackCoreConsistency is True:
             assert drop == 0
             corcon = np.zeros((repeat,self.rrs[-1]))
-
-
-        # Calculate Q2X for each number of components
-        if isinstance(init,list):
-            assert(len(init) == np.max(self.rrs))
-            assert(len(init[0]) == repeat)
-            assert(isinstance(init[0][0],tl.cp_tensor.CPTensor) or isinstance(init[0],tl.cp_tensor.CPTensor))
         
         if printRuntime:
             missingpatterns = tqdm(range(repeat), desc=f"Decomposing {repeat} tensors using {method.__name__}")
@@ -148,15 +134,15 @@ class Decomposition():
                     CPinit = deepcopy(init)
                 else:
                     raise ValueError(f'Initialization method "{init}" not recognized')
-                
-                # track rank & repetition
-                if str(rr) in callback.total_error:
-                    callback.existing_rank(rr)
-                else:
-                    callback.new_rank(rr)
 
                 # run method
                 if isinstance(callback, Tracker):
+                    # track rank & repetition
+                    if str(rr) in callback.total_error:
+                        callback.existing_rank(rr)
+                    else:
+                        callback.new_rank(rr)
+
                     if callback.track_runtime:
                         callback.begin()
                     callback(CPinit)
