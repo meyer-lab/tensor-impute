@@ -1,21 +1,0 @@
-
-
-===================
-Starting new run for fig_2a_data.
-Timestamp: 2023-10-03 12:32:33.903391-07:00Decomposing 10 tensors (gamma_r8/):   0%|          | 0/10 [00:00<?, ?it/s]Decomposing 10 tensors (gamma_r8/):  10%|█         | 1/10 [00:10<01:37, 10.82s/it]Decomposing 10 tensors (gamma_r8/):  10%|█         | 1/10 [00:11<01:40, 11.12s/it]
-
-
-===================
-Starting new run for [fig_2a_data]
-Timestamp: 2023-10-03 12:33:53.247226-07:00Decomposing 10 tensors (gamma_r8/):   0%|          | 0/10 [00:00<?, ?it/s]Decomposing 10 tensors (gamma_r8/):  10%|█         | 1/10 [00:10<01:35, 10.63s/it]Decomposing 10 tensors (gamma_r8/):  20%|██        | 2/10 [00:21<01:24, 10.61s/it]Decomposing 10 tensors (gamma_r8/):  30%|███       | 3/10 [00:31<01:14, 10.60s/it]Decomposing 10 tensors (gamma_r8/):  40%|████      | 4/10 [00:42<01:03, 10.63s/it]Decomposing 10 tensors (gamma_r8/):  50%|█████     | 5/10 [00:53<00:53, 10.63s/it]Decomposing 10 tensors (gamma_r8/):  60%|██████    | 6/10 [01:03<00:42, 10.61s/it]Decomposing 10 tensors (gamma_r8/):  70%|███████   | 7/10 [01:14<00:31, 10.62s/it]Decomposing 10 tensors (gamma_r8/):  80%|████████  | 8/10 [01:24<00:21, 10.62s/it]Decomposing 10 tensors (gamma_r8/):  90%|█████████ | 9/10 [01:35<00:10, 10.63s/it]Decomposing 10 tensors (gamma_r8/): 100%|██████████| 10/10 [01:46<00:00, 10.64s/it]Decomposing 10 tensors (gamma_r8/): 100%|██████████| 10/10 [01:46<00:00, 10.63s/it]
-Decomposing 10 tensors (logistic_r8/):   0%|          | 0/10 [00:00<?, ?it/s]Decomposing 10 tensors (logistic_r8/):  10%|█         | 1/10 [00:09<01:23,  9.27s/it]Decomposing 10 tensors (logistic_r8/):  20%|██        | 2/10 [00:18<01:14,  9.29s/it]Decomposing 10 tensors (logistic_r8/):  30%|███       | 3/10 [00:27<01:04,  9.28s/it]Decomposing 10 tensors (logistic_r8/):  40%|████      | 4/10 [00:37<00:55,  9.28s/it]Decomposing 10 tensors (logistic_r8/):  50%|█████     | 5/10 [00:46<00:46,  9.29s/it]Decomposing 10 tensors (logistic_r8/):  60%|██████    | 6/10 [00:55<00:37,  9.30s/it]Decomposing 10 tensors (logistic_r8/):  70%|███████   | 7/10 [01:05<00:27,  9.30s/it]Decomposing 10 tensors (logistic_r8/):  80%|████████  | 8/10 [01:14<00:18,  9.29s/it]Decomposing 10 tensors (logistic_r8/):  90%|█████████ | 9/10 [01:23<00:09,  9.28s/it]Decomposing 10 tensors (logistic_r8/): 100%|██████████| 10/10 [01:32<00:00,  9.29s/it]Decomposing 10 tensors (logistic_r8/): 100%|██████████| 10/10 [01:32<00:00,  9.29s/it]
-
-
-===================
-Starting new run for [fig_2a_data]
-Timestamp: 2023-10-03 13:21:52.192951-07:00Decomposing 10 tensors (gamma_r8/):   0%|          | 0/10 [00:00<?, ?it/s]Decomposing 10 tensors (gamma_r8/):  20%|██        | 2/10 [00:05<00:20,  2.61s/it]Decomposing 10 tensors (gamma_r8/):  20%|██        | 2/10 [00:05<00:22,  2.76s/it]
-
-
-===================
-Starting new run for [fig_2a_data]
-Timestamp: 2023-10-03 13:22:06.872961-07:00Decomposing 10 tensors (gamma_r8/):   0%|          | 0/10 [00:00<?, ?it/s]Decomposing 10 tensors (gamma_r8/):  10%|█         | 1/10 [00:03<00:30,  3.42s/it]
