@@ -102,13 +102,14 @@ class Decomposition():
         else:
             missingpatterns = range(repeat)
 
+        """ drop values (in-place)
+        - `tImp` is a copy of data, used a reference for imputation accuracy
+        - `missingCube` is where values are dropped
+        """
+        tImp = self.data.copy()           # avoid editing in-place of data
+        np.moveaxis(tImp,chord_mode,0)      # reshaping for correct chord dropping
+
         for x in missingpatterns:
-            """ drop values (in-place)
-            - `tImp` is a copy of data, used a reference for imputation accuracy
-            - `missingCube` is where values are dropped
-            """
-            tImp = self.data.copy()           # avoid editing in-place of data
-            np.moveaxis(tImp,chord_mode,0)      # reshaping for correct chord dropping
             missingCube = tImp.copy()
 
             """ track masks 
@@ -146,7 +147,8 @@ class Decomposition():
                     if callback.track_runtime:
                         callback.begin()
                     callback(CPinit)
-                    tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit, callback=callback, tol=tol)
+
+                tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, mask=mask, init=CPinit, callback=callback, tol=tol)
                 
                 # update error metrics
                 error[x,rr-1] = calcR2X(tFac, tIn=tImp, calcError=True)
@@ -156,6 +158,7 @@ class Decomposition():
                 if trackCoreConsistency is True:
                     corcon[x,rr-1] = corcondia(tFac)
         
+        # save objects
         if type == 'entry':
             self.entry_total = error
             self.entry_imputed = imputed_error
