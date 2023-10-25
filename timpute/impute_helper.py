@@ -5,7 +5,7 @@ def calcR2X(tFac: tl.cp_tensor.CPTensor, tIn: np.ndarray, calcError=False, mask:
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix.
     Mask is for imputation and must be of same shape as tIn/tFac, with 0s indicating artifically dropped values
     """
-    vTop, vBottom = 0.0, 0.0
+    vTop, vBottom = 0.0, 1e-8
 
     if mask is None:
         tOrig = np.copy(tIn)
@@ -118,3 +118,46 @@ def chord_drop(tensor: np.ndarray, drop: int, seed: int=None):
             tensor[dropidxs[i]] = np.nan
 
     return np.array(data_pattern, dtype=bool)
+
+def kronecker_mat_ten(matrices, X):
+    for k in range(len(matrices)):
+        M = matrices[k]
+        Y = tl.tenalg.mode_dot(X, M, k)
+        X = Y
+        X = tl.moveaxis(X, [0, 1, 2], [2, 1, 0])
+    return Y
+
+def corcondia(tFac):
+    weights = tFac[0].copy()
+    X_approx_ks = tFac[1].copy()
+    k = tFac.rank
+
+    A, B, C = X_approx_ks
+    x = tl.cp_to_tensor((weights, X_approx_ks))
+
+    Ua, Sa, Va = np.linalg.svd(A)
+    Ub, Sb, Vb = np.linalg.svd(B)
+    Uc, Sc, Vc = np.linalg.svd(C)
+
+    SaI = np.zeros((Ua.shape[0], Va.shape[0]), float)
+    np.fill_diagonal(SaI, Sa)
+
+    SbI = np.zeros((Ub.shape[0], Vb.shape[0]), float)
+    np.fill_diagonal(SbI, Sb)
+
+    ScI = np.zeros((Uc.shape[0], Vc.shape[0]), float)
+    np.fill_diagonal(ScI, Sc)
+
+    SaI = np.linalg.pinv(SaI)
+    SbI = np.linalg.pinv(SbI)
+    ScI = np.linalg.pinv(ScI)
+
+    part1 = kronecker_mat_ten([Ua.T, Ub.T, Uc.T], x)
+    part2 = kronecker_mat_ten([SaI, SbI, ScI], part1)
+    G = kronecker_mat_ten([Va.T, Vb.T, Vc.T], part2)
+
+    T = np.zeros((k, k, k))
+    for i in range(k):
+        T[i,i,i] = 1
+
+    return 100 * (1 - ((G-T)**2).sum() / float(k))
