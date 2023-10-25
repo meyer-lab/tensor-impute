@@ -129,6 +129,7 @@ def iteration_plot(ax,
                    methodname:str,
                    tracker,
                    plot_impute=True,
+                   plot_fitted = False,
                    plot_total=False, 
                    total_ls='solid',
                    showLabels=True,
@@ -142,15 +143,16 @@ def iteration_plot(ax,
     if plot_impute:
         imputed_errbar = np.vstack((-(np.percentile(tracker.imputed_array,25,0) - np.nanmedian(tracker.imputed_array,0)),
                                     np.percentile(tracker.imputed_array,75,0) - np.nanmedian(tracker.imputed_array,0),))
-        fitted_errbar = np.vstack((-(np.percentile(tracker.fitted_array,25,0) - np.nanmedian(tracker.fitted_array,0)),
-                                    np.percentile(tracker.fitted_array,75,0) - np.nanmedian(tracker.fitted_array,0)))
-
         e1 = ax.errorbar(np.arange(tracker.imputed_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(tracker.imputed_array,0), label=f"{methodname} Imputed Error", color=color,
                             yerr = imputed_errbar, ls='--', errorevery=5)
-        e2 = ax.errorbar(np.arange(tracker.fitted_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(tracker.fitted_array,0), label=f"{methodname} Fitted Error", color=color,
-                            yerr = fitted_errbar, ls='-.', errorevery=(1,5))
         e1[-1][0].set_linestyle((0, (5, 1)))
-        e2[-1][0].set_linestyle((0, (1, 1)))
+
+        if plot_fitted:
+            fitted_errbar = np.vstack((-(np.percentile(tracker.fitted_array,25,0) - np.nanmedian(tracker.fitted_array,0)),
+                                        np.percentile(tracker.fitted_array,75,0) - np.nanmedian(tracker.fitted_array,0)))
+            e2 = ax.errorbar(np.arange(tracker.fitted_array.shape[1])+0.1-offset*0.1+1, np.nanmedian(tracker.fitted_array,0), label=f"{methodname} Fitted Error", color=color,
+                                yerr = fitted_errbar, ls='-.', errorevery=(1,5))
+            e2[-1][0].set_linestyle((0, (1, 1)))
 
     if plot_total:
         if showLabels: label = f"{methodname} Total Error"
