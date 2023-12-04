@@ -72,15 +72,17 @@ def real_data(datalist=["zohar", "alter", "hms", "coh_response"], max_comps=[10,
                 # stdout.write(f"finished {dataset}, {run}{impType} for {m.__name__} in {time()-start} seconds\n")           
 
 
-def bestComps(drop=0.1, impType = 'entry', datalist=["zohar", "alter", "hms", "coh_response"]):
+def bestComps(drop=0.1, impType = "entry", datalist=["zohar", "alter", "hms", "coh_response"]):
     bestComp = dict()
-    for data in enumerate(datalist):
+    for data in datalist:
         folder = f"timpute/figures/cache/{data}/drop_{drop}/"
         tmplist = list()
         for m in methods:
             run, _ = loadImputation(impType, m, folder)
-            if impType == 'entry': tmplist.append(np.median(run.entry_imputed, axis=0).argmin())
-            if impType == 'chord': tmplist.append(np.median(run.chord_imputed, axis=0).argmin())
+            if impType == "entry":
+                tmplist.append(np.median(run.entry_imputed, axis=0).argmin())
+            elif impType == "chord":
+                tmplist.append(np.median(run.chord_imputed, axis=0).argmin())
             else:
                 raise ValueError(f'impType "{impType}" not recognized')
         bestComp.update({data : tmplist})
@@ -290,5 +292,3 @@ def explore(datalist=["zohar", "hms", "alter", "coh_response"]):
 
     subplotLabel(ax)
     f.savefig('timpute/figures/realdat_figures.png', bbox_inches="tight", format='png')
-
-real_data(["hms"],[10])
