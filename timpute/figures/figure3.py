@@ -2,8 +2,9 @@ import numpy as np
 from .runImputation import *
 from ..plot import *
 from ..common import *
+from matplotlib.lines import Line2D
 
-# poetry run python -m timpute.figures.figure2
+# poetry run python -m timpute.figures.figure3
 
 methods = (perform_DO, perform_ALS, perform_CLS)
 methodname = ["DO","ALS","CLS"]
@@ -77,8 +78,7 @@ def figure3(datalist=["zohar", "alter", "hms", "coh_response"]):
     ax[4].set_ylabel("Error")
     ax[4].set_xlim(right=7)
     ax[4].set_yscale('log')
-    for i,m in enumerate(methods):
-        plt.plot([], c=rgbs(i), label=m.__name__)
+    ax[4].legend(handles=[Line2D([0], [0], label=m.__name__, color=rgbs(i)) for i,m in enumerate(methods)])
 
 
 
@@ -110,8 +110,7 @@ def figure3(datalist=["zohar", "alter", "hms", "coh_response"]):
     ax[5].set_ylabel("Error")
     ax[5].set_xlim(right=7)
     ax[5].set_yscale('log')
-    for i,m in enumerate(methods):
-        plt.plot([], c=rgbs(i), label=m.__name__)
+    ax[5].legend(handles=[Line2D([0], [0], label=m.__name__, color=rgbs(i)) for i,m in enumerate(methods)])
     
     stdout.write("\n\n* values are indices, add 1 for component")
 
