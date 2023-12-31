@@ -3,18 +3,18 @@ from .runImputation import *
 from ..plot import *
 from ..common import *
 
-# poetry run python -m timpute.figures.figure3
+# poetry run python -m timpute.figures.figure4
 drops = (0.01, 0.05, 0.1, 0.2, 0.3, 0.4)
 
-def figure4(datalist=["zohar", "alter", "hms", "coh_response"]):
+def figure4(datalist=savenames, errors=True):
     ax, f = getSetup((20,10), (2,4))
     dirname = f"timpute/figures/img"
-    stdout = open(f"{dirname}/figure3.txt", 'w')
-
+    stdout = open(f"{dirname}/figure4.txt", 'w')
     stdout.write(f"{drops}")
-
-    # Figure 1, a)-d)
+    
     for i, data in enumerate(datalist):
+
+        # Figure 4, a)-d)
         impType = 'entry'
         for mID, m in enumerate(methods):
             ImpErr = list()
@@ -35,18 +35,29 @@ def figure4(datalist=["zohar", "alter", "hms", "coh_response"]):
                 stdout.write(f"{comp}, ")
 
             label = f"{methodname[mID]} (best imputed)"
-            ax[i].errorbar([str(x*100) for x in drops], np.array(ImpErr), fmt='d-', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(ImpErrIQR)))
-            label = "        (matching total)"
-            ax[i].errorbar([str(x*100) for x in drops], np.array(TotErr), fmt='.-', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(TotErrIQR)))
+            if errors is True:
+                ax[i].errorbar([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(ImpErrIQR)))
+            else:
+                ax[i].plot([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', label=label, color=rgbs(mID, 0.7))
 
-            ax[i].legend()
+            label = ""
+            for _ in range(len(methodname[mID])): label += ' '
+            label += "     Total Error"
+            if errors is True:
+                ax[i].errorbar([str(x*100) for x in drops], np.array(TotErr), ls='solid', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(TotErrIQR)))
+            else:
+                ax[i].plot([str(x*100) for x in drops], np.array(TotErr), ls='solid', label=label, color=rgbs(mID, 0.7))
+
+            ax[i].legend(loc='best', handlelength=2)
             ax[i].set_xlabel("Drop Percent")
             ax[i].set_ylabel("Median Error")
-            ax[i].set_title(f"{datanames[i]} dataset\nlowest imputed median error by {impType} missingness")
+            ax[i].set_title(f"{datanames[i]}\nBest imputed error by {impType} masking percent")
 
-        ax[1].set_ylim(top=0.15)
-        ax[3].set_ylim(top=0.35)
+        # ax[1].set_ylim(top=0.15)
+        # ax[3].set_ylim(top=0.35)
 
+
+        # Figure 4, e)-h)
         impType = 'chord'
         for mID, m in enumerate(methods):
             ImpErr = list()
@@ -59,28 +70,38 @@ def figure4(datalist=["zohar", "alter", "hms", "coh_response"]):
                 run, _ = loadImputation(impType, m, folder)
                 comp = np.median(run.chord_imputed,0).argmin() # best imp error
                 ImpErr.append(np.median(run.chord_imputed[comp]))
-                ImpErrIQR = np.vstack((-(np.percentile(run.chord_imputed[comp],25,0) - np.median(run.chord_imputed[comp],0)),
-                                          np.percentile(run.chord_imputed[comp],75,0) - np.median(run.chord_imputed[comp],0)))
+                ImpErrIQR.append(np.vstack((-(np.percentile(run.chord_imputed[comp],25,0) - np.median(run.chord_imputed[comp],0)),
+                                          np.percentile(run.chord_imputed[comp],75,0) - np.median(run.chord_imputed[comp],0))))
                 TotErr.append(np.median(run.chord_total[comp]))
-                TotErrIQR = np.vstack((-(np.percentile(run.chord_total[comp],25,0) - np.median(run.chord_total[comp],0)),
-                                          np.percentile(run.chord_total[comp],75,0) - np.median(run.chord_total[comp],0)))
+                TotErrIQR.append(np.vstack((-(np.percentile(run.chord_total[comp],25,0) - np.median(run.chord_total[comp],0)),
+                                          np.percentile(run.chord_total[comp],75,0) - np.median(run.chord_total[comp],0))))
                 stdout.write(f"{comp}, ")
 
             label = f"{methodname[mID]} (best imputed)"
-            ax[i].errorbar([str(x*100) for x in drops], np.array(ImpErr), fmt='d-', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(ImpErrIQR)))
-            label = "        (matching total)"
-            ax[i].errorbar([str(x*100) for x in drops], np.array(TotErr), fmt='.-', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(TotErrIQR)))
+            if errors is True:
+                ax[i+4].errorbar([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(ImpErrIQR)))
+            else:
+                ax[i+4].plot([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', label=label, color=rgbs(mID, 0.7))
+
+            label = ""
+            for _ in range(len(methodname[mID])): label += ' '
+            label += "     Total Error"
+            if errors is True:
+                ax[i+4].errorbar([str(x*100) for x in drops], np.array(TotErr), ls='solid', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(TotErrIQR)))
+            else:
+                ax[i+4].plot([str(x*100) for x in drops], np.array(TotErr), ls='solid', label=label, color=rgbs(mID, 0.7))
             
-            ax[i+4].legend()
+            ax[i+4].legend(loc='best', handlelength=2)
             if (ax[i+4].get_ylim()[1] > 1):
                 ax[i+4].set_ylim(0, top=1)
             ax[i+4].set_xlabel("Drop Percent")
             ax[i+4].set_ylabel("Median Error")
-            ax[i+4].set_title(f"{datanames[i]} dataset\nlowest imputed median error by {impType} missingness")
+            ax[i+4].set_title(f"{datanames[i]}\nBest imputed error by {impType} masking percent")
     
-    stdout = open("\n\n* values are indices, add 1 for component")
+    stdout.write("\n\n* values are indices, add 1 for component")
 
     subplotLabel(ax)
+    f.savefig('timpute/figures/img/svg/figure4.svg', bbox_inches="tight", format='svg')
     f.savefig('timpute/figures/img/figure4.png', bbox_inches="tight", format='png')
 
-figure4()
+figure4(errors=False)

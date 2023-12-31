@@ -6,19 +6,13 @@ from matplotlib.lines import Line2D
 
 # poetry run python -m timpute.figures.figure3
 
-methods = (perform_DO, perform_ALS, perform_CLS)
-methodname = ["DO","ALS","CLS"]
-datanames = ['Zohar', 'Alter', 'Mills', 'CoH']
-linestyles = ('dashdot', (0,(1,1)), 'solid', (3,(3,1,1,1,1,1)), 'dotted', (0,(5,1)))
-drops = (0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5)
-
-def figure3(datalist=["zohar", "alter", "hms", "coh_response"]):
+def figure3(datalist=savenames):
     ax, f = getSetup((20,10), (2,4))
 
     dirname = f"timpute/figures/img"
     stdout = open(f"{dirname}/figure3.txt", 'w')
 
-    # Figure 1, a)-d)
+    # Figure 3, a)-d)
     for i, data in enumerate(datalist):
         folder = f"timpute/figures/cache/{data}/drop_0.1/"
         impType = 'entry' 
@@ -35,10 +29,12 @@ def figure3(datalist=["zohar", "alter", "hms", "coh_response"]):
             imp_errbar = np.vstack((abs(np.percentile(run.entry_imputed,25,0) - np.nanmedian(run.entry_imputed,0)),
                                     abs(np.percentile(run.entry_imputed,75,0) - np.nanmedian(run.entry_imputed,0))))
             e = ax[i].errorbar(comps, np.median(run.entry_imputed,0), yerr=imp_errbar, label=label, ls='dashed', color=rgbs(mID, 0.7), alpha=0.5)
-            e[-1][0].set_linestyle('dashed')
+            # e[-1][0].set_linestyle('dashed')
 
-            ax[i].legend()
-            ax[i].set_title(f"{data} dataset, 10% entry missingness vs component")
+            h,l = ax[i].get_legend_handles_labels()
+            h = [a[0] for a in h]
+            ax[i].legend(h, l, loc='best', handlelength=2)
+            ax[i].set_title(f"{datanames[i]}, 10% entry masking")
             ax[i].set_xlabel("Number of Components")
             ax[i].set_ylabel("Error")
             ax[i].set_xticks([x for x in comps])
@@ -46,7 +42,7 @@ def figure3(datalist=["zohar", "alter", "hms", "coh_response"]):
             # ax[1+row].set_yscale("log")
 
 
-    # Figure 1, e)-h)
+    # Figure 3, e)-h)
     drop = 0.1
 
     # --- ENTRY ---
@@ -73,12 +69,12 @@ def figure3(datalist=["zohar", "alter", "hms", "coh_response"]):
         set_boxplot_color(bp, rgbs(mID))
     ax[4].set_xticks(range(0, len(datanames) * exp_spacing, exp_spacing), datanames)
 
-    ax[4].set_title(f"best imputation error by dataset ({int(drop*100)}% {impType} imputation)")
+    ax[4].set_title(f"Best imputation error by dataset\n{int(drop*100)}% {impType} masking")
     ax[4].set_xlabel("Dataset")
     ax[4].set_ylabel("Error")
     ax[4].set_xlim(right=7)
     ax[4].set_yscale('log')
-    ax[4].legend(handles=[Line2D([0], [0], label=m.__name__, color=rgbs(i)) for i,m in enumerate(methods)])
+    ax[4].legend(handles=[Line2D([0], [0], label=m, color=rgbs(i)) for i,m in enumerate(methodname)])
 
 
 
@@ -105,16 +101,17 @@ def figure3(datalist=["zohar", "alter", "hms", "coh_response"]):
         set_boxplot_color(bp, rgbs(mID))
     ax[5].set_xticks(range(0, len(datanames) * exp_spacing, exp_spacing), datanames)
 
-    ax[5].set_title(f"best imputation error by dataset ({int(drop*100)}% {impType} imputation)")
+    ax[5].set_title(f"Best imputation error by dataset\n{int(drop*100)}% {impType} masking")
     ax[5].set_xlabel("Dataset")
     ax[5].set_ylabel("Error")
     ax[5].set_xlim(right=7)
     ax[5].set_yscale('log')
-    ax[5].legend(handles=[Line2D([0], [0], label=m.__name__, color=rgbs(i)) for i,m in enumerate(methods)])
+    ax[5].legend(handles=[Line2D([0], [0], label=m, color=rgbs(i)) for i,m in enumerate(methodname)])
     
     stdout.write("\n\n* values are indices, add 1 for component")
 
     subplotLabel(ax)
+    f.savefig('timpute/figures/img/svg/figure3.svg', bbox_inches="tight", format='svg')
     f.savefig('timpute/figures/img/figure3.png', bbox_inches="tight", format='png')
 
 
@@ -176,7 +173,8 @@ def figure3_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
                 if (ax[i+4+d*8].get_ylim()[1] > 1):
                     ax[i+4+d*8].set_ylim(0, top=1)
                 
+    f.savefig('timpute/figures/img/svg/figure3-exp.svg', bbox_inches="tight", format='svg')
     f.savefig('timpute/figures/img/figure3-exp.png', bbox_inches="tight", format='png')
 
 figure3()
-# figure3_exp()
+figure3_exp()
