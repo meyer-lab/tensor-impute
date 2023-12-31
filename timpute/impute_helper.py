@@ -46,8 +46,8 @@ def entry_drop(tensor:np.ndarray, drop:int, dropany=False, seed:int=None):
     if seed != None:
         np.random.seed(seed)
 
+    # withhold base missingness from entry dropping
     if dropany: idxs = np.argwhere(np.isfinite(tensor))
-        
     else:
         midxs = np.zeros((tensor.ndim, max(tensor.shape)))
         for i in range(tensor.ndim):
@@ -78,6 +78,8 @@ def entry_drop(tensor:np.ndarray, drop:int, dropany=False, seed:int=None):
         tensor[i] = np.nan
         data_pattern[i] = 0
     
+    # missingness pattern holds 0s where dropped, 1s if left alone (does not guarantee nonmissing)
+
     return np.array(data_pattern, dtype=bool)
 
 def chord_drop(tensor: np.ndarray, drop: int, seed: int=None):
@@ -117,6 +119,9 @@ def chord_drop(tensor: np.ndarray, drop: int, seed: int=None):
                 data_pattern[dropidxs[i]] = 0  
             tensor[dropidxs[i]] = np.nan
 
+    # missingness pattern holds 0s where dropped, 1s if left alone (does not guarantee nonmissing)
+    # !! nonmissing values may be labeled as dropped !!
+    
     return np.array(data_pattern, dtype=bool)
 
 def kronecker_mat_ten(matrices, X):
