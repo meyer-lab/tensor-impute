@@ -34,29 +34,32 @@ def figure4(datalist=savenames, errors=True):
                                           np.percentile(run.entry_total[comp],75,0) - np.median(run.entry_total[comp],0))))
                 stdout.write(f"{comp}, ")
 
-            label = f"{methodname[mID]} (best imputed)"
             if errors is True:
-                ax[i].errorbar([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(ImpErrIQR)))
+                ax[i].errorbar([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', color=rgbs(mID, 0.7), yerr=np.hstack(tuple(ImpErrIQR)))
             else:
-                ax[i].plot([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', label=label, color=rgbs(mID, 0.7))
+                ax[i].plot([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', color=rgbs(mID, 0.7))
 
-            label = ""
-            for _ in range(len(methodname[mID])): label += ' '
-            label += "     Total Error"
+            label = f"{methodname[mID]}"
             if errors is True:
                 ax[i].errorbar([str(x*100) for x in drops], np.array(TotErr), ls='solid', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(TotErrIQR)))
             else:
                 ax[i].plot([str(x*100) for x in drops], np.array(TotErr), ls='solid', label=label, color=rgbs(mID, 0.7))
 
+        if errors is True:
+            ax[i].errorbar([],[], label="Best Imputed Error", ls='dashed', color='black')
+            ax[i].errorbar([],[], label="Total Error", ls='solid', color='black')
+            h,l = ax[i].get_legend_handles_labels()
+            h = [a[0] for a in h]
+            ax[i].legend(h, l, loc='best', handlelength=2)
+        else:
+            ax[i].plot([],[], label="Best Imputed Error", ls='dashed', color='black')
+            ax[i].plot([],[], label="Total Error", ls='solid', color='black')
             ax[i].legend(loc='best', handlelength=2)
-            ax[i].set_xlabel("Drop Percent")
-            ax[i].set_ylabel("Median Error")
-            ax[i].set_title(f"{datanames[i]}\nBest imputed error by {impType} masking percent")
 
-        # ax[1].set_ylim(top=0.15)
-        # ax[3].set_ylim(top=0.35)
-
-
+        ax[i].set_xlabel("Drop Percent")
+        ax[i].set_ylabel("Median Error")
+        ax[i].set_title(f"{datanames[i]}\nBest imputed error by {impType} masking percent")
+        
         # Figure 4, e)-h)
         impType = 'chord'
         for mID, m in enumerate(methods):
@@ -77,26 +80,34 @@ def figure4(datalist=savenames, errors=True):
                                           np.percentile(run.chord_total[comp],75,0) - np.median(run.chord_total[comp],0))))
                 stdout.write(f"{comp}, ")
 
-            label = f"{methodname[mID]} (best imputed)"
             if errors is True:
-                ax[i+4].errorbar([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(ImpErrIQR)))
+                ax[i+4].errorbar([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', color=rgbs(mID, 0.7), yerr=np.hstack(tuple(ImpErrIQR)))
             else:
-                ax[i+4].plot([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', label=label, color=rgbs(mID, 0.7))
+                ax[i+4].plot([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', color=rgbs(mID, 0.7))
 
-            label = ""
-            for _ in range(len(methodname[mID])): label += ' '
-            label += "     Total Error"
+            label = f"{methodname[mID]}"
             if errors is True:
                 ax[i+4].errorbar([str(x*100) for x in drops], np.array(TotErr), ls='solid', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(TotErrIQR)))
             else:
                 ax[i+4].plot([str(x*100) for x in drops], np.array(TotErr), ls='solid', label=label, color=rgbs(mID, 0.7))
             
+
+        if errors is True:
+            ax[i+4].errorbar([],[], label="Best Imputed Error", ls='dashed', color='black')
+            ax[i+4].errorbar([],[], label="Total Error", ls='solid', color='black')
+            h,l = ax[i+4].get_legend_handles_labels()
+            h = [a[0] for a in h]
+            ax[i+4].legend(h, l, loc='best', handlelength=2)
+        else:
+            ax[i+4].plot([],[], label="Best Imputed Error", ls='dashed', color='black')
+            ax[i+4].plot([],[], label="Total Error", ls='solid', color='black')
             ax[i+4].legend(loc='best', handlelength=2)
-            if (ax[i+4].get_ylim()[1] > 1):
-                ax[i+4].set_ylim(0, top=1)
-            ax[i+4].set_xlabel("Drop Percent")
-            ax[i+4].set_ylabel("Median Error")
-            ax[i+4].set_title(f"{datanames[i]}\nBest imputed error by {impType} masking percent")
+
+        if (ax[i+4].get_ylim()[1] > 1):
+            ax[i+4].set_ylim(0, top=1)
+        ax[i+4].set_xlabel("Drop Percent")
+        ax[i+4].set_ylabel("Median Error")
+        ax[i+4].set_title(f"{datanames[i]}\nBest imputed error by {impType} masking percent")
     
     stdout.write("\n\n* values are indices, add 1 for component")
 

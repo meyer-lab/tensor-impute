@@ -39,7 +39,7 @@ def figure5():
     
     plotIter(ax[4], 0, 'entry', 0.1)
     plotIter(ax[5], 1, 'entry', 0.2)
-    plotIter(ax[6], 2, 'chord', 0.3)
+    plotIter(ax[6], 2, 'chord', 0.3, 'upper left')
     plotIter(ax[7], 3, 'chord', 0.4)
 
     # ////////////////////////////////////////////////////////
@@ -49,42 +49,37 @@ def figure5():
     f.savefig('timpute/figures/img/figure5.png', bbox_inches="tight", format='png')
 
 
-def plotIter(ax, dataN, impType, drop):
+def plotIter(ax, dataN, impType, drop, legendloc='best'):
     folder = f"timpute/figures/cache/{savenames[dataN]}/drop_{drop}/"
     comps = bestComps(drop=drop, datalist=[savenames[dataN]])
 
     for mID, m in enumerate(methods):
         _, tracker = loadImputation(impType, m, folder)
 
-        label = f"{methodname[mID]} Imputed Error"
         impErr = tracker.imputed_array[str(comps[savenames[dataN]][mID])][:,:-1]
         imputed_errbar = np.vstack((-(np.percentile(impErr,25,0) - np.nanmedian(impErr,0)),
                                     np.percentile(impErr,75,0) - np.nanmedian(impErr,0),))
-        e = ax.errorbar(np.arange(impErr.shape[1]) + (0.1-mID*0.1), np.nanmedian(impErr,0), label=label, color=rgbs(mID,0.7),
+        ax.errorbar(np.arange(impErr.shape[1]) + (0.1-mID*0.1), np.nanmedian(impErr,0), color=rgbs(mID,0.7),
                             yerr = imputed_errbar, ls='dashed', errorevery=5)
 
-        label = ""
-        for _ in range(len(methodname[mID])): label += ' '
-        label += "     Total Error"
-
+        label = f"{methodname[mID]}"
         totErr = tracker.total_array[str(comps[savenames[dataN]][mID])][:,:-1]
         total_errbar = np.vstack((-(np.percentile(totErr,25,0) - np.nanmedian(totErr,0)),
                                     np.percentile(totErr,75,0) - np.nanmedian(totErr,0)))
         ax.errorbar(np.arange(totErr.shape[1]), np.nanmedian(totErr,0), label=label, color=rgbs(mID,0.7),
                             yerr=total_errbar, ls = 'solid', errorevery=5)
 
-        # handles, labels = ax.get_legend_handles_labels()
-        # ax.legend(handles, labels,
-        #     handler_map = {type(handles[0]): HandlerErrorbar(xerr_size=0.7)},
-        #     loc="best", handlelength=2, handleheight=1, labelspacing=0.5)
-        h,l = ax.get_legend_handles_labels()
-        h = [a[0] for a in h]
-        ax.legend(h, l, loc='best', handlelength=2)
-        ax.set_xlim((0, totErr.shape[1]-1))
-        ax.set_xlabel('Iteration')
-        ax.set_ylabel('Error')
-        ax.set_title(f"{datanames[dataN]}, {int(drop*100)}% {impType} masking")
-        ax.set_yscale('log')
+    ax.errorbar([],[], label="Imputed Error", ls='dashed', color='black')
+    ax.errorbar([],[], label="Total Error", ls='solid', color='black')
+    h,l = ax.get_legend_handles_labels()
+    h = [a[0] for a in h]
+    ax.legend(h, l, loc=legendloc, handlelength=2)
+
+    ax.set_xlim((0, totErr.shape[1]-1))
+    ax.set_xlabel('Iteration')
+    ax.set_ylabel('Error')
+    ax.set_title(f"{datanames[dataN]}, {int(drop*100)}% {impType} masking")
+    ax.set_yscale('log')
 
 
 def figure5_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
@@ -98,7 +93,7 @@ def figure5_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
                 for mID, m in enumerate(methods):
                     _, tracker = loadImputation(impType, m, folder)
 
-                    label = f"{m.__name__} Imputed Error"
+                    label = f"{m.__name__} Imputed"
                     impErr = tracker.imputed_array[str(comps[data][mID]+1)][:,:-1]
                     imputed_errbar = np.vstack((-(np.percentile(impErr,25,0) - np.nanmedian(impErr,0)),
                                                 np.percentile(impErr,75,0) - np.nanmedian(impErr,0),))
@@ -106,7 +101,7 @@ def figure5_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
                                         yerr = imputed_errbar, ls='dashed', errorevery=5)
                     e[-1][0].set_linestyle('dashed')
 
-                    label = f"{m.__name__} Total Error"
+                    label = f"{m.__name__} Total"
                     totErr = tracker.total_array[str(comps[data][mID]+1)][:,:-1]
                     total_errbar = np.vstack((-(np.percentile(totErr,25,0) - np.nanmedian(totErr,0)),
                                                 np.percentile(totErr,75,0) - np.nanmedian(totErr,0)))
@@ -124,4 +119,4 @@ def figure5_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
     f.savefig('timpute/figures/img/figure5-exp.png', bbox_inches="tight", format='png')
 
 figure5()
-figure5_exp()
+# figure5_exp()
