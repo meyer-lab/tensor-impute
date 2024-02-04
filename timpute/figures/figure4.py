@@ -6,7 +6,7 @@ from ..common import *
 # poetry run python -m timpute.figures.figure4
 drops = (0.01, 0.05, 0.1, 0.2, 0.3, 0.4)
 
-def figure4(datalist=savenames, errors=True):
+def figure4(datalist=SAVENAMES, errors=True):
     ax, f = getSetup((20,10), (2,4))
     dirname = f"timpute/figures/img"
     stdout = open(f"{dirname}/figure4.txt", 'w')
@@ -16,7 +16,7 @@ def figure4(datalist=savenames, errors=True):
 
         # Figure 4, a)-d)
         impType = 'entry'
-        for mID, m in enumerate(methods):
+        for mID, m in enumerate(METHODS):
             ImpErr = list()
             ImpErrIQR = list()
             TotErr = list()
@@ -39,7 +39,7 @@ def figure4(datalist=savenames, errors=True):
             else:
                 ax[i].plot([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', color=rgbs(mID, 0.7))
 
-            label = f"{methodname[mID]}"
+            label = f"{METHODNAMES[mID]}"
             if errors is True:
                 ax[i].errorbar([str(x*100) for x in drops], np.array(TotErr), ls='solid', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(TotErrIQR)))
             else:
@@ -58,11 +58,11 @@ def figure4(datalist=savenames, errors=True):
 
         ax[i].set_xlabel("Drop Percent")
         ax[i].set_ylabel("Median Error")
-        ax[i].set_title(f"{datanames[i]}\nBest imputed error by {impType} masking percent")
+        ax[i].set_title(f"{DATANAMES[i]}\nBest imputed error by {impType} masking percent")
         
         # Figure 4, e)-h)
         impType = 'chord'
-        for mID, m in enumerate(methods):
+        for mID, m in enumerate(METHODS):
             ImpErr = list()
             ImpErrIQR = list()
             TotErr = list()
@@ -85,7 +85,7 @@ def figure4(datalist=savenames, errors=True):
             else:
                 ax[i+4].plot([str(x*100) for x in drops], np.array(ImpErr), ls='dashed', color=rgbs(mID, 0.7))
 
-            label = f"{methodname[mID]}"
+            label = f"{METHODNAMES[mID]}"
             if errors is True:
                 ax[i+4].errorbar([str(x*100) for x in drops], np.array(TotErr), ls='solid', label=label, color=rgbs(mID, 0.7), yerr=np.hstack(tuple(TotErrIQR)))
             else:
@@ -107,7 +107,7 @@ def figure4(datalist=savenames, errors=True):
             ax[i+4].set_ylim(0, top=1)
         ax[i+4].set_xlabel("Drop Percent")
         ax[i+4].set_ylabel("Median Error")
-        ax[i+4].set_title(f"{datanames[i]}\nBest imputed error by {impType} masking percent")
+        ax[i+4].set_title(f"{DATANAMES[i]}\nBest imputed error by {impType} masking percent")
     
     stdout.write("\n\n* values are indices, add 1 for component")
 
@@ -115,4 +115,5 @@ def figure4(datalist=savenames, errors=True):
     f.savefig('timpute/figures/img/svg/figure4.svg', bbox_inches="tight", format='svg')
     f.savefig('timpute/figures/img/figure4.png', bbox_inches="tight", format='png')
 
-figure4(errors=False)
+if __name__ == "__main__":
+    figure4(errors=False)

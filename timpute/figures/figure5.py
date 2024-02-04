@@ -13,13 +13,13 @@ def figure5():
     ax, f = getSetup((20,10), (2,4))
                     # (w,h),  (r,c)
 
-    for d,data in enumerate(savenames):
+    for d,data in enumerate(SAVENAMES):
         folder = f"timpute/figures/cache/{data}/nonmissing/"
 
-        for mID, m in enumerate(methods):
+        for mID, m in enumerate(METHODS):
             _, tracker = loadImputation("entry", m, folder)
 
-            label = f"{methodname[mID]}"
+            label = f"{METHODNAMES[mID]}"
             totErr = tracker.total_array[list(tracker.total_array.keys())[-1]][:,:-1]
             total_errbar = np.vstack((-(np.percentile(totErr,25,0) - np.nanmedian(totErr,0)),
                                         np.percentile(totErr,75,0) - np.nanmedian(totErr,0)))
@@ -32,7 +32,7 @@ def figure5():
             ax[d].set_xlim((0, totErr.shape[1]-1))
             ax[d].set_xlabel('Iteration')
             ax[d].set_ylabel('Error')
-            ax[d].set_title(f"{datanames[d]}, nonmissing factorizations")
+            ax[d].set_title(f"{DATANAMES[d]}, nonmissing factorizations")
             ax[d].set_yscale('log')
 
     # ////////////////////////////////////////////////////////
@@ -50,20 +50,20 @@ def figure5():
 
 
 def plotIter(ax, dataN, impType, drop, legendloc='best'):
-    folder = f"timpute/figures/cache/{savenames[dataN]}/drop_{drop}/"
-    comps = bestComps(drop=drop, datalist=[savenames[dataN]])
+    folder = f"timpute/figures/cache/{SAVENAMES[dataN]}/drop_{drop}/"
+    comps = bestComps(drop=drop, datalist=[SAVENAMES[dataN]])
 
-    for mID, m in enumerate(methods):
+    for mID, m in enumerate(METHODS):
         _, tracker = loadImputation(impType, m, folder)
 
-        impErr = tracker.imputed_array[str(comps[savenames[dataN]][mID])][:,:-1]
+        impErr = tracker.imputed_array[str(comps[SAVENAMES[dataN]][mID])][:,:-1]
         imputed_errbar = np.vstack((-(np.percentile(impErr,25,0) - np.nanmedian(impErr,0)),
                                     np.percentile(impErr,75,0) - np.nanmedian(impErr,0),))
         ax.errorbar(np.arange(impErr.shape[1]) + (0.1-mID*0.1), np.nanmedian(impErr,0), color=rgbs(mID,0.7),
                             yerr = imputed_errbar, ls='dashed', errorevery=5)
 
-        label = f"{methodname[mID]}"
-        totErr = tracker.total_array[str(comps[savenames[dataN]][mID])][:,:-1]
+        label = f"{METHODNAMES[mID]}"
+        totErr = tracker.total_array[str(comps[SAVENAMES[dataN]][mID])][:,:-1]
         total_errbar = np.vstack((-(np.percentile(totErr,25,0) - np.nanmedian(totErr,0)),
                                     np.percentile(totErr,75,0) - np.nanmedian(totErr,0)))
         ax.errorbar(np.arange(totErr.shape[1]), np.nanmedian(totErr,0), label=label, color=rgbs(mID,0.7),
@@ -78,7 +78,7 @@ def plotIter(ax, dataN, impType, drop, legendloc='best'):
     ax.set_xlim((0, totErr.shape[1]-1))
     ax.set_xlabel('Iteration')
     ax.set_ylabel('Error')
-    ax.set_title(f"{datanames[dataN]}, {int(drop*100)}% {impType} masking")
+    ax.set_title(f"{DATANAMES[dataN]}, {int(drop*100)}% {impType} masking")
     ax.set_yscale('log')
 
 
@@ -90,7 +90,7 @@ def figure5_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
             comps = bestComps(drop=drop, impType=impType, datalist=datalist)
             for dat, data in enumerate(datalist):
                 folder = f"timpute/figures/cache/{data}/drop_{drop}/"
-                for mID, m in enumerate(methods):
+                for mID, m in enumerate(METHODS):
                     _, tracker = loadImputation(impType, m, folder)
 
                     label = f"{m.__name__} Imputed"
@@ -118,5 +118,6 @@ def figure5_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
     f.savefig('timpute/figures/img/svg/figure5-exp.svg', bbox_inches="tight", format='svg')
     f.savefig('timpute/figures/img/figure5-exp.png', bbox_inches="tight", format='png')
 
-figure5()
-# figure5_exp()
+if __name__ == "__main__":
+    figure5()
+    # figure5_exp()
