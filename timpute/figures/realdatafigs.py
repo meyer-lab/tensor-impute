@@ -79,6 +79,8 @@ def bestComps(drop=0.1, impType = "entry", datalist=SAVENAMES):
     bestComp = dict()
     for data in datalist:
         folder = f"timpute/figures/cache/{data}/drop_{drop}/"
+        if drop == 0:
+            folder = f"timpute/figures/cache/{data}/nonmissing/"
         tmp = dict()
         for n,m in enumerate(METHODS):
             run, _ = loadImputation(impType, m, folder)
