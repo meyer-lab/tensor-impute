@@ -5,6 +5,7 @@ from .runImputation import *
 from ..generateTensor import generateTensor
 from ..plot import *
 from ..common import *
+import pickle
 
 # output
 from time import time
@@ -45,7 +46,7 @@ def real_data(datalist=SAVENAMES, max_comps=[10,10,10,20]):
         for m in METHODS:
             # start = time()
             runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
-                        repeat=reps, drop=drop_perc, init=init_type, callback_r=max_component, seed=seed*100, tol=1e-6)
+                        repeat=reps, drop=drop_perc, init=init_type, callback_r=max_component, seed=seed*i, tol=1e-6)
             # stdout.write(f"finished {dataset}, {run}{impType} for {m.__name__} in {time()-start} seconds\n")
         
 
@@ -60,32 +61,41 @@ def real_data(datalist=SAVENAMES, max_comps=[10,10,10,20]):
                 # start = time()
                 impType = 'entry'
                 runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
-                            repeat=reps, drop=drop_perc, init=init_type, callback_r=max_component, seed=seed*100, tol=1e-6)
+                            repeat=reps, drop=drop_perc, init=init_type, callback_r=max_component, seed=seed*i, tol=1e-6)
                 # stdout.write(f"finished {dataset}, {run}{impType} for {m.__name__} in {time()-start} seconds\n")
 
                 # start = time()
                 impType = 'chord'
                 runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
-                            repeat=reps, drop=drop_perc, init=init_type, callback_r=max_component, seed=seed*100, tol=1e-6)
+                            repeat=reps, drop=drop_perc, init=init_type, callback_r=max_component, seed=seed*i, tol=1e-6)
                 # stdout.write(f"finished {dataset}, {run}{impType} for {m.__name__} in {time()-start} seconds\n")           
 
 
 def bestComps(drop=0.1, impType = "entry", datalist=SAVENAMES):
+    """
+    determines  best component for all methods of all datasets for a given imputation type
+    returns in the form of {'data' : {'method' : #}}
+    """
     bestComp = dict()
     for data in datalist:
         folder = f"timpute/figures/cache/{data}/drop_{drop}/"
-        tmplist = list()
-        for m in METHODS:
+        tmp = dict()
+        for n,m in enumerate(METHODS):
             run, _ = loadImputation(impType, m, folder)
             if impType == "entry":
-                tmplist.append(np.median(run.entry_imputed, axis=0).argmin())
+                tmp[METHODNAMES[n]] = np.median(run.entry_imputed, axis=0).argmin()+1
             elif impType == "chord":
-                tmplist.append(np.median(run.chord_imputed, axis=0).argmin())
+                tmp[METHODNAMES[n]] = np.median(run.chord_imputed, axis=0).argmin()+1
             else:
                 raise ValueError(f'impType "{impType}" not recognized')
-        bestComp.update({data : tmplist})
+        bestComp.update({data : tmp})
     return bestComp
 
 if __name__ == "__main__":
-    # resource.setrlimit(resource.RLIMIT_AS, (soft_lim, hard_lim))
-    real_data()
+    for i in ['entry', 'chord']:
+        data = dict()
+        for d in DROPS:
+            data[d] = bestComps(d, i)
+        with open(f'./timpute/figures/cache/bestComps_{i}.pickle', 'wb') as handle:
+            pickle.dump(data, handle)
+        

@@ -7,7 +7,7 @@ from ..generateTensor import generateTensor
 
 def dataset_info(datalist=["zohar", "alter", "hms", "coh_response"]):
     
-    dirname = f"timpute/figures"
+    dirname = f"timpute/figures/cache"
     stdout = open(f"{dirname}/dataset_info.txt", 'w')
     for i,data in enumerate(datalist):
         stdout.write(f"\n--{DATANAMES[i]}--\n")
@@ -207,3 +207,5 @@ def explore(datalist=["zohar", "hms", "alter", "coh_response"]):
     subplotLabel(ax)
     f.savefig('timpute/figures/realdat_figures.png', bbox_inches="tight", format='png')
 
+if __name__ == '__main__':
+    dataset_info()
