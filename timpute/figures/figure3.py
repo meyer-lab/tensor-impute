@@ -2,18 +2,24 @@ import numpy as np
 from .runImputation import *
 from ..plot import *
 from ..common import *
+import math
 
 # poetry run python -m timpute.figures.figure3
 
-def figure3(datalist=SAVENAMES):
-    ax, f = getSetup((20,10), (2,4), multz={4:1, 6:1}, empts=[5,7])
+SUBTITLE_FONTSIZE = 15
+TEXT_FONTSIZE = 13
+
+def figure3(datalist=SAVENAMES, legend=False):
+    ax, f = getSetup((16,8), (2,4), multz={4:1, 6:1}, empts=[5,7])
 
     # Figure 3, a)-d)
     for i, data in enumerate(datalist):
         folder = f"timpute/figures/cache/{data}/drop_0.1/"
-        impType = 'entry' 
+        impType = 'entry'
+        maxErr = 0
         for mID, m in enumerate(METHODS):
             run, _ = loadImputation(impType, m, folder)
+            maxErr = max(maxErr, math.ceil(max(np.median(run.entry_total,0))*10)/10)
 
             comps = np.arange(1,run.entry_imputed.shape[1]+1)
             imp_errbar = np.vstack((abs(np.percentile(run.entry_imputed,25,0) - np.nanmedian(run.entry_imputed,0)),
@@ -24,22 +30,24 @@ def figure3(datalist=SAVENAMES):
             label = f"{METHODNAMES[mID]}"
             total_errbar = np.vstack((abs(np.percentile(run.entry_total,25,0) - np.nanmedian(run.entry_total,0)),
                                     abs(np.percentile(run.entry_total,75,0) - np.nanmedian(run.entry_total,0))))
-            ax[i].errorbar(comps, np.median(run.entry_total,0), yerr=total_errbar, label=label, ls='solid', color=rgbs(mID, 0.7), alpha=0.5)
+            ax[i].errorbar(comps, np.median(run.entry_total,0), yerr=total_errbar,
+                           label=label, ls='solid', color=rgbs(mID, 0.7))
 
-            ax[i].set_title(f"{DATANAMES[i]}, 10% entry masking")
-            ax[i].set_xlabel("Number of Components")
-            ax[i].set_ylabel("Error")
-            ax[i].set_xticks([x for x in comps])
-            ax[i].set_xticklabels([x for x in comps])
-            # ax[1+row].set_yscale("log")
+            ax[i].tick_params(axis='both', which='major', labelsize=TEXT_FONTSIZE)
+            ax[i].set_xticks(np.arange(max(comps)/10, max(comps)+1, max(comps)/10))
 
         ax[i].errorbar([],[], label="Imputed Error", ls='dashed', color='black')
         ax[i].errorbar([],[], label="Total Error", ls='solid', color='black')
         
         h,l = ax[i].get_legend_handles_labels()
         h = [a[0] for a in h]
-        ax[i].legend(h, l, loc='best', handlelength=2)
+        ax[i].set_title(f"{DATANAMES[i]}", fontsize=SUBTITLE_FONTSIZE*1.1)
+        ax[i].set_xlabel("Number of Components", fontsize=SUBTITLE_FONTSIZE)
+        ax[i].set_ylabel("Error", fontsize=SUBTITLE_FONTSIZE)
+        ax[i].set_ylim(top=maxErr, bottom=0)
 
+    if legend is True:
+        ax[0].legend(h, l, loc='best', handlelength=2)
 
     # Figure 3, e)-h)
     drop = 0.1
@@ -70,16 +78,17 @@ def figure3(datalist=SAVENAMES):
         for l,line in enumerate([1,3,5,7]):
             x = box['caps'][line].get_xdata().mean()
             y = box['caps'][line].get_ydata()[0]
-            ax[4].text(x, y*1.03, comp_data[m.__name__][l], ha='center', va='bottom')
+            ax[4].text(x, y*1.03, comp_data[m.__name__][l]+1, ha='center', va='bottom', size=TEXT_FONTSIZE)
+    ax[4].tick_params(axis='both', which='major', labelsize=TEXT_FONTSIZE)
     ax[4].set_xticks(range(0, len(DATANAMES) * exp_spacing, exp_spacing), DATANAMES)
 
-    ax[4].set_title(f"Best imputation error by dataset\n{int(drop*100)}% {impType} masking")
-    ax[4].set_xlabel("Dataset")
-    ax[4].set_ylabel("Error")
+    ax[4].set_title(f"Best imputation error by dataset, {int(drop*100)}% {impType} masking", fontsize=SUBTITLE_FONTSIZE*1.1)
+    ax[4].set_xlabel("Dataset", fontsize=SUBTITLE_FONTSIZE)
+    ax[4].set_ylabel("Error", fontsize=SUBTITLE_FONTSIZE)
     ax[4].set_xlim(right=7)
-    ax[4].set_ylim(top=ax[4].get_ylim()[1]*1.5)
+    # ax[4].set_ylim(top=ax[4].get_ylim()[1]*1.5)
+    ax[4].set_ylim(top=1, bottom=0.01)
     ax[4].set_yscale('log')
-    ax[4].legend(loc='lower right', handles=[Line2D([0], [0], label=m, color=rgbs(i)) for i,m in enumerate(METHODNAMES)])
 
 
 
@@ -109,22 +118,28 @@ def figure3(datalist=SAVENAMES):
         for l,line in enumerate([1,3,5,7]):
             x = box['caps'][line].get_xdata().mean()
             y = box['caps'][line].get_ydata()[0]
-            ax[5].text(x, y*1.03, comp_data[m.__name__][l], ha='center', va='bottom')
+            ax[5].text(x, y*1.03, comp_data[m.__name__][l]+1, ha='center', va='bottom', size=TEXT_FONTSIZE)
+    ax[5].tick_params(axis='both', which='major', labelsize=TEXT_FONTSIZE)
     ax[5].set_xticks(range(0, len(DATANAMES) * exp_spacing, exp_spacing), DATANAMES)
 
-    ax[5].set_title(f"Best imputation error by dataset\n{int(drop*100)}% {impType} masking")
-    ax[5].set_xlabel("Dataset")
-    ax[5].set_ylabel("Error")
+    ax[5].set_title(f"Best imputation error by dataset, {int(drop*100)}% {impType} masking", fontsize=SUBTITLE_FONTSIZE*1.1)
+    ax[5].set_xlabel("Dataset", fontsize=SUBTITLE_FONTSIZE)
+    ax[5].set_ylabel("Error", fontsize=SUBTITLE_FONTSIZE)
     ax[5].set_xlim(right=7)
-    ax[5].set_ylim(top=ax[5].get_ylim()[1]*1.5)
+    # ax[5].set_ylim(top=ax[5].get_ylim()[1]*1.5)
+    ax[5].set_ylim(top=1, bottom=0.01)
     ax[5].set_yscale('log')
-    ax[5].legend(loc='lower right', handles=[Line2D([0], [0], label=m, color=rgbs(i)) for i,m in enumerate(METHODNAMES)])
 
     subplotLabel(ax)
 
-    
-    f.savefig('timpute/figures/img/svg/figure3.svg', bbox_inches="tight", format='svg')
-    f.savefig('timpute/figures/img/figure3.png', bbox_inches="tight", format='png')
+    if legend is True:
+        ax[4].legend(loc='lower right', handlelength=2, fontsize=TEXT_FONTSIZE, handles=[Line2D([0], [0], label=m, color=rgbs(i)) for i,m in enumerate(METHODNAMES)])
+        f.savefig('timpute/figures/img/svg/figure3_legend.svg', bbox_inches="tight", format='svg')
+    else:
+        f.savefig('timpute/figures/img/svg/figure3.svg', bbox_inches="tight", format='svg')
+        f.savefig('timpute/figures/img/figure3.png', bbox_inches="tight", format='png')
+
+
 
 
 def figure3_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
@@ -189,5 +204,6 @@ def figure3_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
     f.savefig('timpute/figures/img/figure3-exp.png', bbox_inches="tight", format='png')
 
 if __name__ == "__main__":
-    figure3()
+    figure3(legend=True)
+    figure3(legend=False)
     # figure3_exp()

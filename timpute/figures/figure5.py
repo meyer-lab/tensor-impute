@@ -10,7 +10,7 @@ from .realdatafigs import bestComps
 drops = (0.05,0.1,0.2,0.3,0.4,0.5)
 
 def figure5():
-    ax, f = getSetup((20,10), (2,4))
+    ax, f = getSetup((12,6), (2,4))
                     # (w,h),  (r,c)
 
     for d,data in enumerate(SAVENAMES):
@@ -28,19 +28,21 @@ def figure5():
 
             h,l = ax[d].get_legend_handles_labels()
             h = [a[0] for a in h]
-            ax[d].legend(h, l, loc='best', handlelength=2)
             ax[d].set_xlim((0, totErr.shape[1]-1))
             ax[d].set_xlabel('Iteration')
             ax[d].set_ylabel('Error')
-            ax[d].set_title(f"{DATANAMES[d]}, nonmissing factorizations")
+            ax[d].set_title(f"{DATANAMES[d]}, nonmissing")
             ax[d].set_yscale('log')
+
+    # ax[0].legend(h, l, loc='best', handlelength=2)
 
     # ////////////////////////////////////////////////////////
     
-    plotIter(ax[4], 0, 'entry', 0.1)
+    plotIter(ax[4], 0, 'entry', 0.1, legend=False)
     plotIter(ax[5], 1, 'entry', 0.2)
-    plotIter(ax[6], 2, 'chord', 0.3, 'upper left')
+    plotIter(ax[6], 2, 'chord', 0.3)
     plotIter(ax[7], 3, 'chord', 0.4)
+    
 
     # ////////////////////////////////////////////////////////
 
@@ -49,7 +51,7 @@ def figure5():
     f.savefig('timpute/figures/img/figure5.png', bbox_inches="tight", format='png')
 
 
-def plotIter(ax, dataN, impType, drop, legendloc='best'):
+def plotIter(ax, dataN, impType, drop, legend=False):
     folder = f"timpute/figures/cache/{SAVENAMES[dataN]}/drop_{drop}/"
     comps = bestComps(drop=drop, datalist=[SAVENAMES[dataN]])
 
@@ -71,9 +73,10 @@ def plotIter(ax, dataN, impType, drop, legendloc='best'):
 
     ax.errorbar([],[], label="Imputed Error", ls='dashed', color='black')
     ax.errorbar([],[], label="Total Error", ls='solid', color='black')
-    h,l = ax.get_legend_handles_labels()
-    h = [a[0] for a in h]
-    ax.legend(h, l, loc=legendloc, handlelength=2)
+    if legend is True:
+        h,l = ax.get_legend_handles_labels()
+        h = [a[0] for a in h]
+        ax.legend(h, l, loc='best', handlelength=2)
 
     ax.set_xlim((0, totErr.shape[1]-1))
     ax.set_xlabel('Iteration')
