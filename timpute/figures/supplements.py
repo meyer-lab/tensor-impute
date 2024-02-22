@@ -28,7 +28,6 @@ if __name__ == "__main__":
         ax[i].legend()
 
     f.savefig('timpute/figures/img/svg/RAM_Usage.svg', bbox_inches="tight", format='svg')
-    f.savefig('timpute/figures/img/RAM_Usage.jpg', bbox_inches="tight", format='jpg')
 
     df_list = []
     for i in ['entry','chord']:
