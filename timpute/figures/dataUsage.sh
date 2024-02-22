@@ -9,17 +9,15 @@ fi
 
 for a in {1..20}
 do
-    for t in "entry" "chord"
+    t="entry"
+    for d in 0 0.05 0.1 0.2 0.3 0.4 0.5
     do
-        for d in 0 0.05 0.1 0.2 0.3 0.4 0.5
-        do
-            for i in "zohar" "alter" "hms" "coh_response"
-            do 
-                for j in "DO" "ALS" "CLS"
-                do
-                    poetry run python -m timpute.figures.dataUsage --dataname $i --method $j --filename $d --dropType $t --dropPerc $d --seed $a
-                    echo $a ":" $i $j "for" $t "drop" $d "%"
-                done
+        for i in "zohar" "alter" "hms" "coh_response"
+        do 
+            for j in "DO" "ALS" "CLS"
+            do
+                poetry run python -m timpute.figures.dataUsage --dataname $i --method $j --filename $d --dropType $t --dropPerc $d --seed $a
+                echo $a ":" $i $j "for" $t "drop" $d "%"
             done
         done
     done

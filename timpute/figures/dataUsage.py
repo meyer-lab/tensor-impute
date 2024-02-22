@@ -42,16 +42,6 @@ def testMemory(dataname, method, methodname, max_comp, filename,
     with open('./timpute/figures/cache/dataUsage/'+filename+'.pickle', 'wb') as handle:
         pickle.dump(memory, handle)
 
-# def localRuntime():
-#     # tracker = Tracker(orig)
-#     # # run method & save
-#     # tracker.begin()
-#     # # include **kwargs include: repeat=reps, drop=drop_perc, init=init_type
-#     # decomposition.imputation(type=dropType, repeat=20, method=method, callback=tracker, drop=dropPerc)
-#     # tracker.combine()
-#     # # print(f"required {resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024**2} MB\n")
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Profile Imputation')
     parser.add_argument('--dataname', required=True)
