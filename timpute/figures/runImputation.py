@@ -39,9 +39,8 @@ def runImputation(data:np.ndarray,
         decomposition.save(f"./{savename}{impType}-{method.__name__}.decomposition")
         tracker.save(f"./{savename}{impType}-{method.__name__}.tracker")
 
-    # print(f"{method.__name__} runtime for components 1-{max_rr}: {time()-start}")
-
     return decomposition, tracker
+    
     
 def runMultiImputation(data:np.ndarray, number:int,
                        max_rr:int,
@@ -78,6 +77,7 @@ def loadImputation(impType, method, savename):
     tracker.load(f"./{savename}{impType}-{method.__name__}.tracker")
 
     return decomposition, tracker
+
 
 def loadMultiImputation(impType, method, savename):
     decomposition = MultiDecomp()

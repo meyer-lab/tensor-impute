@@ -26,17 +26,14 @@ def real_data(datalist=SAVENAMES, max_comps=[10,10,10,20]):
     for i,dataset in enumerate(datalist):
         dirname = f"timpute/figures/cache/{dataset}"
         if os.path.isdir(dirname) is False: os.makedirs(dirname)
-        # stdout = open(f"{dirname}/output.txt", 'a')
 
         orig = generateTensor(type=dataset)
         max_component = max_comps[i]
         
-        # stdout.write(f"\n\n===================\nStarting new run for [{inspect.currentframe().f_code.co_name}]\nTimestamp: {datetime.now(timezone('US/Pacific'))}\n")
         savename = "/"
         folder = dirname+savename
         np.random.seed(seed)
 
-        # stdout.write("--- BEGIN NONMISSING ---\n")
         print("--- BEGIN NONMISSING ---")
         drop_perc = 0.0
         run = "nonmissing/"
@@ -44,31 +41,23 @@ def real_data(datalist=SAVENAMES, max_comps=[10,10,10,20]):
         if os.path.isdir(folder+run) is False: os.makedirs(folder+run)
         impType = 'entry'
         for m in METHODS:
-            # start = time()
             runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
                         repeat=reps, drop=drop_perc, init=init_type, callback_r=max_component, seed=seed*i, tol=1e-6)
-            # stdout.write(f"finished {dataset}, {run}{impType} for {m.__name__} in {time()-start} seconds\n")
-        
 
         for i in DROPS:
             print(f"--- BEGIN MISSING ({i}) ---")
-            # stdout.write(f"--- BEGIN MISSING ({i}) ---\n")
             drop_perc = i
             run = f"drop_{i}/"
 
             if os.path.isdir(folder+run) is False: os.makedirs(folder+run)
             for m in METHODS:
-                # start = time()
                 impType = 'entry'
                 runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
                             repeat=reps, drop=drop_perc, init=init_type, callback_r=max_component, seed=seed*i, tol=1e-6)
-                # stdout.write(f"finished {dataset}, {run}{impType} for {m.__name__} in {time()-start} seconds\n")
 
-                # start = time()
                 impType = 'chord'
                 runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
                             repeat=reps, drop=drop_perc, init=init_type, callback_r=max_component, seed=seed*i, tol=1e-6)
-                # stdout.write(f"finished {dataset}, {run}{impType} for {m.__name__} in {time()-start} seconds\n")           
 
 
 def bestComps(drop=0.1, impType = "entry", datalist=SAVENAMES):
@@ -93,6 +82,37 @@ def bestComps(drop=0.1, impType = "entry", datalist=SAVENAMES):
         bestComp.update({data : tmp})
     return bestComp
 
+
+def real_data(datalist=SAVENAMES, max_comps=[10,10,10,20], drops = (0.05, 0.1, 0.2, 0.3, 0.4)):
+    assert len(datalist) == len(max_comps)
+    
+    seed = 1
+    init_type = 'random'
+    reps = 20
+
+    for i,dataset in enumerate(datalist):
+        dirname = f"timpute/figures/cache/modeComparison/{dataset}"
+        if os.path.isdir(dirname) is False: os.makedirs(dirname)
+
+        orig = generateTensor(type=dataset)
+        max_component = max_comps[i]
+        
+        savename = "/"
+        folder = dirname+savename
+        np.random.seed(seed)
+
+        for i in drops:
+            print(f"--- BEGIN MISSING ({i}) ---")
+            drop_perc = i
+
+            for mode in range(orig.ndim):
+                run = f"drop_{i}/mode_{i}"
+                if os.path.isdir(folder+run) is False: os.makedirs(folder+run)
+                for m in METHODS:
+                        impType = 'chord'
+                        runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
+                                    repeat=reps, drop=drop_perc, init=init_type, callback_r=max_component, seed=seed*i, tol=1e-6, chord_mode=mode)
+
 if __name__ == "__main__":
     for i in ['entry', 'chord']:
         data = dict()
@@ -100,4 +120,3 @@ if __name__ == "__main__":
             data[d] = bestComps(d, i)
         with open(f'./timpute/figures/cache/bestComps_{i}.pickle', 'wb') as handle:
             pickle.dump(data, handle)
-        

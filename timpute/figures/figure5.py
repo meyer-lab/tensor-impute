@@ -8,47 +8,52 @@ from .realdatafigs import bestComps
 # poetry run python -m timpute.figures.figure5
 
 drops = (0.05,0.1,0.2,0.3,0.4,0.5)
+SUBTITLE_FONTSIZE = 15
+TEXT_FONTSIZE = 13
 
 def figure5():
-    ax, f = getSetup((12,6), (2,4))
+    ax, f = getSetup((16,8), (2,4))
                     # (w,h),  (r,c)
-
-    for d,data in enumerate(SAVENAMES):
-        folder = f"timpute/figures/cache/{data}/nonmissing/"
-
-        for mID, m in enumerate(METHODS):
-            _, tracker = loadImputation("entry", m, folder)
-
-            label = f"{METHODNAMES[mID]}"
-            totErr = tracker.total_array[list(tracker.total_array.keys())[-1]][:,:-1]
-            total_errbar = np.vstack((-(np.percentile(totErr,25,0) - np.nanmedian(totErr,0)),
-                                        np.percentile(totErr,75,0) - np.nanmedian(totErr,0)))
-            ax[d].errorbar(np.arange(totErr.shape[1]), np.nanmedian(totErr,0), label=label, color=rgbs(mID,0.7),
-                                yerr=total_errbar, ls = 'solid', errorevery=5)
-
-            h,l = ax[d].get_legend_handles_labels()
-            h = [a[0] for a in h]
-            ax[d].set_xlim((0, totErr.shape[1]-1))
-            ax[d].set_xlabel('Iteration')
-            ax[d].set_ylabel('Error')
-            ax[d].set_title(f"{DATANAMES[d]}, nonmissing")
-            ax[d].set_yscale('log')
-
-    # ax[0].legend(h, l, loc='best', handlelength=2)
-
-    # ////////////////////////////////////////////////////////
     
-    plotIter(ax[4], 0, 'entry', 0.1, legend=False)
-    plotIter(ax[5], 1, 'entry', 0.2)
-    plotIter(ax[6], 2, 'chord', 0.3)
-    plotIter(ax[7], 3, 'chord', 0.4)
+    plotTime(ax[0], 0, 'entry', 0)
+    plotTime(ax[1], 1, 'entry', 0)
+    plotTime(ax[2], 2, 'entry', 0)
+    plotTime(ax[3], 3, 'entry', 0)
+    plotTime(ax[4], 0, 'entry', 0.1)
+    plotTime(ax[5], 1, 'entry', 0.2)
+    plotTime(ax[6], 2, 'chord', 0.3)
+    plotTime(ax[7], 3, 'chord', 0.4)
     
-
-    # ////////////////////////////////////////////////////////
 
     subplotLabel(ax)
     f.savefig('timpute/figures/img/svg/figure5.svg', bbox_inches="tight", format='svg')
     f.savefig('timpute/figures/img/figure5.png', bbox_inches="tight", format='png')
+
+
+def plotTime(ax, dataN, dropType, drop):
+    data = SAVENAMES[dataN]
+    if drop == 0:
+        folder = f"timpute/figures/cache/{data}/nonmissing/"
+    else:
+        folder = f"timpute/figures/cache/{data}/drop_{drop}/"
+        
+    comps = bestComps(drop=drop, impType=dropType, datalist=[data])
+    for mID, m in enumerate(METHODS):
+        _, tracker = loadImputation(dropType, m, folder)
+        timepoints = tracker.time_array[str(comps[data][METHODNAMES[mID]])]
+        # for i in range(timepoints.shape[0]):
+        #     timepoints[i] -= timepoints[i,0]
+        if drop != 0:
+            impErr = tracker.imputed_array[str(comps[data][METHODNAMES[mID]])]
+            ax.errorbar(np.nanmedian(timepoints,0), np.nanmean(impErr,0), label=METHODNAMES[mID], color=rgbs(mID,0.7), ls = 'dashed', errorevery=5)
+        totErr = tracker.total_array[str(comps[data][METHODNAMES[mID]])]
+        ax.errorbar(np.nanmedian(timepoints,0), np.nanmean(totErr,0), label=METHODNAMES[mID], color=rgbs(mID,0.7), ls = 'solid', errorevery=5)
+    
+    ax.set_xlim(left=0)
+    ax.set_xlabel('Iteration', size=SUBTITLE_FONTSIZE)
+    ax.set_ylabel('Error', size=SUBTITLE_FONTSIZE)
+    ax.set_title(f"{DATANAMES[dataN]}\n{int(drop*100)}% {dropType} masking", size=SUBTITLE_FONTSIZE*1.1)
+    ax.set_xscale('symlog')
 
 
 def plotIter(ax, dataN, impType, drop, legend=False):

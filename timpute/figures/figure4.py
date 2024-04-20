@@ -4,9 +4,8 @@ from ..plot import *
 from ..common import *
 import math
 
-# poetry run python -m timpute.figures.figure3
-
 # poetry run python -m timpute.figures.figure4
+
 SUBTITLE_FONTSIZE = 15
 TEXT_FONTSIZE = 13
 drops = (0.01, 0.05, 0.1, 0.2, 0.3, 0.4)
@@ -20,7 +19,6 @@ def figure4(datalist=SAVENAMES, errors=True):
     for i, data in enumerate(datalist):
         # Figure 4, a)-d)
         impType = 'entry'
-        maxErr = 0
         ax[i].tick_params(axis='both', which='major', labelsize=TEXT_FONTSIZE)
 
         for mID, m in enumerate(METHODS):
@@ -33,8 +31,6 @@ def figure4(datalist=SAVENAMES, errors=True):
                 folder = f"timpute/figures/cache/{data}/drop_{d}/"
                 run, _ = loadImputation(impType, m, folder)
                 comp = np.median(run.entry_imputed,0).argmin() # best imp error
-                maxErr = max(maxErr, math.ceil(np.median(run.entry_imputed[comp])*20)/20)
-                maxErr = max(maxErr, math.ceil(np.median(run.entry_total[comp])*20)/20)
                 ImpErr.append(np.median(run.entry_imputed[comp]))
                 ImpErrIQR.append(np.vstack((-(np.percentile(run.entry_imputed[comp],25,0) - np.median(run.entry_imputed[comp],0)),
                                           np.percentile(run.entry_imputed[comp],75,0) - np.median(run.entry_imputed[comp],0))))
@@ -66,12 +62,15 @@ def figure4(datalist=SAVENAMES, errors=True):
         ax[i].set_xlabel("Drop Percent", fontsize=SUBTITLE_FONTSIZE)
         ax[i].set_ylabel("Median Error", fontsize=SUBTITLE_FONTSIZE)
         # ax[i].set_yscale('log')
+        if i==0 or i==1:
+            maxErr = 0.15
+        else:
+            maxErr = 0.3
         ax[i].set_ylim(top=maxErr, bottom=0)
         ax[i].set_title(f"{DATANAMES[i]}, {impType} masking", fontsize=SUBTITLE_FONTSIZE*1.1)
         
         # Figure 4, e)-h)
         impType = 'chord'
-        maxErr = 0
         ax[i+4].tick_params(axis='both', which='major', labelsize=TEXT_FONTSIZE)
 
         for mID, m in enumerate(METHODS):
@@ -83,8 +82,6 @@ def figure4(datalist=SAVENAMES, errors=True):
             for d in drops:
                 folder = f"timpute/figures/cache/{data}/drop_{d}/"
                 run, _ = loadImputation(impType, m, folder)
-                maxErr = max(maxErr, math.ceil(np.median(run.chord_imputed[comp])*10)/10)
-                maxErr = max(maxErr, math.ceil(np.median(run.chord_total[comp])*10)/10)
                 comp = np.median(run.chord_imputed,0).argmin() # best imp error
                 ImpErr.append(np.median(run.chord_imputed[comp]))
                 ImpErrIQR.append(np.vstack((-(np.percentile(run.chord_imputed[comp],25,0) - np.median(run.chord_imputed[comp],0)),
@@ -115,11 +112,8 @@ def figure4(datalist=SAVENAMES, errors=True):
             ax[i+4].plot([],[], label="Best Imputed Error", ls='dashed', color='black')
             ax[i+4].plot([],[], label="Total Error", ls='solid', color='black')
 
-        
-        if maxErr > 1:
-            ax[i+4].set_ylim(top=1, bottom=0)
-        else:
-            ax[i+4].set_ylim(top=maxErr, bottom=0)
+    
+        ax[i+4].set_ylim(top=1, bottom=0)
         ax[i+4].set_xlabel("Drop Percent", fontsize=SUBTITLE_FONTSIZE)
         ax[i+4].set_ylabel("Median Error", fontsize=SUBTITLE_FONTSIZE)
         ax[i+4].set_title(f"{DATANAMES[i]}, {impType} masking", fontsize=SUBTITLE_FONTSIZE*1.1)
