@@ -68,7 +68,8 @@ def perform_DO(
         jac=True,
         args=(tensorIn, tmask),
         options={"maxiter": n_iter_max},
-        callback=temp_callback,
+        tol=tol,
+        callback=temp_callback
     )
 
     return cp_normalize(buildTensors(res.x, tensorIn.shape))
