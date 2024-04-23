@@ -12,11 +12,10 @@ from time import time
 from datetime import datetime
 from pytz import timezone
 import inspect
-import resource
 
 # poetry run python -m timpute.figures.realdatafigs  
 
-def real_data(datalist=SAVENAMES, max_comps=[10,10,10,20]):
+def real_data(datalist=["zohar", "alter", "hms", "coh_response"], max_comps=[10,10,10,20]):
     assert len(datalist) == len(max_comps)
     
     seed = 1
@@ -35,6 +34,7 @@ def real_data(datalist=SAVENAMES, max_comps=[10,10,10,20]):
         np.random.seed(seed)
 
         print("--- BEGIN NONMISSING ---")
+        # stdout.write("--- BEGIN NONMISSING ---\n")
         drop_perc = 0.0
         run = "nonmissing/"
 

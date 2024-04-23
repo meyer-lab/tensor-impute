@@ -6,6 +6,7 @@ def calcR2X(tFac: tl.cp_tensor.CPTensor, tIn: np.ndarray, calcError=False, mask:
     Mask is for imputation and must be of same shape as tIn/tFac, with 0s indicating artifically dropped values
     """
     vTop, vBottom = 0.0, 1e-8
+    vTop, vBottom = 0.0, 1e-8
 
     if mask is None:
         tOrig = np.copy(tIn)
