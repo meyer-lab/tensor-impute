@@ -13,6 +13,9 @@ import numpy as np
 import pickle
 import os
 
+"""
+Attempt at all-in-one figures. Customization got too difficult, so I'm leaving this until I need clean up the repo.
+"""
 
 
 def impute_data(impute_type = 'entry',
