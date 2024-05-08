@@ -1,8 +1,7 @@
 import os
 import numpy as np
-from time import time
-from ..decomposition import Decomposition, MultiDecomp
-from ..tracker import Tracker, MultiTracker
+from ..decomposition import Decomposition
+from ..tracker import Tracker
 
 from ..method_ALS import perform_ALS
 from ..method_CLS import perform_CLS

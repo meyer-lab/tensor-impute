@@ -1,7 +1,7 @@
 import numpy as np
 import os
 
-from .runImputation import *
+from .figure_helper import *
 from ..generateTensor import generateTensor
 from ..plot import *
 from ..common import *
@@ -105,10 +105,10 @@ def chordMasking(datalist=SAVENAMES, max_comps=[10,10,10,20], drops = (0.05, 0.1
                                   callback=False, repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6, chord_mode=mode)
 
 if __name__ == "__main__":
-    # for i in ['entry', 'chord']:
-    #     data = dict()
-    #     for d in DROPS:
-    #         data[d] = bestComps(d, i)
-    #     with open(f'./timpute/figures/cache/bestComps_{i}.pickle', 'wb') as handle:
-    #         pickle.dump(data, handle)
+    for i in ['entry', 'chord']:
+        data = dict()
+        for d in DROPS:
+            data[d] = bestComps(d, i)
+        with open(f'./timpute/figures/cache/bestComps_{i}.pickle', 'wb') as handle:
+            pickle.dump(data, handle)
     chordMasking()

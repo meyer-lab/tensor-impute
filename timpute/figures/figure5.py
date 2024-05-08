@@ -1,8 +1,8 @@
 import numpy as np
-from .runImputation import *
+from .figure_data import bestComps
+from .figure_helper import *
 from ..plot import *
 from ..common import *
-from .realdatafigs import bestComps
 # from matplotlib.legend_handler import HandlerErrorbar
 
 # poetry run python -m timpute.figures.figure5

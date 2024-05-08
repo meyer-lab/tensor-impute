@@ -1,7 +1,7 @@
 # import psutil
 import resource
 import argparse
-from .runImputation import *
+from .figure_helper import *
 from ..generateTensor import generateTensor
 import pickle
 

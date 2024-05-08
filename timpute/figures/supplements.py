@@ -2,7 +2,7 @@ import pickle
 from ..plot import *
 from ..common import * 
 import pandas as pd
-from .runImputation import *
+from .figure_helper import *
 
 # poetry run python -m timpute.figures.supplements
 
