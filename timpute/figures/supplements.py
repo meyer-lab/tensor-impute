@@ -41,3 +41,4 @@ if __name__ == "__main__":
         # df = df.style.set_caption(f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage")
         df_list.append(df)
         df.to_excel(f"./timpute/figures/img/bestComps_{i}.xlsx", sheet_name=f'Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage')
+

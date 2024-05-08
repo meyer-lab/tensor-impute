@@ -5,7 +5,7 @@ import tensorly as tl
 from .tracker import Tracker
 from .initialization import initialize_fac
 from .impute_helper import entry_drop, chord_drop
-from .impute_helper import calcR2X, corcondia
+from .impute_helper import calcR2X, corcondia_3d
 from .method_CLS import perform_CLS
 
 from copy import deepcopy
@@ -107,7 +107,8 @@ class Decomposition():
         - `missingCube` is where values are dropped
         """
         tImp = self.data.copy()           # avoid editing in-place of data
-        np.moveaxis(tImp,chord_mode,0)      # reshaping for correct chord dropping
+        if chord_mode != 0:
+            tImp = np.moveaxis(tImp,chord_mode,0)
 
         for x in missingpatterns:
             missingCube = tImp.copy()
@@ -155,8 +156,6 @@ class Decomposition():
                 if drop > 0:
                     imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
                     fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
-                if trackCoreConsistency is True:
-                    corcon[x,rr-1] = corcondia(tFac)
         
         # save objects
         if type == 'entry':
@@ -168,6 +167,10 @@ class Decomposition():
             self.chord_total = error
             self.chord_imputed = imputed_error
             self.chord_fitted = fitted_error
+        
+        if trackCoreConsistency is True:
+            for r in self.rrs:
+                corcon[r-1] = corcondia_3d(tFac, r)
             
     def save(self, pfile):
         with open(pfile, "wb") as output_file:
