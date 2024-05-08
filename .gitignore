@@ -137,5 +137,4 @@ dmypy.json
 archive/
 analysis/
 cache/
-final_figs.py
-testfig.py
+*figs.py
