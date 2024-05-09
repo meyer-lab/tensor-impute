@@ -7,7 +7,7 @@ from ..plot import *
 from ..common import *
 import pickle
 
-# poetry run python -m timpute.figures.realdatafigs  
+# poetry run python -m timpute.figures.figure_data  
 
 def real_data(datalist=["zohar", "alter", "hms", "coh_response"], max_comps=[10,10,10,20]):
     assert len(datalist) == len(max_comps)
@@ -79,36 +79,31 @@ def bestComps(drop=0.1, impType = "entry", datalist=SAVENAMES):
 
 def chordMasking(datalist=SAVENAMES, max_comps=[10,10,10,20], drops = (0.05, 0.1, 0.2, 0.3, 0.4)):
     assert len(datalist) == len(max_comps)
-    
-    seed = 1
+
     init_type = 'random'
+    impType = 'chord'
     reps = 20
+    seed = 1
 
     for i,dataset in enumerate(datalist):
         folder = f"timpute/figures/cache/modeComparison/{dataset}/"
-        if os.path.isdir(folder) is False: os.makedirs(folder)
-
-        orig = generateTensor(type=dataset, shape = (10,20,30)) if dataset == 'random' else generateTensor(type=dataset)
         max_component = max_comps[i]
-        np.random.seed(seed)
+        orig = generateTensor(type=dataset, shape = (10,20,30)) if dataset == 'random' else generateTensor(type=dataset)
 
-        for i in drops:
-            print(f"--- BEGIN MISSING ({i}) ---")
-            drop_perc = i
-
+        for d in drops:
+            print(f"--- BEGIN {dataset}: {int(d*100)}% MISSING ---")
             for mode in range(orig.ndim):
-                run = f"drop_{i}/mode_{mode}/"
-                if os.path.isdir(folder+run) is False: os.makedirs(folder+run)
+                run = f"drop_{d}/mode_{mode}/"
+                if os.path.isdir(folder+run) is False:os.makedirs(folder+run)
                 for m in METHODS:
-                    impType = 'chord'
                     runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
-                                  callback=False, repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6, chord_mode=mode)
+                                  callback=False, repeat=reps, drop=d, init=init_type, seed=seed*i, tol=1e-6, chord_mode=mode)
 
 if __name__ == "__main__":
-    for i in ['entry', 'chord']:
-        data = dict()
-        for d in DROPS:
-            data[d] = bestComps(d, i)
-        with open(f'./timpute/figures/cache/bestComps_{i}.pickle', 'wb') as handle:
-            pickle.dump(data, handle)
+    # for i in ['entry', 'chord']:
+    #     data = dict()
+    #     for d in DROPS:
+    #         data[d] = bestComps(d, i)
+    #     with open(f'./timpute/figures/cache/bestComps_{i}.pickle', 'wb') as handle:
+    #         pickle.dump(data, handle)
     chordMasking()

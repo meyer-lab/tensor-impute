@@ -6,7 +6,39 @@ from .figure_helper import *
 
 # poetry run python -m timpute.figures.supplements
 
-if __name__ == "__main__":
+def figureS1() -> None:
+    # Supplemental 1
+    impType = 'chord'
+    DROPS = (0.05, 0.1, 0.2, 0.3, 0.4)
+
+    # create dataframe
+    col = [[f'{int(d*100)}%' for d in DROPS for _ in METHODNAMES], METHODNAMES * len(DROPS)]
+    row = [sorted(SAVENAMES*3+['coh_response']),[i for j in [3,4,3,3] for i in range(1,j+1)]]
+    colIndex = pd.Series(np.zeros(len(col[0])), index=col).index
+    rowIndex = pd.Series(np.zeros(len(row[0])), index=row).index
+    df = pd.DataFrame(np.zeros((len(rowIndex),len(colIndex))), index=rowIndex, columns=colIndex)
+
+    # fill dataframe 
+    data = Decomposition()
+    for method in METHODNAMES:
+        for s in SAVENAMES:
+            for d in (0.05, 0.1, 0.2, 0.3, 0.4):
+                modes = (0,1,2,3) if (s == 'coh_response') else (0,1,2)
+                for m in modes:
+                    data.load(f'./timpute/figures/cache/modeComparison/{s}/drop_{d}/mode_{m}/chord-perform_{method}.decomposition')
+                    df.loc[(s,m+1),(f'{int(d*100)}%',method)] = np.min(np.mean(data.chord_fitted,axis=0))
+
+    # cleaning
+    df = df.reindex([i for name in SAVENAMES for i in df.index if i[0] == name])
+    df.index = df.index.set_levels([DATANAMES[SAVENAMES.index(i)] for i in df.index.levels[0]],level=0)
+    df.index = df.index.set_names(['Dataset', 'Mode'])
+    df = df.style.set_caption(f"Chord Imputation by Mode per Dataset by Masking Percentage")
+
+    df.to_excel("./timpute/figures/img/chordModes.xlsx", sheet_name=f'Chord Imputation by Mode per Dataset by Masking Percentage')
+
+
+def figureS2() -> None:
+    # Supplemental 2
     ax, f = getSetup((24,12), (2,4))
     width = 0.3
     ind = np.arange(4)
@@ -29,6 +61,9 @@ if __name__ == "__main__":
 
     f.savefig('timpute/figures/img/svg/RAM_Usage.svg', bbox_inches="tight", format='svg')
 
+
+def figureS3() -> None:
+    # Supplemental 3
     df_list = []
     for i in ['entry','chord']:
         with open(f'./timpute/figures/cache/bestComps_{i}.pickle', 'rb') as handle:
@@ -42,3 +77,8 @@ if __name__ == "__main__":
         df_list.append(df)
         df.to_excel(f"./timpute/figures/img/bestComps_{i}.xlsx", sheet_name=f'Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage')
 
+
+if __name__ == "__main__":
+    figureS1()
+    # figureS2()
+    # figureS3()

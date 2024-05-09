@@ -83,12 +83,6 @@ class Decomposition():
         """
         assert(chord_mode >= 0 and chord_mode < self.data.ndim)
         assert(drop < 1 and drop >= 0)
-        if type=='entry':
-            drop = int(drop*np.sum(np.isfinite(self.data)))
-        elif type=='chord': 
-            drop = int(drop*self.data.size/self.data.shape[0])
-        else:
-            raise ValueError('invalid imputation type')
 
         error = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
@@ -109,6 +103,13 @@ class Decomposition():
         tImp = self.data.copy()           # avoid editing in-place of data
         if chord_mode != 0:
             tImp = np.moveaxis(tImp,chord_mode,0)
+
+        if type=='entry':
+            drop = int(drop*np.sum(np.isfinite(self.data)))
+        elif type=='chord': 
+            drop = int(drop*self.data.size/self.data.shape[0])
+        else:
+            raise ValueError('invalid imputation type')
 
         for x in missingpatterns:
             missingCube = tImp.copy()
