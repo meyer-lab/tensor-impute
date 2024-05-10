@@ -10,6 +10,7 @@ from .initialization import initialize_fac
 from .impute_helper import calcR2X
 from tqdm import tqdm
 from sklearn.linear_model import Ridge
+from copy import deepcopy
 
 
 tl.set_backend('numpy')
@@ -62,7 +63,9 @@ def perform_CLS(tOrig,
     """ Perform CP decomposition. """
 
     if init==None: tFac = initialize_fac(tOrig, rank)
-    else: tFac = init
+    else:
+        tFac = init
+        tFac_last = init
     
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
@@ -87,8 +90,16 @@ def perform_CLS(tOrig,
 
         if tFac.R2X - R2X_last < tol:
             break
+        else:
+            tFac_last = deepcopy(tFac)
 
     tFac = cp_normalize(tFac)
     tFac.R2X = calcR2X(tFac, tOrig)
 
-    return tFac
+    tFac_last = cp_normalize(tFac_last)
+    tFac_last.R2X = calcR2X(tFac_last, tOrig)
+
+    if tFac.R2X < tFac_last.R2X:
+        return tFac_last
+    else:
+        return tFac

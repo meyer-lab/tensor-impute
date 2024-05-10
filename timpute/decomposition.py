@@ -5,7 +5,7 @@ import tensorly as tl
 from .tracker import Tracker
 from .initialization import initialize_fac
 from .impute_helper import entry_drop, chord_drop
-from .impute_helper import calcR2X, corcondia
+from .impute_helper import calcR2X, corcondia_3d
 from .method_CLS import perform_CLS
 
 from copy import deepcopy
@@ -83,12 +83,6 @@ class Decomposition():
         """
         assert(chord_mode >= 0 and chord_mode < self.data.ndim)
         assert(drop < 1 and drop >= 0)
-        if type=='entry':
-            drop = int(drop*np.sum(np.isfinite(self.data)))
-        elif type=='chord': 
-            drop = int(drop*self.data.size/self.data.shape[0])
-        else:
-            raise ValueError('invalid imputation type')
 
         error = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
@@ -107,7 +101,15 @@ class Decomposition():
         - `missingCube` is where values are dropped
         """
         tImp = self.data.copy()           # avoid editing in-place of data
-        np.moveaxis(tImp,chord_mode,0)      # reshaping for correct chord dropping
+        if chord_mode != 0:
+            tImp = np.moveaxis(tImp,chord_mode,0)
+
+        if type=='entry':
+            drop = int(drop*np.sum(np.isfinite(tImp)))
+        elif type=='chord': 
+            drop = int(drop*tImp.size/tImp.shape[0])
+        else:
+            raise ValueError('invalid imputation type')
 
         for x in missingpatterns:
             missingCube = tImp.copy()
@@ -155,8 +157,6 @@ class Decomposition():
                 if drop > 0:
                     imputed_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=imputed_vals, calcError=True)
                     fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
-                if trackCoreConsistency is True:
-                    corcon[x,rr-1] = corcondia(tFac)
         
         # save objects
         if type == 'entry':
@@ -170,8 +170,8 @@ class Decomposition():
             self.chord_fitted = fitted_error
         
         if trackCoreConsistency is True:
-            self.corcondia = corcon
-
+            for r in self.rrs:
+                corcon[r-1] = corcondia_3d(tFac, r)
             
     def save(self, pfile):
         with open(pfile, "wb") as output_file:

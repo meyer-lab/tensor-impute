@@ -136,5 +136,5 @@ dmypy.json
 *.ipynb
 archive/
 analysis/
-final_figs.py
-testfig.py
+cache/
+*figs.py

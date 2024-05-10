@@ -6,6 +6,7 @@ def calcR2X(tFac: tl.cp_tensor.CPTensor, tIn: np.ndarray, calcError=False, mask:
     Mask is for imputation and must be of same shape as tIn/tFac, with 0s indicating artifically dropped values
     """
     vTop, vBottom = 0.0, 1e-8
+    vTop, vBottom = 0.0, 1e-8
 
     if mask is None:
         tOrig = np.copy(tIn)
@@ -46,8 +47,8 @@ def entry_drop(tensor:np.ndarray, drop:int, dropany=False, seed:int=None):
     if seed != None:
         np.random.seed(seed)
 
+    # withhold base missingness from entry dropping
     if dropany: idxs = np.argwhere(np.isfinite(tensor))
-        
     else:
         midxs = np.zeros((tensor.ndim, max(tensor.shape)))
         for i in range(tensor.ndim):
@@ -78,6 +79,8 @@ def entry_drop(tensor:np.ndarray, drop:int, dropany=False, seed:int=None):
         tensor[i] = np.nan
         data_pattern[i] = 0
     
+    # missingness pattern holds 0s where dropped, 1s if left alone (does not guarantee nonmissing)
+
     return np.array(data_pattern, dtype=bool)
 
 def chord_drop(tensor: np.ndarray, drop: int, seed: int=None):
@@ -109,52 +112,50 @@ def chord_drop(tensor: np.ndarray, drop: int, seed: int=None):
     for _ in range(drop):
         idxs = np.argwhere(np.isfinite(tensor))
         chordidx = np.delete(idxs[np.random.choice(idxs.shape[0], 1)][0], 0)
-        dropidxs = []
-        for i in range(chordlen):
-            dropidxs.append(tuple(np.insert(chordidx, 0, i)))
-        for i in range(chordlen):
-            if tensor[dropidxs[i]] != np.nan:
-                data_pattern[dropidxs[i]] = 0  
-            tensor[dropidxs[i]] = np.nan
+        dropidxs = [tuple(np.insert(chordidx, 0, i)) for i in range(chordlen)]
+        for d in dropidxs:
+            if tensor[d] != np.nan:
+                data_pattern[d] = 0  
+            tensor[d] = np.nan
 
+    # missingness pattern holds 0s where dropped, 1s if left alone (may be inherently missing or undropped)
+    
     return np.array(data_pattern, dtype=bool)
 
 def kronecker_mat_ten(matrices, X):
     for k in range(len(matrices)):
         M = matrices[k]
-        Y = tl.tenalg.mode_dot(X, M, k)
-        X = Y
-        X = tl.moveaxis(X, [0, 1, 2], [2, 1, 0])
-    return Y
+        X = tl.tenalg.mode_dot(X, M, k)
+    return X
 
-def corcondia(tFac):
-    weights = tFac[0].copy()
-    X_approx_ks = tFac[1].copy()
+# Shortcut to invert singular values.
+# Given a vector of singular values, returns the inverted matrix
+def invert_sing(s):
+    return np.diag(1.0 / s)
+
+def corcondia_3d(tOrig, tFac):
+    # Weights are not important since normalize_factors is false by default
+    #  so the weights will be all ones.
+    _, X_approx_ks = tFac.factors
     k = tFac.rank
 
     A, B, C = X_approx_ks
-    x = tl.cp_to_tensor((weights, X_approx_ks))
+    Ua, Sa, Va = np.linalg.svd(A, full_matrices=False)
+    Ub, Sb, Vb = np.linalg.svd(B, full_matrices=False)
+    Uc, Sc, Vc = np.linalg.svd(C, full_matrices=False)
 
-    Ua, Sa, Va = np.linalg.svd(A)
-    Ub, Sb, Vb = np.linalg.svd(B)
-    Uc, Sc, Vc = np.linalg.svd(C)
+    inverted = [invert_sing(x) for x in (Sa, Sb, Sc)]
 
-    SaI = np.zeros((Ua.shape[0], Va.shape[0]), float)
-    np.fill_diagonal(SaI, Sa)
-
-    SbI = np.zeros((Ub.shape[0], Vb.shape[0]), float)
-    np.fill_diagonal(SbI, Sb)
-
-    ScI = np.zeros((Uc.shape[0], Vc.shape[0]), float)
-    np.fill_diagonal(ScI, Sc)
-
-    SaI = np.linalg.pinv(SaI)
-    SbI = np.linalg.pinv(SbI)
-    ScI = np.linalg.pinv(ScI)
-
-    part1 = kronecker_mat_ten([Ua.T, Ub.T, Uc.T], x)
-    part2 = kronecker_mat_ten([SaI, SbI, ScI], part1)
+    part1 = kronecker_mat_ten([Ua.T, Ub.T, Uc.T], tOrig)
+    # TODO: line below can be omitted if we multiply the k-th column
+    #  of Ua, Ub and Uc by the inverse of the corresponding k-th singular value, that is 1/σ_k.
+    #  Then, the previous line will need to use the updated Ua, Ub and Uc
+    # (note by Yorgos)
+    part2 = kronecker_mat_ten(inverted, part1)
     G = kronecker_mat_ten([Va.T, Vb.T, Vc.T], part2)
+
+    for i in range(k):
+        G[:,:,i] = G[:,:,i] / G[i,i,i]
 
     T = np.zeros((k, k, k))
     for i in range(k):

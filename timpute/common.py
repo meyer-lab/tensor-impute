@@ -6,6 +6,7 @@ from string import ascii_lowercase
 import matplotlib
 from matplotlib import gridspec, pyplot as plt
 import svgutils.transform as st
+from matplotlib.lines import Line2D
 
 
 matplotlib.rcParams["legend.labelspacing"] = 0.2
