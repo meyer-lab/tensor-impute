@@ -105,9 +105,9 @@ class Decomposition():
             tImp = np.moveaxis(tImp,chord_mode,0)
 
         if type=='entry':
-            drop = int(drop*np.sum(np.isfinite(self.data)))
+            drop = int(drop*np.sum(np.isfinite(tImp)))
         elif type=='chord': 
-            drop = int(drop*self.data.size/self.data.shape[0])
+            drop = int(drop*tImp.size/tImp.shape[0])
         else:
             raise ValueError('invalid imputation type')
 
