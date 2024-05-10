@@ -8,7 +8,6 @@ from .figure_helper import *
 
 def figureS1() -> None:
     # Supplemental 1
-    impType = 'chord'
     DROPS = (0.05, 0.1, 0.2, 0.3, 0.4)
 
     # create dataframe
