@@ -1,5 +1,5 @@
 import numpy as np
-from .runImputation import *
+from .figure_helper import *
 from ..plot import *
 from ..common import *
 import math
