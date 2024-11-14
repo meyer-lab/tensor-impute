@@ -13,7 +13,7 @@ from tqdm import tqdm
 
 
 class Decomposition():
-    def __init__(self, data=np.ndarray([0]), max_rr=5):
+    def __init__(self, data=np.ndarray([0]), min_rr=1, max_rr=5, dataname=None):
         """
         Decomposition object designed for plotting. Capable of handling a single tensor.
 
@@ -30,7 +30,8 @@ class Decomposition():
             other methods include: tucker_decomp
         """
         self.data = data.copy()
-        self.rrs = np.arange(1,max_rr+1)
+        self.dataname = dataname
+        self.rrs = np.arange(min_rr,max_rr+1)
 
     def imputation(self,
                    type:str='chord',
@@ -74,11 +75,11 @@ class Decomposition():
         self.Q2X : ndarray of size (repeat, max_rr)
             Each value in a row represents the Q2X of the tensor calculated for components 1 to max_rr.
             Each row represents a single repetition.
-        self.imputed_chord_error / self.imputed_entry_error : ndarray of size (repeat, max_rr)
+        self.chord_imputed / self.entry_imputed : ndarray of size (repeat, max_rr)
             Each value in a row represents error of the IMPUTED artificial dropped values of the tensor
             calculated for components 1 to max_rr.
-        self.fitted_chord_error / self.fitted_entry_error : ndarray of size (repeat, max_rr)
-            Each value in a row represents error of the FITTED (not dropped, not missing) values of the tensor
+        self.chord_fitted / self.entry_fitted : ndarray of size (repeat, max_rr)
+            Each value in a row represents ernror of the FITTED (not dropped, not missing) values of the tensor
             calculated for components 1 to max_rr.
         """
         assert(chord_mode >= 0 and chord_mode < self.data.ndim)
@@ -87,12 +88,17 @@ class Decomposition():
         error = np.zeros((repeat,self.rrs[-1]))
         imputed_error = np.zeros((repeat,self.rrs[-1]))
         fitted_error = np.zeros((repeat,self.rrs[-1]))
+
+        error[:] = np.nan
+        imputed_error[:] = np.nan
+        fitted_error[:] = np.nan
+
         if trackCoreConsistency is True:
             assert drop == 0
             corcon = np.zeros((repeat,self.rrs[-1]))
         
         if printRuntime:
-            missingpatterns = tqdm(range(repeat), desc=f"Decomposing {repeat} tensors using {method.__name__}")
+            missingpatterns = tqdm(range(repeat), desc=f'Decomposing "{self.dataname}" {repeat} times using {method.__name__}')
         else:
             missingpatterns = range(repeat)
 
@@ -130,6 +136,7 @@ class Decomposition():
             
             # for each component up to max, run method
             for rr in self.rrs:
+                if printRuntime and rr % 10 == 0: print(f"solving rank {rr+1}")
                 if isinstance(init, str):
                     np.random.seed(int(x*seed))
                     CPinit = initialize_fac(missingCube.copy(), rr, init)
@@ -173,49 +180,6 @@ class Decomposition():
             for r in self.rrs:
                 corcon[r-1] = corcondia_3d(tFac, r)
             
-    def save(self, pfile):
-        with open(pfile, "wb") as output_file:
-            pickle.dump(self.__dict__, output_file)
-
-    def load(self, pfile):
-        with open(pfile, "rb") as input_file:
-            tmp_dict = pickle.load(input_file)
-            self.__dict__.update(tmp_dict)
-
-class MultiDecomp():
-    '''
-    Saves decomposition results for many Decomposition objects.
-    '''
-    def __init__(self, entry = True, chord = True):
-        assert entry or chord
-        self.hasEntry = entry
-        self.hasChord = chord
-        self.initialized = False
-
-
-    def __call__(self, decomp:Decomposition):
-        if self.initialized:
-            if self.hasEntry:
-                self.entry_total = np.vstack((self.entry_total,decomp.entry_total))
-                self.entry_imputed = np.vstack((self.entry_imputed,decomp.entry_imputed))
-                self.entry_fitted = np.vstack((self.entry_fitted,decomp.entry_fitted))
-            if self.hasChord:
-                self.chord_total = np.vstack((self.chord_total,decomp.chord_total))
-                self.chord_imputed = np.vstack((self.chord_imputed,decomp.chord_imputed))
-                self.chord_fitted = np.vstack((self.chord_fitted,decomp.chord_fitted))
-        else:
-            self.initialized = True
-            self.rr = decomp.rrs[-1]
-            if self.hasEntry:
-                self.entry_total = decomp.entry_total
-                self.entry_imputed = decomp.entry_imputed
-                self.entry_fitted = decomp.entry_fitted
-            if self.hasChord:
-                self.chord_total = decomp.chord_total
-                self.chord_imputed = decomp.chord_imputed
-                self.chord_fitted = decomp.chord_fitted
-
-
     def save(self, pfile):
         with open(pfile, "wb") as output_file:
             pickle.dump(self.__dict__, output_file)

@@ -20,16 +20,18 @@ TEXT_FONTSIZE = 6
 
 
 def runImputation(data:np.ndarray,
+                  min_rr:int,
                   max_rr:int,
                   impType:str,
                   savename:str, 
                   method,
+                  dataname = None,
                   callback = True,
                   save = True,
                   printRuntime = False,
                   **kwargs):
     assert impType == 'entry' or impType == 'chord'
-    decomposition = Decomposition(data, max_rr)
+    decomposition = Decomposition(data=data, dataname=dataname, min_rr=min_rr, max_rr=max_rr)
     if callback is True:
         tracker = Tracker(data)
         tracker.begin()

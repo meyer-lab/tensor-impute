@@ -9,18 +9,18 @@ import pickle
 
 # poetry run python -m timpute.figures.figure_data  
 
-def real_data(datalist=["zohar", "alter", "hms", "coh_response"], max_comps=[10,10,10,20]):
+def real_data(datalist=["zohar", "alter", "hms", "coh_response"], start_comps=[1,1,1,1], max_comps=[10,10,10,20], reps=20, savedir="timpute/figures/cache"):
     assert len(datalist) == len(max_comps)
     
     seed = 1
     init_type = 'random'
-    reps = 20
 
     for i,dataset in enumerate(datalist):
-        dirname = f"timpute/figures/cache/{dataset}"
+        dirname = os.path.join(savedir,f"{dataset}")
         if os.path.isdir(dirname) is False: os.makedirs(dirname)
 
         orig = generateTensor(type=dataset)
+        min_component = start_comps[i]
         max_component = max_comps[i]
         
         savename = "/"
@@ -35,7 +35,7 @@ def real_data(datalist=["zohar", "alter", "hms", "coh_response"], max_comps=[10,
         if os.path.isdir(folder+run) is False: os.makedirs(folder+run)
         impType = 'entry'
         for m in METHODS:
-            runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
+            runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
                         repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6)
 
         for i in DROPS:
@@ -46,12 +46,14 @@ def real_data(datalist=["zohar", "alter", "hms", "coh_response"], max_comps=[10,
             if os.path.isdir(folder+run) is False: os.makedirs(folder+run)
             for m in METHODS:
                 impType = 'entry'
-                runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
-                            repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6)
+                runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, repeat=reps, method=m,
+                              impType=impType, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6,
+                              savename=folder+run, printRuntime=True)
 
                 impType = 'chord'
-                runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
-                            repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6)
+                runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, repeat=reps, method=m,
+                              impType=impType, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6,
+                              savename=folder+run, printRuntime=True)
 
 
 def bestComps(drop=0.1, impType = "entry", datalist=SAVENAMES):
@@ -100,10 +102,16 @@ def chordMasking(datalist=SAVENAMES, max_comps=[10,10,10,20], drops = (0.05, 0.1
                                   callback=False, repeat=reps, drop=d, init=init_type, seed=seed*i, tol=1e-6, chord_mode=mode)
 
 if __name__ == "__main__":
+    real_data(datalist=["hms", "coh_response"], 
+              max_comps=[40,40],
+              reps=20,
+              savedir="timpute/figures/revision_cache")
+
     # for i in ['entry', 'chord']:
     #     data = dict()
     #     for d in DROPS:
     #         data[d] = bestComps(d, i)
     #     with open(f'./timpute/figures/cache/bestComps_{i}.pickle', 'wb') as handle:
     #         pickle.dump(data, handle)
-    chordMasking()
+
+    # chordMasking()
