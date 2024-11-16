@@ -5,10 +5,12 @@ from ..decomposition import Decomposition
 from ..impute_helper import *
 from tensordata.alter import data as alter
 from tensordata.zohar import data as zohar
+from generateTensor import generateTensor
 
 def test_impute_alter():
     np.random.seed(5)
-    test = Decomposition(alter()['Fc'].to_numpy())
+    tensor = generateTensor(type='alter')
+    test = Decomposition(tensor)
     test.imputation(type='chord', drop=0.05, repeat=1)
     assert min(test.chord_total[0]) <= 1-.8
     test.imputation(type='entry', drop=0.05,repeat=3)
@@ -16,7 +18,8 @@ def test_impute_alter():
 
 def test_impute_zohar():
     np.random.seed(5)
-    test = Decomposition(zohar().to_numpy())
+    tensor = generateTensor(type='zohar')
+    test = Decomposition(tensor)
     test.imputation(type='chord', drop=0.05, repeat=1)
     assert min(test.chord_total[0]) <= 1-.4
     test.imputation(type='entry', drop=0.05, repeat=1)

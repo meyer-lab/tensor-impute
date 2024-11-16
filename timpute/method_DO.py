@@ -42,6 +42,7 @@ def perform_DO(
     n_iter_max:int=5_000,
     callback=None,
     init=None,
+    tol=1e-6,
     **kwargs
 ) -> tl.cp_tensor.CPTensor:
     """Perform CP decomposition."""

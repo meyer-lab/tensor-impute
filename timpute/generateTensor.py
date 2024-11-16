@@ -6,7 +6,7 @@ from .impute_helper import entry_drop
 from tensordata.atyeo import data as atyeo
 from tensordata.zohar import data as zohar
 from tensordata.alter import data as alter
-from .import_hmsData import hms_tensor
+from data.import_hmsData import hms_tensor
 
 def generateTensor(type=None, r=6, shape=(10,10,10), scale=2, distribution='gamma', par=2, missingness=0.0, noise_scale=50):
     """ Tensor options: 'zohar', 'atyeo', 'alter', 'unknown', 'known', defaulting to 'known' """
