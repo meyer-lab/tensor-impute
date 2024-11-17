@@ -89,7 +89,7 @@ def perform_ALS(
             )
             mttkrp = unfolding_dot_khatri_rao(tensor, (weights, factors), mode)
 
-            factor = np.solve(pseudo_inverse.T, mttkrp.T).T
+            factor = np.linalg.solve(pseudo_inverse.T, mttkrp.T).T
             factors[mode] = factor
 
         # Calculate the current unnormalized error
