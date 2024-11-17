@@ -1,6 +1,6 @@
 import pickle
 from ..plot import *
-from ..common import * 
+from .common import * 
 import pandas as pd
 from .figure_helper import *
 from .figure_data import bestComps
@@ -62,7 +62,7 @@ def figureS1() -> None:
     f.savefig('timpute/figures/img/svg/RAM_Usage.svg', bbox_inches="tight", format='svg')
 
 
-def tableS2_3() -> None:
+def tableS3() -> None:
     # Supplemental 3
     df_list = []
     for i in ['entry','chord']:

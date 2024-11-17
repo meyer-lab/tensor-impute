@@ -4,7 +4,7 @@ import os
 from .figure_helper import *
 from ..generateTensor import generateTensor
 from ..plot import *
-from ..common import *
+from .common import *
 import pickle
 
 # poetry run python -m timpute.figures.figure_data  

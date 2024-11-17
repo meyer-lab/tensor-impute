@@ -1,7 +1,7 @@
 import numpy as np
 from .figure_helper import *
 from ..plot import *
-from ..common import *
+from .common import *
 import math
 
 # poetry run python -m timpute.figures.figure3
