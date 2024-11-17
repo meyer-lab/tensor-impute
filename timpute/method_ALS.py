@@ -3,19 +3,20 @@ import numpy as np
 import tensorly as tl
 from tensorly.cp_tensor import (
     cp_to_tensor,
-    CPTensor,
 )
+from tensorly.cp_tensor import cp_normalize
+from tqdm import tqdm
+from .linesearch import Nesterov
 from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao
 from .initialization import initialize_fac
 
 
 def perform_ALS(
-    tensor,
+    tOrig,
     rank,
-    n_iter_max=100,
+    n_iter_max=50,
     init=None,
     tol=1e-6,
-    mask=None,
     callback=None,
 ) -> tl.cp_tensor.CPTensor:
     """CANDECOMP/PARAFAC decomposition via alternating least squares (ALS)
@@ -38,11 +39,6 @@ def perform_ALS(
         (Default: 1e-6) Relative reconstruction error tolerance. The
         algorithm is considered to have found the global minimum when the
         reconstruction error is less than `tol`.
-    mask : ndarray
-        array of booleans with the same shape as ``tensor`` should be 0 where
-        the values are missing and 1 everywhere else. Note:  if tensor is
-        sparse, then mask should also be sparse with a fill value of 1 (or
-        True). Allows for missing values [2]_
 
     Returns
     -------
@@ -66,17 +62,27 @@ def perform_ALS(
     .. [3] R. Bro, "Multi-Way Analysis in the Food Industry: Models, Algorithms, and
            Applications", PhD., University of Amsterdam, 1998
     """
-    tensor = np.nan_to_num(tensor)
+    tensor = np.nan_to_num(tOrig)
+    mask = np.isfinite(tOrig)
 
     if init is None:
-        init = initialize_fac(tensor, rank, method="random")
+        tFac = initialize_fac(tensor, rank, method="random")
+    else:
+        tFac = init
 
-    weights, factors = init
+    linesrc = Nesterov()
+    fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
+    tFac.R2X = R2X
+    tFac.factors = fac
 
-    rec_errors = []
-    norm_tensor = tl.norm(tensor, 2)
+    tq = tqdm(range(n_iter_max), disable=False)
+    for iteration in tq:
+        weights, factors = tFac
 
-    for iteration in range(n_iter_max):
+        # Update the tensor based on the mask
+        low_rank_component = cp_to_tensor((weights, factors))
+        tensor = tensor * mask + low_rank_component * (1 - mask)
+
         for mode in range(np.ndim(tensor)):
             pseudo_inverse = np.ones((rank, rank))
             for i, factor in enumerate(factors):
@@ -89,34 +95,26 @@ def perform_ALS(
             )
             mttkrp = unfolding_dot_khatri_rao(tensor, (weights, factors), mode)
 
-            factor = np.solve(pseudo_inverse.T, mttkrp.T).T
+            factor = np.linalg.solve(pseudo_inverse.T, mttkrp.T).T
             factors[mode] = factor
 
-        # Calculate the current unnormalized error
-        low_rank_component = cp_to_tensor((weights, factors))
+        R2X_last = tFac.R2X
 
-        # Update the tensor based on the mask
-        if mask is not None:
-            tensor = tensor * mask + low_rank_component * (1 - mask)
-            norm_tensor = tl.norm(tensor, 2)
+        fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
+        tFac.R2X = R2X
+        tFac.factors = fac
 
-        unnorml_rec_error = tl.norm(tensor - low_rank_component, 2)
+        tq.set_postfix(
+            R2X=tFac.R2X, delta=tFac.R2X - R2X_last, jump=jump, refresh=False
+        )
+        assert tFac.R2X > 0.0
 
-        if tol:
-            rec_error = unnorml_rec_error / norm_tensor
-            rec_errors.append(rec_error)
+        if callback:
+            callback(tFac)
 
-        if callback is not None:
-            cp_tensor = CPTensor((weights, factors))
-            callback(cp_tensor)
+        if tFac.R2X - R2X_last < tol:
+            break
 
-        if tol is not None:
-            if iteration >= 1:
-                rec_error_decrease = rec_errors[-2] - rec_errors[-1]
-
-                if abs(rec_error_decrease) < tol:
-                    break
-
-    cp_tensor = CPTensor((weights, factors))
-
-    return cp_tensor
+    tFac_norm = cp_normalize(tFac)
+    tFac_norm.R2X = tFac.R2X
+    return tFac
