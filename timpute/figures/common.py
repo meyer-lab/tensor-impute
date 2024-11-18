@@ -57,3 +57,9 @@ def subplotLabel(axs):
         ax.text(-0.2, 1.2, ascii_lowercase[ii], transform=ax.transAxes, fontsize=16, fontweight="bold", va="top")
 
 
+def rgbs(color = 0, transparency = None):
+    color_rgbs = [sns.color_palette("bright")[0],sns.color_palette("bright")[8],sns.color_palette("bright")[3]]
+    if transparency is not None:
+        return tuple(list(color_rgbs[color]) + [transparency])
+    else:
+        return color_rgbs[color]
