@@ -2,8 +2,8 @@ import numpy as np
 import tensorly as tl
 from tensorly.random import random_cp
 from ..decomposition import Decomposition
+from ..generateTensor import generateTensor
 from ..impute_helper import *
-from generateTensor import generateTensor
 
 def test_impute_alter():
     np.random.seed(5)
