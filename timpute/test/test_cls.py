@@ -1,6 +1,7 @@
 """
 Unit test file.
 """
+
 import numpy as np
 import tensorly as tl
 import warnings
@@ -16,7 +17,7 @@ def createCube(missing=0.0, size=(10, 20, 25)):
     if missing > 0.0:
         tensor[np.random.rand(*size) < missing] = np.nan
     return tensor
-    
+
 
 def test_cp():
     # Test that the CP decomposition code works.
@@ -26,7 +27,9 @@ def test_cp():
     assert fac3.R2X < fac6.R2X
     assert fac3.R2X > 0.0
     if fac3.R2X < 0.67:
-        warnings.warn("CP (rank=3) with 20% missingness, R2X < 0.67 (expected)" + str(fac3.R2X))
+        warnings.warn(
+            "CP (rank=3) with 20% missingness, R2X < 0.67 (expected)" + str(fac3.R2X)
+        )
 
     # test case where mode size < rank
     tensor2 = createCube(missing=0.2, size=(10, 4, 50))
@@ -42,7 +45,7 @@ def test_ridge():
     tFac = initialize_fac(tOrig.copy(), 5)
     unfolded = tl.unfold(tOrig, 0)
     kr = khatri_rao(tFac.factors, skip_matrix=0)
-    
+
     A = kr
     B = unfolded.T
 
@@ -51,9 +54,10 @@ def test_ridge():
 
     np.testing.assert_allclose(X1, X2)
 
+
 def test_colbycol():
     """Testing solver is equal column by column and when unique grouping applied"""
-    tOrig = createCube(missing=0.2, size=(100,3,3))
+    tOrig = createCube(missing=0.2, size=(100, 3, 3))
     tFac = initialize_fac(tOrig.copy(), 3)
     unfolded = tl.unfold(tOrig, 0)
     kr = khatri_rao(tFac.factors, skip_matrix=0)
@@ -65,9 +69,9 @@ def test_colbycol():
     unique, uIDX = np.unique(np.isfinite(B), axis=1, return_inverse=True)
     for i in range(0, B.shape[1]):
         uu = np.squeeze(unique[:, uIDX[i]])
-        Bx = B[uu,:]
+        Bx = B[uu, :]
         clf = Ridge(alpha=0, fit_intercept=False)
-        clf.fit(A[uu,:], Bx[:, i])
+        clf.fit(A[uu, :], Bx[:, i])
         X1[:, i] = clf.coef_.T
 
     X2 = censored_lstsq(A, B)
