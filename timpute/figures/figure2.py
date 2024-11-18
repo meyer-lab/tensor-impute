@@ -1,7 +1,8 @@
-import numpy as np
-from .figure_helper import *
-from .common import *
 import math
+import numpy as np
+from .figure_helper import loadImputation
+from .common import getSetup, subplotLabel, rgbs
+from figures import METHODS, METHODNAMES, SAVENAMES, DATANAMES, LINESTYLES, DROPS
 
 # poetry run python -m timpute.figures.figure2
 

@@ -1,10 +1,8 @@
-import numpy as np
 import os
-
-from .figure_helper import *
+import numpy as np
+from .figure_helper import runImputation, loadImputation
 from ..generateTensor import generateTensor
-from .common import *
-import pickle
+from figures import METHODS, METHODNAMES, SAVENAMES, DROPS
 
 # poetry run python -m timpute.figures.figure_data  
 
