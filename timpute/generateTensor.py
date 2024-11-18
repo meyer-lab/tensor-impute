@@ -1,5 +1,7 @@
 import numpy as np
 import tensorly as tl
+import xarray as xr
+import os
 from tensorly.cp_tensor import CPTensor
 from .impute_helper import entry_drop
 
@@ -9,20 +11,28 @@ from tensordata.alter import data as alter
 from data.import_hmsData import hms_tensor
 
 def generateTensor(type=None, r=6, shape=(10,10,10), scale=2, distribution='gamma', par=2, missingness=0.0, noise_scale=50):
-    """ Tensor options: 'zohar', 'atyeo', 'alter', 'unknown', 'known', defaulting to 'known' """
-    if type == 'zohar': return zohar().to_numpy().copy()
-    elif type == 'atyeo': return atyeo().to_numpy().copy()
-    elif type == 'alter': return alter()['Fc'].to_numpy().copy()
+    """
+    Tensor options: 'known', 'unknown', 'zohar', 'atyeo', 'alter', 'hms', 'coh_receptor', or 'coh response'.
+    Defaults to 'known'
+    """
+    if type == 'known':
+        temp, _ = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
+        return createNoise(temp,noise_scale)
     elif type == 'unknown':
         temp = createUnknownRank(drop_perc=missingness, size=shape, distribution=distribution, scale=scale, par=par)
         return createNoise(temp,noise_scale)
-    elif type == 'known':
-        temp, _ = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
-        return createNoise(temp,noise_scale)
-    elif type == 'hms':
-        return hms_tensor().to_numpy().copy()
+    elif type == 'zohar': return zohar().to_numpy().copy()
+    elif type == 'atyeo': return atyeo().to_numpy().copy()
+    elif type == 'alter': return alter()['Fc'].to_numpy().copy()
+    elif type == 'hms':   return np.swapaxes(hms_tensor().to_numpy().copy(),0,2)
+    elif type == 'coh_receptor':
+        receptor = xr.open_dataarray(f"{os.getcwd()}/timpute/data/CoH/CoH_Rec.nc")
+        return receptor.to_numpy().copy()
+    elif type == 'coh_response':
+        response = xr.open_dataarray(f"{os.getcwd()}/timpute/data/CoH/CoH_Tensor_DataSet.nc")
+        return response.to_numpy().copy()
     else:
-        temp = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
+        temp, _ = createKnownRank(drop_perc=missingness, size=shape, rank=r, distribution=distribution, scale=scale, par=par)
         return createNoise(temp,noise_scale)
 
 
@@ -48,18 +58,32 @@ def createUnknownRank(drop_perc=0.0, size=(10, 20, 25), distribution="gamma", sc
 def createKnownRank(drop_perc=0.0, size=(10,10,10), rank=6, distribution="gamma", scale=1, par=1, noise=True):
     r"""
     Creates a random tensor following a set of possible distributions:
-    "gamma", "chisquare", "logistic", "exponential", "uniform", "normal"
+    `distribution` = "gamma", "chisquare", "logistic", "exponential", "uniform", "normal"
+    may also a tuple of distributions w/ same order as `size`
     """
     rng = np.random.default_rng(10)
 
     factors = []
-    for i in size:
-        if distribution == "gamma": factors.append(rng.gamma(par, scale, size=(i,rank)))
-        if distribution == "chisquare": factors.append(rng.chisquare(par, size=(i,rank)))
-        if distribution == "logistic": factors.append(rng.logistic(size=(i,rank)))
-        if distribution == "exponential": factors.append(rng.exponential(size=(i,rank)))
-        if distribution == "uniform": factors.append(rng.uniform(size=(i,rank)))
-        if distribution == "normal": factors.append(rng.normal(size=(i,rank)))
+
+    if type(distribution) == str:
+        for i in size:
+            if distribution == "gamma": factors.append(rng.gamma(par, scale, size=(i,rank)))
+            if distribution == "chisquare": factors.append(rng.chisquare(par, size=(i,rank)))
+            if distribution == "logistic": factors.append(rng.logistic(size=(i,rank)))
+            if distribution == "exponential": factors.append(rng.exponential(size=(i,rank)))
+            if distribution == "uniform": factors.append(rng.uniform(size=(i,rank)))
+            if distribution == "normal": factors.append(rng.normal(size=(i,rank)))
+    
+    else:
+        assert len(distribution) == len(size)
+        for i in size:
+            if distribution[i] == "gamma": factors[1] = rng.gamma(par, scale, size=(i,rank))
+            if distribution[i] == "chisquare": factors[1] = rng.chisquare(par, size=(i,rank))
+            if distribution[i] == "logistic": factors[1] = rng.logistic(size=(i,rank))
+            if distribution[i] == "exponential": factors[1] = rng.exponential(size=(i,rank))
+            if distribution[i] == "uniform": factors[1] = rng.uniform(size=(i,rank))
+            if distribution[i] == "normal": factors[1] = rng.normal(size=(i,rank))
+        
 
     if scale != 1:
         for i in factors: i *= scale

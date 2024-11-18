@@ -40,6 +40,7 @@ def perform_DO(
     tensorOrig:np.ndarray=None,
     rank:int=6,
     n_iter_max:int=5_000,
+    tol = 1e-6,
     callback=None,
     init=None,
     tol=1e-6,

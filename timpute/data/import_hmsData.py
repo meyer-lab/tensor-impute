@@ -7,7 +7,7 @@ import xarray as xa
 def separate_cellLines():
     """Given the path to the object level data fron the dte drop paper, it separates data for each cell line to a dictionary, with cell line names as keys and dataframe of the data for that cell line as the value of the dictionary."""
 
-    cwd = f'{os.getcwd()}/timpute/data'
+    cwd = f'{os.getcwd()}/timpute/data/hms'
     df = pd.read_csv(f"{cwd}/fractions.csv", index_col=0)
 
     df["agent_conc"] = df["target"].astype(str) + "_" + df["agent"].astype(str) + "_" + np.round(np.log10(df["concentration"]), 5).astype(str)
@@ -45,7 +45,7 @@ def import_cellLine(cellline_name: str, cellline_df, agents):
     """
 
     # import the baseline file for control
-    cwd = f'{os.getcwd()}/timpute/data'
+    cwd = f'{os.getcwd()}/timpute/data/hms'
     ctr = pd.read_csv(f"{cwd}/baseline_fractions.csv")
 
     
