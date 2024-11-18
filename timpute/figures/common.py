@@ -5,7 +5,6 @@ import seaborn as sns
 from string import ascii_lowercase
 import matplotlib
 from matplotlib import gridspec, pyplot as plt
-from matplotlib.lines import Line2D
 
 
 matplotlib.rcParams["legend.labelspacing"] = 0.2
@@ -55,3 +54,18 @@ def subplotLabel(axs):
     """ Place subplot labels on figure. """
     for ii, ax in enumerate(axs):
         ax.text(-0.2, 1.2, ascii_lowercase[ii], transform=ax.transAxes, fontsize=16, fontweight="bold", va="top")
+
+
+def set_boxplot_color(bp, color):
+    plt.setp(bp['boxes'], color=color)
+    plt.setp(bp['whiskers'], color=color)
+    plt.setp(bp['caps'], color=color)
+    plt.setp(bp['medians'], color=color)
+
+
+def rgbs(color = 0, transparency = None):
+    color_rgbs = [sns.color_palette("bright")[0],sns.color_palette("bright")[8],sns.color_palette("bright")[3]]
+    if transparency is not None:
+        return tuple(list(color_rgbs[color]) + [transparency])
+    else:
+        return color_rgbs[color]
