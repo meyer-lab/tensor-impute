@@ -5,6 +5,8 @@ import seaborn as sns
 from string import ascii_lowercase
 import matplotlib
 from matplotlib import gridspec, pyplot as plt
+from matplotlib.lines import Line2D
+import svgutils.transform as st
 
 
 matplotlib.rcParams["legend.labelspacing"] = 0.2

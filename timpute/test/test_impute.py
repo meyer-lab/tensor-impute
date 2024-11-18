@@ -3,7 +3,7 @@ import tensorly as tl
 from tensorly.random import random_cp
 from ..decomposition import Decomposition
 from ..generateTensor import generateTensor
-from ..impute_helper import *
+from ..impute_helper import entry_drop
 
 def test_impute_alter():
     np.random.seed(5)
