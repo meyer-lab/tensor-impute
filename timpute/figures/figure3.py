@@ -1,8 +1,9 @@
-import numpy as np
-from .runImputation import *
-from ..plot import *
-from ..common import *
 import math
+import numpy as np
+from matplotlib.lines import Line2D
+from .figure_helper import loadImputation
+from .common import getSetup, subplotLabel, rgbs, set_boxplot_color
+from figures import METHODS, METHODNAMES, SAVENAMES, DATANAMES, DROPS
 
 # poetry run python -m timpute.figures.figure3
 
