@@ -1,9 +1,13 @@
 # import psutil
+import pickle
+import os
+import numpy as np
 import resource
 import argparse
-from .figure_helper import *
+
+from figures import METHODS, METHODNAMES, SAVENAMES
+from ..decomposition import Decomposition
 from ..generateTensor import generateTensor
-import pickle
 
 # poetry run python -m timpute.figures.dataUsage
 
