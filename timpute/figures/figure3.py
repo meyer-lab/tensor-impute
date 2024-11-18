@@ -1,7 +1,6 @@
 import numpy as np
-from .runImputation import *
-from ..plot import *
-from ..common import *
+from .figure_helper import *
+from .common import *
 import math
 
 # poetry run python -m timpute.figures.figure3
