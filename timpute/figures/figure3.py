@@ -2,6 +2,7 @@ import numpy as np
 from .figure_helper import *
 from .common import *
 import math
+from matplotlib.lines import Line2D
 
 # poetry run python -m timpute.figures.figure3
 
