@@ -1,0 +1,17 @@
+
+--Zohar--
+shape: (432, 6, 11)
+missingness: 0.0
+432: 0.0% missingness | 6: 0.0% missingness | 11: 0.0% missingness | 
+--Alter--
+shape: (181, 22, 41)
+missingness: 0.4268292682926829
+181: 42.68292682926829% missingness | 22: 95.1219512195122% missingness | 41: 100.0% missingness | 
+--Mills--
+shape: (280, 8, 54)
+missingness: 0.019576719576719578
+280: 50.0% missingness | 8: 3.9153439153439153% missingness | 54: 5.714285714285714% missingness | 
+--CoH--
+shape: (36, 8, 23, 6)
+missingness: 0.10416666666666667
+36: 25.0% missingness | 8: 100.0% missingness | 23: 66.66666666666666% missingness | 6: 10.416666666666668% missingness | 

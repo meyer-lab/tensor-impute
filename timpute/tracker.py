@@ -11,24 +11,31 @@ class Tracker():
         self.data = tOrig.copy()
         self.mask = mask   # mask represents untouched (1) vs dropped (0) entries
         self.track_runtime = track_runtime
+        self.rank = None
         self.rep = 0
-        self.total_error = [np.full((1, 0), 0)]
-        self.fitted_error = [np.full((1, 0), 0)]
-        self.imputed_error = [np.full((1, 0), 0)]
+        self.total_error = dict()
+        self.fitted_error = dict()
+        self.imputed_error = dict()
         if self.track_runtime:
-            self.timer = [np.full((1, 0), 0)]
+            self.timer = dict()
+        # [np.full((1, 0), 0)]
         
         self.combined = False
 
     def __call__(self, tFac, **kwargs):
         """ Takes a CP tensor object """
-        self.total_error[self.rep] = np.append(self.fitted_error[self.rep], calcR2X(tFac, self.data, True))
+        self.total_error[self.rank][self.rep] = np.append(self.fitted_error[self.rank][self.rep],
+                                                          calcR2X(tFac, self.data, True))
         if self.mask is not None:
-            self.fitted_error[self.rep] = np.append(self.fitted_error[self.rep], calcR2X(tFac, self.data, True, self.mask))
-            self.imputed_error[self.rep] = np.append(self.imputed_error[self.rep], calcR2X(tFac, self.data, True, np.ones_like(self.data) - self.mask))
+            self.fitted_error[self.rank][self.rep] = np.append(self.fitted_error[self.rank][self.rep],
+                                                               calcR2X(tFac, self.data, True, self.mask))
+            self.imputed_error[self.rank][self.rep] = np.append(self.imputed_error[self.rank][self.rep],
+                                                                calcR2X(tFac, self.data, True, np.ones_like(self.data) - self.mask))
         if self.track_runtime:
-            assert self.start
-            self.timer[self.rep] = np.append(self.timer[self.rep], time.time() - self.start)
+            if self.start is None:
+                self.timer[self.rank][self.rep] = np.append(self.timer[self.rank][self.rep], 0.0)
+            else:
+                self.timer[self.rank][self.rep] = np.append(self.timer[self.rank][self.rep], time.time() - self.start)
 
     def begin(self):
         """ Must call to track runtime """
@@ -37,50 +44,63 @@ class Tracker():
     def set_mask(self, mask):
         self.mask = mask
 
-    def new(self):
+    def new_rank(self, rank):
         """ Call to start tracking a repetition of the same method """
-        self.total_error.append([np.full((1, 0), 0)])
-        self.fitted_error.append([np.full((1, 0), 0)])
-        self.imputed_error.append([np.full((1, 0), 0)])
-        if self.track_runtime:
-            self.timer.append([np.full((1, 0), 0)])
-        self.rep += 1
-
-    def reset(self):
-        self.total_error = [np.full((1, 0), 0)]
-        self.fitted_error = [np.full((1, 0), 0)]
-        self.imputed_error = [np.full((1, 0), 0)]
-        if self.track_runtime: self.timer = [np.full((1, 0), 0)]
-        self.mask = None
-        self.start = None
+        self.rank = str(rank)
         self.rep = 0
 
-    def combine(self, remove_outliers=False):
+        self.total_error[self.rank] = [np.full((1, 0), 0)]
+        self.fitted_error[self.rank] = [np.full((1, 0), 0)]
+        self.imputed_error[self.rank] = [np.full((1, 0), 0)]
+        if self.track_runtime:
+            self.timer[self.rank] = [np.full((1, 0), 0)]
+            self.start = None
+    
+    def existing_rank(self, rank):
+        """ Call to continue tracking a repetition of the same method """
+        self.rank = str(rank)
+        self.rep = len(self.total_error[self.rank])-1
+
+        self.total_error[self.rank].append([np.full((1, 0), 0)])
+        self.fitted_error[self.rank].append([np.full((1, 0), 0)])
+        self.imputed_error[self.rank].append([np.full((1, 0), 0)])
+        if self.track_runtime:
+            self.timer[self.rank].append([np.full((1, 0), 0)])
+            self.start = None
+        self.rep += 1
+
+    def combine(self):
         """ Combines all runs into a single np.ndarray."""
 
         # in case any run doesn't hit maximum iterations, make them all the same size
         max = 0
-        for i in range(self.rep+1):
-            current = self.total_error[i].size
-            if remove_outliers and np.max(self.total_error[i]) > 1: self.total_error[i][:] = np.nan
+        for r in self.total_error:
+            for i in range(len(self.total_error[r])):
+                current = self.total_error[r][i].size
 
-            if (current > max):
-                for j in range(i):
-                    self.total_error[j] = np.append(self.total_error[j], np.full((current-max), np.nan))
-                    self.fitted_error[j] = np.append(self.fitted_error[j], np.full((current-max), np.nan))
-                    self.imputed_error[j] = np.append(self.imputed_error[j], np.full((current-max), np.nan))
-                    if self.track_runtime: self.timer[j] = np.append(self.timer[j], np.full((current-max), np.nan))
-                max = current
-            else:
-                self.total_error[i] = np.append(self.total_error[i], np.full((max-current), np.nan))
-                self.fitted_error[i] = np.append(self.fitted_error[i], np.full((max-current), np.nan))
-                self.imputed_error[i] = np.append(self.imputed_error[i], np.full((max-current), np.nan))
-                if self.track_runtime: self.timer[i] = np.append(self.timer[i], np.full((max-current), np.nan))
+                if (current > max):
+                    for j in range(i):
+                        self.total_error[r][j] = np.append(self.total_error[r][j], np.full((current-max), np.nan))
+                        self.fitted_error[r][j] = np.append(self.fitted_error[r][j], np.full((current-max), np.nan))
+                        self.imputed_error[r][j] = np.append(self.imputed_error[r][j], np.full((current-max), np.nan))
+                        if self.track_runtime: self.timer[r][j] = np.append(self.timer[r][j], np.full((current-max), np.nan))
+                    max = current
+                else:
+                    self.total_error[r][i] = np.append(self.total_error[r][i], np.full((max-current), np.nan))
+                    self.fitted_error[r][i] = np.append(self.fitted_error[r][i], np.full((max-current), np.nan))
+                    self.imputed_error[r][i] = np.append(self.imputed_error[r][i], np.full((max-current), np.nan))
+                    if self.track_runtime: self.timer[r][i] = np.append(self.timer[r][i], np.full((max-current), np.nan))
         
-        self.total_array = np.vstack(tuple(self.total_error))
-        self.fitted_array = np.vstack(tuple(self.fitted_error))
-        self.imputed_array = np.vstack(tuple(self.imputed_error))
-        if self.track_runtime: self.time_array = np.vstack(tuple(self.timer))
+        self.total_array = self.total_error.copy()
+        self.fitted_array = self.fitted_error.copy()
+        self.imputed_array = self.imputed_error.copy()
+        if self.track_runtime: self.time_array = self.timer.copy()
+
+        for r in self.total_error: 
+            self.total_array[r] = np.vstack(tuple(self.total_array[r]))
+            self.fitted_array[r] = np.vstack(tuple(self.fitted_array[r]))
+            self.imputed_array[r] = np.vstack(tuple(self.imputed_array[r]))
+            if self.track_runtime: self.time_array[r] = np.vstack(tuple(self.time_array[r]))
         self.combined = True
     
     def time_thresholds(self, threshold = 0.25, total = False):
@@ -136,7 +156,6 @@ class MultiTracker():
             if self.track_runtime:
                 self.time_array = tracker.time_array
 
-    
 
     def time_thresholds(self, threshold = 0.25, total = False):
         if total:
@@ -152,6 +171,7 @@ class MultiTracker():
     
     def unmet_threshold_count(self, threshold = 0.25):
         return np.sum(np.nanmin(self.imputed_array,axis=1) > threshold)
+
 
     def save(self, pfile):
         with open(pfile, "wb") as output_file:
