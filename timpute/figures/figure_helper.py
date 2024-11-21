@@ -8,11 +8,11 @@ def runImputation(data:np.ndarray,
                   min_rr:int,
                   max_rr:int,
                   impType:str,
-                  savename:str, 
                   method,
                   dataname = None,
                   callback = True,
                   save = True,
+                  savename:str = None,
                   printRuntime = False,
                   **kwargs):
     assert impType == 'entry' or impType == 'chord'
