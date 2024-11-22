@@ -34,7 +34,7 @@ class Decomposition():
         self.rrs = np.arange(min_rr,max_rr+1)
 
     def imputation(self,
-                   type:str='chord',
+                   imp_type:str='chord',
                    repeat:int=3, 
                    drop:int=0.05,
                    chord_mode:int=0, 
@@ -52,7 +52,7 @@ class Decomposition():
 
         Parameters
         ----------
-        type : str
+        imp_type : str
             'chord' or 'entry' imputation
         repeat : int
             Number of repetitions to run imputation (for every component up to self.max_rr). Defaults to 3.
@@ -61,10 +61,15 @@ class Decomposition():
         chord_mode : 0 ≤ int < self.data.ndim
             Mode to drop chords along (ignore for entry drop). Defaults to 0.
         method : function
+
+        tol : float
+            minimum error difference to tolerate between iterations
         init : str // CPTensor // list of list of CPTensors
             Valid strings include 'svd' and 'random'. Otherwise, an initial guess for the CPTensor must be provided.
         maxiter : int
             Max iterations to cap method at. Defaults to 50.
+        seed : int
+            seed for random initialziations
         callback : tracker class.
             Optional callback class to track R2X over iteration/runtime for the factorization with max_rr components.
 
@@ -98,7 +103,7 @@ class Decomposition():
             corcon = np.zeros((repeat,self.rrs[-1]))
         
         if printRuntime:
-            missingpatterns = tqdm(range(repeat), desc=f'Decomposing "{self.dataname}" {repeat} times using {method.__name__}')
+            missingpatterns = tqdm(range(repeat), desc=f'Decomposing "{self.dataname}" {repeat} times using {method.__name__} at {int(drop*100)}% {imp_type} imputation')
         else:
             missingpatterns = range(repeat)
 
@@ -110,9 +115,9 @@ class Decomposition():
         if chord_mode != 0:
             tImp = np.moveaxis(tImp,chord_mode,0)
 
-        if type=='entry':
+        if imp_type=='entry':
             drop = int(drop*np.sum(np.isfinite(tImp)))
-        elif type=='chord': 
+        elif imp_type=='chord': 
             drop = int(drop*tImp.size/tImp.shape[0])
         else:
             raise ValueError('invalid imputation type')
@@ -124,9 +129,9 @@ class Decomposition():
             - `imputed_vals` has a 1 where values were artifically dropped
             - `fitted_vals` has a 1 where values were not artifically dropped (considers non-imputed values)
             """
-            if type=='entry':
+            if imp_type=='entry':
                 mask = entry_drop(missingCube, drop)
-            elif type=='chord':
+            elif imp_type=='chord':
                 mask = chord_drop(missingCube, drop)
 
             if callback is not None:
@@ -166,12 +171,12 @@ class Decomposition():
                     fitted_error[x,rr-1] = calcR2X(tFac, tIn=tImp, mask=fitted_vals, calcError=True)
         
         # save objects
-        if type == 'entry':
+        if imp_type == 'entry':
             self.entry_total = error
             self.entry_imputed = imputed_error
             self.entry_fitted = fitted_error
 
-        elif type == 'chord': 
+        elif imp_type == 'chord': 
             self.chord_total = error
             self.chord_imputed = imputed_error
             self.chord_fitted = fitted_error
