@@ -3,12 +3,9 @@ import numpy as np
 from matplotlib.lines import Line2D
 from .figure_helper import loadImputation
 from .common import getSetup, subplotLabel, rgbs, set_boxplot_color
-from figures import METHODS, METHODNAMES, SAVENAMES, DATANAMES, DROPS
+from figures import METHODS, METHODNAMES, SAVENAMES, DATANAMES, DROPS, SUBTITLE_FONTSIZE, TEXT_FONTSIZE
 
 # poetry run python -m timpute.figures.figure3
-
-SUBTITLE_FONTSIZE = 15
-TEXT_FONTSIZE = 13
 
 
 def figure3(datalist=SAVENAMES, legend=False):

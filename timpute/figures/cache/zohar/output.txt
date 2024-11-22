@@ -1,0 +1,58 @@
+
+
+===================
+Starting new run for [real_data]
+Timestamp: 2023-10-17 10:15:56.805691-07:00
+--- BEGIN NONMISSING ---
+finished zohar, nonmissing/entry for perform_DO in 47.56446695327759 seconds
+finished zohar, nonmissing/entry for perform_ALS in 35.85875701904297 seconds
+finished zohar, nonmissing/entry for perform_CLS in 43.397376537323 seconds
+--- BEGIN MISSING (0.01) ---
+finished zohar, drop_0.01/entry for perform_DO in 43.67861461639404 seconds
+finished zohar, drop_0.01/entry for perform_ALS in 34.537835359573364 seconds
+finished zohar, drop_0.01/entry for perform_CLS in 156.42376971244812 seconds
+finished zohar, drop_0.01/chord for perform_DO in 41.96544671058655 seconds
+finished zohar, drop_0.01/chord for perform_ALS in 32.55015206336975 seconds
+finished zohar, drop_0.01/chord for perform_CLS in 40.359474420547485 seconds
+--- BEGIN MISSING (0.05) ---
+finished zohar, drop_0.05/entry for perform_DO in 43.12673807144165 seconds
+finished zohar, drop_0.05/entry for perform_ALS in 34.02565002441406 seconds
+finished zohar, drop_0.05/entry for perform_CLS in 317.48531699180603 seconds
+finished zohar, drop_0.05/chord for perform_DO in 42.81234836578369 seconds
+finished zohar, drop_0.05/chord for perform_ALS in 36.44954872131348 seconds
+finished zohar, drop_0.05/chord for perform_CLS in 59.249725103378296 seconds
+--- BEGIN MISSING (0.1) ---
+finished zohar, drop_0.1/entry for perform_DO in 46.05597996711731 seconds
+finished zohar, drop_0.1/entry for perform_ALS in 38.035210609436035 seconds
+finished zohar, drop_0.1/entry for perform_CLS in 333.02215337753296 seconds
+finished zohar, drop_0.1/chord for perform_DO in 48.297531604766846 seconds
+finished zohar, drop_0.1/chord for perform_ALS in 36.06574892997742 seconds
+finished zohar, drop_0.1/chord for perform_CLS in 67.78980469703674 seconds
+--- BEGIN MISSING (0.2) ---
+finished zohar, drop_0.2/entry for perform_DO in 76.01811623573303 seconds
+finished zohar, drop_0.2/entry for perform_ALS in 74.2230875492096 seconds
+finished zohar, drop_0.2/entry for perform_CLS in 640.4910182952881 seconds
+finished zohar, drop_0.2/chord for perform_DO in 98.90230584144592 seconds
+finished zohar, drop_0.2/chord for perform_ALS in 64.86333918571472 seconds
+finished zohar, drop_0.2/chord for perform_CLS in 99.67734241485596 seconds
+--- BEGIN MISSING (0.3) ---
+finished zohar, drop_0.3/entry for perform_DO in 42.93963265419006 seconds
+finished zohar, drop_0.3/entry for perform_ALS in 34.435078144073486 seconds
+finished zohar, drop_0.3/entry for perform_CLS in 303.2503733634949 seconds
+finished zohar, drop_0.3/chord for perform_DO in 44.69671702384949 seconds
+finished zohar, drop_0.3/chord for perform_ALS in 37.14552426338196 seconds
+finished zohar, drop_0.3/chord for perform_CLS in 72.87720918655396 seconds
+--- BEGIN MISSING (0.4) ---
+finished zohar, drop_0.4/entry for perform_DO in 45.609625816345215 seconds
+finished zohar, drop_0.4/entry for perform_ALS in 38.01154065132141 seconds
+finished zohar, drop_0.4/entry for perform_CLS in 290.3319730758667 seconds
+finished zohar, drop_0.4/chord for perform_DO in 46.84508466720581 seconds
+finished zohar, drop_0.4/chord for perform_ALS in 38.5205397605896 seconds
+finished zohar, drop_0.4/chord for perform_CLS in 71.2865400314331 seconds
+--- BEGIN MISSING (0.5) ---
+finished zohar, drop_0.5/entry for perform_DO in 46.27090835571289 seconds
+finished zohar, drop_0.5/entry for perform_ALS in 35.5016930103302 seconds
+finished zohar, drop_0.5/entry for perform_CLS in 268.07259225845337 seconds
+finished zohar, drop_0.5/chord for perform_DO in 43.10055160522461 seconds
+finished zohar, drop_0.5/chord for perform_ALS in 36.92271423339844 seconds
+finished zohar, drop_0.5/chord for perform_CLS in 61.247838497161865 seconds

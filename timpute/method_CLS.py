@@ -7,14 +7,12 @@ import tensorly as tl
 from tensorly.cp_tensor import cp_normalize
 from tensorly.tenalg import khatri_rao
 from .initialization import initialize_fac
-from .impute_helper import calcR2X
+from .impute_helper import calcR2X, reorient_factors
 from tqdm import tqdm
 from sklearn.linear_model import Ridge
-from copy import deepcopy
 
 
 tl.set_backend('numpy')
-
 
 def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) -> np.ndarray:
     """Solves least squares problem subject to missing data.
@@ -76,7 +74,7 @@ def perform_CLS(tOrig,
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
     tq = tqdm(range(n_iter_max), disable=(not progress))
-    for i in tq:
+    for _ in tq:
         # Solve on each mode
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
@@ -85,21 +83,14 @@ def perform_CLS(tOrig,
         R2X_last = tFac.R2X
         tFac.R2X = calcR2X(tFac, tOrig)
         tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
-        # assert tFac.R2X > 0.0
-        if callback: callback(tFac)
 
+        if callback: callback(tFac)
         if tFac.R2X - R2X_last < tol:
             break
-        else:
-            tFac_last = deepcopy(tFac)
+
 
     tFac = cp_normalize(tFac)
+    tFac = reorient_factors(tFac)
     tFac.R2X = calcR2X(tFac, tOrig)
 
-    tFac_last = cp_normalize(tFac_last)
-    tFac_last.R2X = calcR2X(tFac_last, tOrig)
-
-    if tFac.R2X < tFac_last.R2X:
-        return tFac_last
-    else:
-        return tFac
+    return tFac

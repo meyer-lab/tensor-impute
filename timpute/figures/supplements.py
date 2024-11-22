@@ -3,12 +3,13 @@ from figures import METHODNAMES, SAVENAMES, DATANAMES, DROPS
 import numpy as np
 import pandas as pd
 from .common import getSetup, rgbs
+from .figure_data import bestComps
 from ..decomposition import Decomposition
+from ..tracker import Tracker
 
 # poetry run python -m timpute.figures.supplements
 
-
-def figureS1() -> None:
+def tableS1() -> None:
     # Supplemental 1
     DROPS = (0.05, 0.1, 0.2, 0.3, 0.4)
 
@@ -57,7 +58,7 @@ def figureS1() -> None:
     )
 
 
-def figureS2() -> None:
+def figureS1() -> None:
     # Supplemental 2
     ax, f = getSetup((24, 12), (2, 4))
     width = 0.3
@@ -105,7 +106,7 @@ def figureS2() -> None:
     )
 
 
-def figureS3() -> None:
+def tableS3() -> None:
     # Supplemental 3
     df_list = []
     for i in ["entry", "chord"]:
@@ -127,6 +128,46 @@ def figureS3() -> None:
             sheet_name=f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage",
         )
 
+def tableS4() -> None:
+    impType = 'chord'
+    DROPS = (0.05, 0.1, 0.2, 0.3, 0.4)
+
+    # create dataframe
+    col = [[f'{int(d*100)}%' for d in DROPS for _ in METHODNAMES], METHODNAMES * len(DROPS)]
+    row = [sorted(SAVENAMES*2),['entry','chord']*len(SAVENAMES)]
+    colIndex = pd.Series(np.zeros(len(col[0])), index=col).index
+    rowIndex = pd.Series(np.zeros(len(row[0])), index=row).index
+    df_iter = pd.DataFrame(np.zeros((len(rowIndex),len(colIndex))), index=rowIndex, columns=colIndex)
+    df_init = pd.DataFrame(np.zeros((len(rowIndex),len(colIndex))), index=rowIndex, columns=colIndex)
+
+    # fill dataframe 
+    data = Tracker()
+    for method in METHODNAMES:
+        for s in SAVENAMES:
+            for d in (0.05, 0.1, 0.2, 0.3, 0.4):
+                for impType in ['entry','chord']:
+
+                    data.load(f'./timpute/figures/cache/{s}/drop_{d}/{impType}-perform_{method}.tracker')
+                    rr = str(bestComps(d,impType,[s])[s][method])
+                    
+                    # take mean across samples of (ti+1 - ti) from 1 to maxIter
+                    df_iter.loc[(s,impType),(f'{int(d*100)}%',method)] = np.median(np.nanmedian(np.diff(data.time_array[rr][:,1:]),axis=0))
+                    # take mean across samples of (t1 - t0)
+                    df_init.loc[(s,impType),(f'{int(d*100)}%',method)] = np.nanmedian(np.diff(data.time_array[rr][:,0:2]))
+
+    # cleaning
+    df_iter = df_iter.reindex([i for name in SAVENAMES for i in df_iter.index if i[0] == name])
+    df_iter.index = df_iter.index.set_levels([DATANAMES[SAVENAMES.index(i)] for i in df_iter.index.levels[0]],level=0)
+    df_iter.index = df_iter.index.set_names(['Dataset', 'Imputation Type'])
+    df_iter = df_iter.style.set_caption("Median Time per Iteration for Optimal Rank Imputation")
+
+    df_init = df_init.reindex([i for name in SAVENAMES for i in df_init.index if i[0] == name])
+    df_init.index = df_init.index.set_levels([DATANAMES[SAVENAMES.index(i)] for i in df_init.index.levels[0]],level=0)
+    df_init.index = df_init.index.set_names(['Dataset', 'Imputation Type'])
+    df_init = df_init.style.set_caption("Median Time for Data Processing, Prior to First Iteration for Optimal Rank Imputation")
+
+    df_iter.to_excel("./timpute/figures/img/iterTime.xlsx", sheet_name='Median Time per Iteration for Optimal Rank Imputation')
+    df_init.to_excel("./timpute/figures/img/initTime.xlsx", sheet_name='Median Time for Data Processing, Prior to First Iteration for Optimal Rank Imputation')
 
 if __name__ == "__main__":
     figureS1()

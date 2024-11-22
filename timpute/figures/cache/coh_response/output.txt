@@ -1,0 +1,58 @@
+
+
+===================
+Starting new run for [real_data]
+Timestamp: 2023-10-17 20:40:59.005981-07:00
+--- BEGIN NONMISSING ---
+finished coh_response, nonmissing/entry for perform_DO in 132.39165878295898 seconds
+finished coh_response, nonmissing/entry for perform_ALS in 123.16752362251282 seconds
+finished coh_response, nonmissing/entry for perform_CLS in 205.35517358779907 seconds
+--- BEGIN MISSING (0.01) ---
+finished coh_response, drop_0.01/entry for perform_DO in 130.46450853347778 seconds
+finished coh_response, drop_0.01/entry for perform_ALS in 125.1747395992279 seconds
+finished coh_response, drop_0.01/entry for perform_CLS in 667.6926908493042 seconds
+finished coh_response, drop_0.01/chord for perform_DO in 131.89594101905823 seconds
+finished coh_response, drop_0.01/chord for perform_ALS in 128.19643568992615 seconds
+finished coh_response, drop_0.01/chord for perform_CLS in 485.29895782470703 seconds
+--- BEGIN MISSING (0.05) ---
+finished coh_response, drop_0.05/entry for perform_DO in 173.01732659339905 seconds
+finished coh_response, drop_0.05/entry for perform_ALS in 147.17670822143555 seconds
+finished coh_response, drop_0.05/entry for perform_CLS in 652.8154740333557 seconds
+finished coh_response, drop_0.05/chord for perform_DO in 131.29955291748047 seconds
+finished coh_response, drop_0.05/chord for perform_ALS in 123.12383317947388 seconds
+finished coh_response, drop_0.05/chord for perform_CLS in 495.89615845680237 seconds
+--- BEGIN MISSING (0.1) ---
+finished coh_response, drop_0.1/entry for perform_DO in 131.40640258789062 seconds
+finished coh_response, drop_0.1/entry for perform_ALS in 124.97004890441895 seconds
+finished coh_response, drop_0.1/entry for perform_CLS in 686.1902258396149 seconds
+finished coh_response, drop_0.1/chord for perform_DO in 136.1941294670105 seconds
+finished coh_response, drop_0.1/chord for perform_ALS in 130.45300245285034 seconds
+finished coh_response, drop_0.1/chord for perform_CLS in 504.003160238266 seconds
+--- BEGIN MISSING (0.2) ---
+finished coh_response, drop_0.2/entry for perform_DO in 131.5147249698639 seconds
+finished coh_response, drop_0.2/entry for perform_ALS in 124.18907403945923 seconds
+finished coh_response, drop_0.2/entry for perform_CLS in 583.542542219162 seconds
+finished coh_response, drop_0.2/chord for perform_DO in 135.39691138267517 seconds
+finished coh_response, drop_0.2/chord for perform_ALS in 132.1763253211975 seconds
+finished coh_response, drop_0.2/chord for perform_CLS in 462.3301372528076 seconds
+--- BEGIN MISSING (0.3) ---
+finished coh_response, drop_0.3/entry for perform_DO in 132.74009013175964 seconds
+finished coh_response, drop_0.3/entry for perform_ALS in 131.5023477077484 seconds
+finished coh_response, drop_0.3/entry for perform_CLS in 532.0042233467102 seconds
+finished coh_response, drop_0.3/chord for perform_DO in 139.5568232536316 seconds
+finished coh_response, drop_0.3/chord for perform_ALS in 130.53413224220276 seconds
+finished coh_response, drop_0.3/chord for perform_CLS in 420.5489423274994 seconds
+--- BEGIN MISSING (0.4) ---
+finished coh_response, drop_0.4/entry for perform_DO in 130.9794945716858 seconds
+finished coh_response, drop_0.4/entry for perform_ALS in 129.5475628376007 seconds
+finished coh_response, drop_0.4/entry for perform_CLS in 481.12714743614197 seconds
+finished coh_response, drop_0.4/chord for perform_DO in 138.32903909683228 seconds
+finished coh_response, drop_0.4/chord for perform_ALS in 134.98524141311646 seconds
+finished coh_response, drop_0.4/chord for perform_CLS in 379.08218002319336 seconds
+--- BEGIN MISSING (0.5) ---
+finished coh_response, drop_0.5/entry for perform_DO in 133.73192048072815 seconds
+finished coh_response, drop_0.5/entry for perform_ALS in 130.23065972328186 seconds
+finished coh_response, drop_0.5/entry for perform_CLS in 428.1742548942566 seconds
+finished coh_response, drop_0.5/chord for perform_DO in 139.4900140762329 seconds
+finished coh_response, drop_0.5/chord for perform_ALS in 137.72371363639832 seconds
+finished coh_response, drop_0.5/chord for perform_CLS in 338.2524039745331 seconds

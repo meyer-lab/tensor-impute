@@ -30,33 +30,13 @@ def figure4(datalist=SAVENAMES, errors=True):
             for d in drops:
                 folder = f"timpute/figures/cache/{data}/drop_{d}/"
                 run, _ = loadImputation(impType, m, folder)
-                comp = np.median(run.entry_imputed, 0).argmin()  # best imp error
-                ImpErr.append(np.median(run.entry_imputed[comp]))
-                ImpErrIQR.append(
-                    np.vstack(
-                        (
-                            -(
-                                np.percentile(run.entry_imputed[comp], 25, 0)
-                                - np.median(run.entry_imputed[comp], 0)
-                            ),
-                            np.percentile(run.entry_imputed[comp], 75, 0)
-                            - np.median(run.entry_imputed[comp], 0),
-                        )
-                    )
-                )
-                TotErr.append(np.median(run.entry_total[comp]))
-                TotErrIQR.append(
-                    np.vstack(
-                        (
-                            -(
-                                np.percentile(run.entry_total[comp], 25, 0)
-                                - np.median(run.entry_total[comp], 0)
-                            ),
-                            np.percentile(run.entry_total[comp], 75, 0)
-                            - np.median(run.entry_total[comp], 0),
-                        )
-                    )
-                )
+                comp = np.median(run.entry_imputed,0).argmin() # best imp error
+                ImpErr.append(np.median(run.entry_imputed[:,comp]))
+                ImpErrIQR.append(np.vstack((-(np.percentile(run.entry_imputed[:,comp],25,0) - np.median(run.entry_imputed[:,comp],0)),
+                                          np.percentile(run.entry_imputed[:,comp],75,0) - np.median(run.entry_imputed[:,comp],0))))
+                TotErr.append(np.median(run.entry_total[:,comp]))
+                TotErrIQR.append(np.vstack((-(np.percentile(run.entry_total[:,comp],25,0) - np.median(run.entry_total[:,comp],0)),
+                                          np.percentile(run.entry_total[:,comp],75,0) - np.median(run.entry_total[:,comp],0))))
                 stdout.write(f"{comp}, ")
 
             if errors is True:
@@ -130,33 +110,13 @@ def figure4(datalist=SAVENAMES, errors=True):
             for d in drops:
                 folder = f"timpute/figures/cache/{data}/drop_{d}/"
                 run, _ = loadImputation(impType, m, folder)
-                comp = np.median(run.chord_imputed, 0).argmin()  # best imp error
-                ImpErr.append(np.median(run.chord_imputed[comp]))
-                ImpErrIQR.append(
-                    np.vstack(
-                        (
-                            -(
-                                np.percentile(run.chord_imputed[comp], 25, 0)
-                                - np.median(run.chord_imputed[comp], 0)
-                            ),
-                            np.percentile(run.chord_imputed[comp], 75, 0)
-                            - np.median(run.chord_imputed[comp], 0),
-                        )
-                    )
-                )
-                TotErr.append(np.median(run.chord_total[comp]))
-                TotErrIQR.append(
-                    np.vstack(
-                        (
-                            -(
-                                np.percentile(run.chord_total[comp], 25, 0)
-                                - np.median(run.chord_total[comp], 0)
-                            ),
-                            np.percentile(run.chord_total[comp], 75, 0)
-                            - np.median(run.chord_total[comp], 0),
-                        )
-                    )
-                )
+                comp = np.median(run.chord_imputed,0).argmin() # best imp error
+                ImpErr.append(np.median(run.chord_imputed[:,comp]))
+                ImpErrIQR.append(np.vstack((-(np.percentile(run.chord_imputed[:,comp],25,0) - np.median(run.chord_imputed[:,comp],0)),
+                                          np.percentile(run.chord_imputed[:,comp],75,0) - np.median(run.chord_imputed[:,comp],0))))
+                TotErr.append(np.median(run.chord_total[:,comp]))
+                TotErrIQR.append(np.vstack((-(np.percentile(run.chord_total[:,comp],25,0) - np.median(run.chord_total[:,comp],0)),
+                                          np.percentile(run.chord_total[:,comp],75,0) - np.median(run.chord_total[:,comp],0))))
                 stdout.write(f"{comp}, ")
 
             if errors is True:
