@@ -2,11 +2,17 @@ import os
 import numpy as np
 from .figure_helper import runImputation, loadImputation
 from ..generateTensor import generateTensor
-from figures import METHODS, METHODNAMES, SAVENAMES, DROPS
+from . import METHODS, METHODNAMES, SAVENAMES, DROPS
 
 # poetry run python -m timpute.figures.figure_data  
 
-def real_data(datalist=["zohar", "alter", "hms", "coh_response"], start_comps=[1,1,1,1], max_comps=[10,10,10,20], reps=20, savedir="timpute/figures/cache"):
+def real_data(datalist=SAVENAMES,
+              start_comps=[1,1,1,1],
+              max_comps=[20,20,20,20],
+              reps=20,
+              drops=DROPS,
+              nonmissing=True,
+              savedir="timpute/figures/cache"):
     assert len(datalist) == len(max_comps)
     
     seed = 1
@@ -24,18 +30,19 @@ def real_data(datalist=["zohar", "alter", "hms", "coh_response"], start_comps=[1
         folder = dirname+savename
         np.random.seed(seed)
 
-        print("--- BEGIN NONMISSING ---")
-        # stdout.write("--- BEGIN NONMISSING ---\n")
-        drop_perc = 0.0
-        run = "nonmissing/"
+        if nonmissing is True:
+            print("--- BEGIN NONMISSING ---")
+            # stdout.write("--- BEGIN NONMISSING ---\n")
+            drop_perc = 0.0
+            run = "nonmissing/"
 
-        if os.path.isdir(folder+run) is False: os.makedirs(folder+run)
-        impType = 'entry'
-        for m in METHODS:
-            runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
-                        repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6)
+            if os.path.isdir(folder+run) is False: os.makedirs(folder+run)
+            impType = 'entry'
+            for m in METHODS:
+                runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
+                            repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6)
 
-        for i in DROPS:
+        for i in drops:
             print(f"--- BEGIN MISSING ({i}) ---")
             drop_perc = i
             run = f"drop_{i}/"

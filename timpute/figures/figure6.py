@@ -1,7 +1,7 @@
 import pandas as pd
 from .figure_helper import *
-from ..plot import rgbs
-from ..common import getSetup, subplotLabel
+from .common import getSetup, subplotLabel, rgbs
+from . import METHODNAMES,DROPS
 
 # poetry run python -m timpute.figures.figure6
 
@@ -39,7 +39,7 @@ def figure6():
     sep = 1
     ax[2].tick_params(axis='both', which='major', labelsize=TEXT_FONTSIZE)
 
-    for m,method in enumerate(NEWMETHODNAMES):
+    for m,method in enumerate(METHODNAMES):
         x = [sep*i + width*m for i in range(len(DROPS))]
         y = [tmp.loc[('DyeDrop profiling', 'chord'),(method,f"{int(d*100)}%")] for d in DROPS]
         ax[2].bar(x, y, color=rgbs(m), width=0.25)
@@ -54,7 +54,7 @@ def figure6():
     ax[3].tick_params(axis='both', which='major', labelsize=TEXT_FONTSIZE)
 
     for t,impType in enumerate(['entry','chord']):
-        for m,method in enumerate(NEWMETHODNAMES[:2]):
+        for m,method in enumerate(METHODNAMES[:2]):
             x = [f"{int(d*100)}%" for d in DROPS]
             y = [tmp.loc[('HIV serology', impType),('C-ALS',f"{int(d*100)}%")] /
                 tmp.loc[('HIV serology', impType),(method,f"{int(d*100)}%")]

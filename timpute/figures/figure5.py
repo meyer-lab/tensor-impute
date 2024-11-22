@@ -2,7 +2,7 @@ import numpy as np
 from .figure_data import bestComps
 from .figure_helper import loadImputation
 from .common import getSetup, subplotLabel, rgbs
-from figures import METHODS, METHODNAMES, SAVENAMES, DATANAMES
+from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES
 # from matplotlib.legend_handler import HandlerErrorbar
 
 # poetry run python -m timpute.figures.figure5

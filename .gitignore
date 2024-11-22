@@ -137,4 +137,5 @@ dmypy.json
 archive/
 analysis/
 cache/
+revision_cache/
 *figs.py

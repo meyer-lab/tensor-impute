@@ -11,7 +11,6 @@ def runImputation(data:np.ndarray,
                   method,
                   dataname = None,
                   callback = True,
-                  save = True,
                   savename:str = None,
                   printRuntime = False,
                   **kwargs):
@@ -25,11 +24,11 @@ def runImputation(data:np.ndarray,
     
     # run method & save
     # include **kwargs include: repeat=reps, drop=drop_perc, init=init_type, callback_r=max_rr
-    decomposition.imputation(type=impType, method=method, callback=tracker, printRuntime=printRuntime, **kwargs)
+    decomposition.imputation(imp_type=impType, method=method, callback=tracker, printRuntime=printRuntime, **kwargs)
     if tracker:
         tracker.combine()
 
-    if save is True:
+    if savename is not None:
         if os.path.isdir(savename) is False: os.makedirs(savename)
         decomposition.save(f"./{savename}{impType}-{method.__name__}.decomposition")
         if tracker:

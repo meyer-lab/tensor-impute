@@ -141,7 +141,7 @@ class Decomposition():
             
             # for each component up to max, run method
             for rr in self.rrs:
-                if printRuntime and rr % 10 == 0: print(f"solving rank {rr+1}")
+                # if printRuntime and rr % 10 == 0: print(f"solving rank {rr}")
                 if isinstance(init, str):
                     np.random.seed(int(x*seed))
                     CPinit = initialize_fac(missingCube.copy(), rr, init)

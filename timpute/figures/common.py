@@ -64,7 +64,7 @@ def set_boxplot_color(bp, color):
 
 
 def rgbs(color = 0, transparency = None):
-    color_rgbs = [sns.color_palette("bright")[0],sns.color_palette("bright")[8],sns.color_palette("bright")[3]]
+    color_rgbs = [sns.color_palette("bright")[0],sns.color_palette("bright")[8],sns.color_palette("bright")[6],sns.color_palette("bright")[3]]
     if transparency is not None:
         return tuple(list(color_rgbs[color]) + [transparency])
     else:

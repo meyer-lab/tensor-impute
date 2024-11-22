@@ -2,7 +2,7 @@ import math
 import numpy as np
 from .figure_helper import loadImputation
 from .common import getSetup, subplotLabel, rgbs
-from figures import METHODS, METHODNAMES, SAVENAMES, DATANAMES
+from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES
 
 # poetry run python -m timpute.figures.figure2
 
