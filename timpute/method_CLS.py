@@ -111,6 +111,6 @@ def perform_CLS(
 
     tFac = cp_normalize(tFac)
     tFac = cp_flip_sign(tFac)
-    tFac.R2X = calcR2X(tFac, tOrig)
+    tFac.R2X = R2X
 
     return tFac
