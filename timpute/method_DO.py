@@ -2,12 +2,13 @@
 Tensor decomposition methods
 """
 import numpy as np
-from scipy.optimize import minimize
 import tensorly as tl
+from scipy.optimize import minimize
+from tensorly.cp_tensor import cp_lstsq_grad, cp_normalize
+
+from .generateTensor import generateTensor
 from .initialization import initialize_fac
 from .tracker import Tracker
-from tensorly.cp_tensor import cp_normalize, cp_lstsq_grad
-from .generateTensor import generateTensor
 
 tl.set_backend("numpy")
 
@@ -37,13 +38,12 @@ class do_callback:
 
 
 def perform_DO(
-    tensorOrig:np.ndarray=None,
+    tensorOrig: np.ndarray,
     rank:int=6,
     n_iter_max:int=5_000,
     tol = 1e-6,
     callback=None,
     init=None,
-    **kwargs
 ) -> tl.cp_tensor.CPTensor:
     """Perform CP decomposition."""
     if tensorOrig is None:

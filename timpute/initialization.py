@@ -1,7 +1,7 @@
 import numpy as np
 import tensorly as tl
-from tensorly.tenalg import svd_interface
 from tensorly.random import random_cp
+from tensorly.tenalg import svd_interface
 
 
 class IterativeSVD(object):

@@ -1,9 +1,11 @@
 import math
+
 import numpy as np
+from figures import DATANAMES, DROPS, METHODNAMES, METHODS, SAVENAMES
 from matplotlib.lines import Line2D
+
+from .common import getSetup, rgbs, set_boxplot_color, subplotLabel
 from .figure_helper import loadImputation
-from .common import getSetup, subplotLabel, rgbs, set_boxplot_color
-from figures import METHODS, METHODNAMES, SAVENAMES, DATANAMES, DROPS
 
 # poetry run python -m timpute.figures.figure3
 
