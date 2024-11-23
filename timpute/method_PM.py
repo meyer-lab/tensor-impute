@@ -3,9 +3,9 @@ import tensorly as tl
 from tqdm import tqdm
 
 from tensorly.tenalg import khatri_rao
-from .impute_helper import calcR2X, reorient_factors
+from .impute_helper import calcR2X
 from .initialization import initialize_fac
-from tensorly.cp_tensor import cp_normalize
+from tensorly.cp_tensor import cp_normalize, cp_flip_sign
 
 
 def perform_PM(
@@ -139,7 +139,7 @@ def perform_PM(
     # C = C*diag(asign)*diag(bsign);
 
     tFac = cp_normalize(tFac)
-    tFac = reorient_factors(tFac)
+    tFac = cp_flip_sign(tFac)
     tFac.R2X = calcR2X(tFac, tOrig)
 
     return tFac

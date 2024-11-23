@@ -1,21 +1,6 @@
 import numpy as np
 import tensorly as tl
 
-def reorient_factors(tFac):
-    """ This function ensures that factors are negative on at most one direction. """
-    # Flip the types to be positive
-    tMeans = np.sign(np.mean(tFac.factors[2], axis=0))
-    tFac.factors[1] *= tMeans[np.newaxis, :]
-    tFac.factors[2] *= tMeans[np.newaxis, :]
-
-    # Flip the cytokines to be positive
-    rMeans = np.sign(np.mean(tFac.factors[1], axis=0))
-    tFac.factors[0] *= rMeans[np.newaxis, :]
-    tFac.factors[1] *= rMeans[np.newaxis, :]
-
-    if hasattr(tFac, 'mFactor'):
-        tFac.mFactor *= rMeans[np.newaxis, :]
-    return tFac
 
 def calcR2X(tFac: tl.cp_tensor.CPTensor, tIn: np.ndarray, calcError=False, mask: np.ndarray=None) -> float:
     """ Calculate R2X. Optionally it can be calculated for only the tensor or matrix.

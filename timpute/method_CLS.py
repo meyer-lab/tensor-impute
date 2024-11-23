@@ -7,7 +7,7 @@ import tensorly as tl
 from tensorly.cp_tensor import cp_normalize
 from tensorly.tenalg import khatri_rao
 from .initialization import initialize_fac
-from .impute_helper import calcR2X, reorient_factors
+from .impute_helper import calcR2X
 from tqdm import tqdm
 from sklearn.linear_model import Ridge
 
@@ -90,7 +90,7 @@ def perform_CLS(tOrig,
 
 
     tFac = cp_normalize(tFac)
-    tFac = reorient_factors(tFac)
+    tFac = cp_flip_sign(tFac)
     tFac.R2X = calcR2X(tFac, tOrig)
 
     return tFac
