@@ -3,18 +3,20 @@ import tensorly as tl
 from tensorly.tenalg import svd_interface
 from tensorly.random import random_cp
 
+
 class IterativeSVD(object):
     def __init__(
-            self,
-            rank,
-            convergence_threshold=1e-7,
-            max_iters=500,
-            random_state=None,
-            min_value=None,
-            max_value=None,
-            verbose=False):
-        self.min_value=min_value
-        self.max_value=max_value
+        self,
+        rank,
+        convergence_threshold=1e-7,
+        max_iters=500,
+        random_state=None,
+        min_value=None,
+        max_value=None,
+        verbose=False,
+    ):
+        self.min_value = min_value
+        self.max_value = max_value
         self.rank = rank
         self.max_iters = max_iters
         self.convergence_threshold = convergence_threshold
@@ -70,11 +72,10 @@ class IterativeSVD(object):
         old_missing_values = X_old[missing_mask]
         new_missing_values = X_new[missing_mask]
         difference = old_missing_values - new_missing_values
-        ssd = np.sum(difference ** 2)
-        old_norm_squared = (old_missing_values ** 2).sum()
+        ssd = np.sum(difference**2)
+        old_norm_squared = (old_missing_values**2).sum()
         # edge cases
-        if old_norm_squared == 0 or \
-                (old_norm_squared < F32PREC and ssd > F32PREC):
+        if old_norm_squared == 0 or (old_norm_squared < F32PREC and ssd > F32PREC):
             return False
         else:
             return (ssd / old_norm_squared) < self.convergence_threshold
@@ -84,7 +85,9 @@ class IterativeSVD(object):
         X_filled = X
         for i in range(self.max_iters):
             curr_rank = self.rank
-            self.U, S, V = svd_interface(matrix=X_filled, n_eigenvecs=curr_rank, random_state=self.random_state)
+            self.U, S, V = svd_interface(
+                matrix=X_filled, n_eigenvecs=curr_rank, random_state=self.random_state
+            )
             X_reconstructed = self.U @ np.diag(S) @ V
             X_reconstructed = self.clip(X_reconstructed)
 
@@ -92,20 +95,17 @@ class IterativeSVD(object):
             mae = np.mean(np.abs(X[observed_mask] - X_reconstructed[observed_mask]))
 
             if self.verbose:
-                print(
-                    "[IterativeSVD] Iter %d: observed MAE=%0.6f" % (
-                        i + 1, mae))
+                print("[IterativeSVD] Iter %d: observed MAE=%0.6f" % (i + 1, mae))
             converged = self._converged(
-                X_old=X_filled,
-                X_new=X_reconstructed,
-                missing_mask=missing_mask)
+                X_old=X_filled, X_new=X_reconstructed, missing_mask=missing_mask
+            )
             X_filled[missing_mask] = X_reconstructed[missing_mask]
             if converged:
                 break
         return X_filled
 
 
-def initialize_fac(tensor: np.ndarray, rank: int, method='svd'):
+def initialize_fac(tensor: np.ndarray, rank: int, method="svd"):
     """Initialize factors used in `parafac`.
     Parameters
     ----------
@@ -116,11 +116,11 @@ def initialize_fac(tensor: np.ndarray, rank: int, method='svd'):
     factors : CPTensor
         An initial cp tensor.
     """
-    if method == 'random':
+    if method == "random":
         return random_cp(shape=tensor.shape, rank=rank, normalise_factors=False)
 
     factors = [np.ones((tensor.shape[i], rank)) for i in range(tensor.ndim)]
-    contain_missing = (np.sum(~np.isfinite(tensor)) > 0)
+    contain_missing = np.sum(~np.isfinite(tensor)) > 0
 
     # SVD init mode whose size is larger than rank
     for mode in range(tensor.ndim):
@@ -131,13 +131,13 @@ def initialize_fac(tensor: np.ndarray, rank: int, method='svd'):
                 unfold = si.fit_transform(unfold)
 
             factors[mode] = svd_interface(matrix=unfold, n_eigenvecs=rank, flip=True)[0]
-        else: # tensor.shape[mode] < rank
+        else:  # tensor.shape[mode] < rank
             unfold = tl.unfold(tensor, mode)
             if contain_missing:
                 si = IterativeSVD(tensor.shape[mode])
-                unfold = si.fit_transform(unfold) # unfold (tensor.shape[mode] x ...)
+                unfold = si.fit_transform(unfold)  # unfold (tensor.shape[mode] x ...)
 
             svd_factor = svd_interface(matrix=unfold, n_eigenvecs=rank, flip=True)[0]
-            factors[mode][:,0:tensor.shape[mode]] = svd_factor
+            factors[mode][:, 0 : tensor.shape[mode]] = svd_factor
 
     return tl.cp_tensor.CPTensor((None, factors))

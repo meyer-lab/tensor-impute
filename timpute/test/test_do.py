@@ -23,8 +23,6 @@ def test_decomp_dopt(plot=False, method=perform_DO):
         + np.array2string(np.average(decomp.entry_imputed, axis=0))
     )
 
-    return decomp, track
-
 
 def test_unit_dopt():
     tensor = generateTensor("known", shape=(10, 10, 10))
