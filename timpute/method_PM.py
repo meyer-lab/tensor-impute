@@ -1,21 +1,22 @@
 import numpy as np
 import tensorly as tl
 from tqdm import tqdm
-from copy import deepcopy
 
 from tensorly.tenalg import khatri_rao
 from .impute_helper import calcR2X
 from .initialization import initialize_fac
+from tensorly.cp_tensor import cp_normalize, cp_flip_sign
 
 
-def perform_PM(tOrig:np.ndarray=None,
-               rank:int=6,
-               n_iter_max:int=50,
-               tol = 1e-6,
-               callback=None,
-               init=None,
-               verbose=None,
-               **kwargs
+def perform_PM(
+    tOrig: np.ndarray,
+    rank: int = 6,
+    n_iter_max: int = 50,
+    tol=1e-6,
+    callback=None,
+    init=None,
+    verbose=None,
+    **kwargs,
 ) -> tl.cp_tensor.CPTensor:
     # function [A, B, C, LFT, M]=PARAFACM(XIJK, Fac, epsilon)
     # % Input
@@ -43,8 +44,8 @@ def perform_PM(tOrig:np.ndarray=None,
 
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
 
-    # % -----------STEP 1--------------- 
-    # % initialize A & B and compute C 
+    # % -----------STEP 1---------------
+    # % initialize A & B and compute C
     # [A, B, C] = DTLD_nan(XIJK, Fac);
     # % A = rand(I, Fac);
     # % B = rand(J, Fac);
@@ -53,7 +54,7 @@ def perform_PM(tOrig:np.ndarray=None,
     # AB = krao(B, A);
     # for k = 1 : K
     #     ABK = AB;
-    #     XK = XKxIJ(k, :);    
+    #     XK = XKxIJ(k, :);
     #     ABK(isnan(XK), :) = [];
     #     XK(isnan(XK)) = [] ;
     #     C(k, :) = XK*ABK*pinv(ABK'*ABK);
@@ -63,7 +64,6 @@ def perform_PM(tOrig:np.ndarray=None,
         tFac = initialize_fac(tOrig, rank)
     else:
         tFac = init
-        tFac_last = init
 
     # % ------------STEP 2---------------
     # % start to caculate LFT and do iteration
@@ -83,27 +83,8 @@ def perform_PM(tOrig:np.ndarray=None,
     #     end
     #      % normalization of A columnwisely
     #      A = A*diag(1./diag(sqrt(A'*A)));
-    # % estimation of B
-    #     CA = krao(A, C);
-    #     for j = 1 : J
-    #         CAJ = CA;
-    #         XJ = XJxKI(j, :);
-    #         CAJ(isnan(XJ),:) = [];
-    #         XJ(isnan(XJ)) = [] ;
-    #         B(j, :) = XJ*CAJ*pinv(CAJ'*CAJ);
     #     end
-    #      % normalization of B columnwisely
-    #      B = B*diag(1./diag(sqrt(B'*B)));
-    # % estimation of C
-    #     AB = krao(B, A);
-    #     for k = 1 : K
-    #         ABK = AB;
-    #         XK = XKxIJ(k, :);
-    #         ABK(isnan(XK), :) = [];
-    #         XK(isnan(XK)) = [] ;
-    #         C(k, :) = XK*ABK*pinv(ABK'*ABK);
-    #     end
-    # % caculate loss function   
+    # % caculate loss function
     #     LFTT = 0;
     #     for k = 1 : K
     #         XX = XIJK(:, :, k);
@@ -125,24 +106,25 @@ def perform_PM(tOrig:np.ndarray=None,
     for _ in tq:
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
-            for i in tFac.factors[m].shape[0]:
-                pass
-            # tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m], alpha=alpha)
+            for i in range(tFac.factors[m].shape[0]):
+                mIDs = np.isfinite(unfolded[m][i])
+                X_miss = unfolded[m][i, mIDs]
+                kr_miss = kr[mIDs, :]
+                tFac.factors[m][i] = (
+                    X_miss @ kr_miss @ np.linalg.pinv(kr_miss.T @ kr_miss)
+                )
 
         R2X_last = tFac.R2X
         tFac.R2X = calcR2X(tFac, tOrig)
         tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
         # assert tFac.R2X > 0.0
-        if callback: callback(tFac)
+        if callback:
+            callback(tFac)
 
         if tFac.R2X - R2X_last < tol:
             break
-        else:
-            tFac_last = deepcopy(tFac)
 
-
-
-    # % ------------STEP 3---------------
+        # % ------------STEP 3---------------
     # % post-processing to keep sign convention
     # [maxa, inda] = max(abs(A));
     # [maxb, indb] = max(abs(B));
@@ -155,5 +137,9 @@ def perform_PM(tOrig:np.ndarray=None,
     # A = A*diag(asign);
     # B = B*diag(bsign);
     # C = C*diag(asign)*diag(bsign);
-    pass
 
+    tFac = cp_normalize(tFac)
+    tFac = cp_flip_sign(tFac)
+    tFac.R2X = calcR2X(tFac, tOrig)
+
+    return tFac
