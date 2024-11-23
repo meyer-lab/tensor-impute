@@ -4,7 +4,7 @@ Censored Least Squares
 
 import numpy as np
 import tensorly as tl
-from tensorly.cp_tensor import cp_normalize
+from tensorly.cp_tensor import cp_normalize, cp_flip_sign
 from tensorly.tenalg import khatri_rao
 from .initialization import initialize_fac
 from .linesearch import Nesterov
@@ -13,7 +13,6 @@ from sklearn.linear_model import Ridge
 
 
 tl.set_backend('numpy')
-
 
 def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) -> np.ndarray:
     """Solves least squares problem subject to missing data.
@@ -79,7 +78,7 @@ def perform_CLS(tOrig,
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
 
     tq = tqdm(range(n_iter_max), disable=(not progress))
-    for i in tq:
+    for _ in tq:
         # Solve on each mode
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
@@ -95,10 +94,11 @@ def perform_CLS(tOrig,
         assert tFac.R2X > 0.0
 
         if callback: callback(tFac)
-
         if tFac.R2X - R2X_last < tol:
             break
 
-    tFac_norm = cp_normalize(tFac)
-    tFac_norm.R2X = tFac.R2X
+    tFac = cp_normalize(tFac)
+    tFac = cp_flip_sign(tFac)
+    tFac.R2X = calcR2X(tFac, tOrig)
+
     return tFac
