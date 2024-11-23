@@ -8,6 +8,7 @@ from tensorly.cp_tensor import cp_normalize
 from tensorly.tenalg import khatri_rao
 from .initialization import initialize_fac
 from .impute_helper import calcR2X, reorient_factors
+from .linesearch import Nesterov
 from tqdm import tqdm
 from sklearn.linear_model import Ridge
 
@@ -68,7 +69,11 @@ def perform_CLS(tOrig,
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
     R2X_last = -np.inf
-    tFac.R2X = calcR2X(tFac, tOrig)
+
+    linesrc = Nesterov()
+    fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
+    tFac.R2X = R2X
+    tFac.factors = fac
 
     # Precalculate the missingness patterns
     uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
@@ -81,13 +86,18 @@ def perform_CLS(tOrig,
             tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m], alpha=alpha)
         
         R2X_last = tFac.R2X
-        tFac.R2X = calcR2X(tFac, tOrig)
-        tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
+
+        fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
+        tFac.R2X = R2X
+        tFac.factors = fac
+
+        tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, jump=jump, refresh=False)
+        assert tFac.R2X > 0.0
 
         if callback: callback(tFac)
+
         if tFac.R2X - R2X_last < tol:
             break
-
 
     tFac = cp_normalize(tFac)
     tFac = reorient_factors(tFac)
