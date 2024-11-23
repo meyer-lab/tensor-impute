@@ -151,8 +151,15 @@ class Decomposition:
                         callback.begin()
                     callback(CPinit)
 
-                tFac = method(missingCube.copy(), rank=rr, n_iter_max=maxiter, init=CPinit, callback=callback, tol=tol)
-                
+                tFac = method(
+                    missingCube.copy(),
+                    rank=rr,
+                    n_iter_max=maxiter,
+                    init=CPinit,
+                    callback=callback,
+                    tol=tol,
+                )
+
                 # update error metrics
                 error[x, rr - 1] = calcR2X(tFac, tIn=tImp, calcError=True)
                 if drop > 0:

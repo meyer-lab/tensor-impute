@@ -12,9 +12,12 @@ from tqdm import tqdm
 from sklearn.linear_model import Ridge
 
 
-tl.set_backend('numpy')
+tl.set_backend("numpy")
 
-def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) -> np.ndarray:
+
+def censored_lstsq(
+    A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None
+) -> np.ndarray:
     """Solves least squares problem subject to missing data.
     Note: uses a for loop over the missing patterns of B, leading to a
     slower but more numerically stable algorithm
@@ -47,24 +50,26 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) ->
             X[:, uI] = clf.coef_.T
     return X.T
 
-  
-def perform_CLS(tOrig,
-                rank=6,
-                init=None, 
-                alpha=None,
-                tol=1e-6,
-                n_iter_max=50,
-                progress=False,
-                callback=None,
-                **kwargs
-)  -> tl.cp_tensor.CPTensor:
-    """ Perform CP decomposition. """
 
-    if init==None: tFac = initialize_fac(tOrig, rank)
+def perform_CLS(
+    tOrig,
+    rank=6,
+    init=None,
+    alpha=None,
+    tol=1e-6,
+    n_iter_max=50,
+    progress=False,
+    callback=None,
+    **kwargs,
+) -> tl.cp_tensor.CPTensor:
+    """Perform CP decomposition."""
+
+    if init == None:
+        tFac = initialize_fac(tOrig, rank)
     else:
         tFac = init
         tFac_last = init
-    
+
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
     R2X_last = -np.inf
@@ -75,25 +80,32 @@ def perform_CLS(tOrig,
     tFac.factors = fac
 
     # Precalculate the missingness patterns
-    uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
+    uniqueInfo = [
+        np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded
+    ]
 
     tq = tqdm(range(n_iter_max), disable=(not progress))
     for _ in tq:
         # Solve on each mode
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
-            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m], alpha=alpha)
-        
+            tFac.factors[m] = censored_lstsq(
+                kr, unfolded[m].T, uniqueInfo[m], alpha=alpha
+            )
+
         R2X_last = tFac.R2X
 
         fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
         tFac.R2X = R2X
         tFac.factors = fac
 
-        tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, jump=jump, refresh=False)
+        tq.set_postfix(
+            R2X=tFac.R2X, delta=tFac.R2X - R2X_last, jump=jump, refresh=False
+        )
         assert tFac.R2X > 0.0
 
-        if callback: callback(tFac)
+        if callback:
+            callback(tFac)
         if tFac.R2X - R2X_last < tol:
             break
 
