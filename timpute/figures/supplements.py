@@ -1,9 +1,11 @@
 import pickle
-from figures import METHODNAMES, SAVENAMES, DATANAMES, DROPS
+
 import numpy as np
 import pandas as pd
-from .common import getSetup, rgbs
+from figures import DATANAMES, DROPS, METHODNAMES, SAVENAMES
+
 from ..decomposition import Decomposition
+from .common import getSetup, rgbs
 
 # poetry run python -m timpute.figures.supplements
 

@@ -1,8 +1,10 @@
 import os
+
 import numpy as np
-from .figure_helper import runImputation, loadImputation
+from figures import DROPS, METHODNAMES, METHODS, SAVENAMES
+
 from ..generateTensor import generateTensor
-from figures import METHODS, METHODNAMES, SAVENAMES, DROPS
+from .figure_helper import loadImputation, runImputation
 
 # poetry run python -m timpute.figures.figure_data  
 

@@ -1,7 +1,10 @@
-import numpy as np
-import time
 import pickle
+import time
+
+import numpy as np
+
 from .impute_helper import calcR2X
+
 
 class Tracker():
     """ Tracks next unfilled entry & runtime, holds tracked name for plotting """
@@ -22,7 +25,7 @@ class Tracker():
         
         self.combined = False
 
-    def __call__(self, tFac, **kwargs):
+    def __call__(self, tFac):
         """ Takes a CP tensor object """
         self.total_error[self.rank][self.rep] = np.append(self.fitted_error[self.rank][self.rep],
                                                           calcR2X(tFac, self.data, True))

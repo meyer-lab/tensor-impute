@@ -1,15 +1,14 @@
 import pickle
+from typing import Optional
+
 import numpy as np
 import tensorly as tl
-
-from .tracker import Tracker
-from .initialization import initialize_fac
-from .impute_helper import entry_drop, chord_drop
-from .impute_helper import calcR2X
-from .method_CLS import perform_CLS
-
-from copy import deepcopy
 from tqdm import tqdm
+
+from .impute_helper import calcR2X, chord_drop, entry_drop
+from .initialization import initialize_fac
+from .method_CLS import perform_CLS
+from .tracker import Tracker
 
 
 class Decomposition:
@@ -43,7 +42,7 @@ class Decomposition:
         init="random",
         maxiter: int = 50,
         seed=1,
-        callback: Tracker = None,
+        callback: Optional[Tracker] = None,
         printRuntime=False,
     ):
         """
@@ -135,7 +134,7 @@ class Decomposition:
                     np.random.seed(int(x * seed))
                     CPinit = initialize_fac(missingCube.copy(), rr, init)
                 elif isinstance(init, tl.cp_tensor.CPTensor):
-                    CPinit = deepcopy(init)
+                    CPinit = init.cp_copy()
                 else:
                     raise ValueError(f'Initialization method "{init}" not recognized')
 

@@ -4,13 +4,13 @@ Censored Least Squares
 
 import numpy as np
 import tensorly as tl
-from tensorly.cp_tensor import cp_normalize, cp_flip_sign
+from sklearn.linear_model import Ridge
+from tensorly.cp_tensor import cp_flip_sign, cp_normalize
 from tensorly.tenalg import khatri_rao
+from tqdm import tqdm
+
 from .initialization import initialize_fac
 from .linesearch import Nesterov
-from tqdm import tqdm
-from sklearn.linear_model import Ridge
-
 
 tl.set_backend("numpy")
 
@@ -30,6 +30,7 @@ def censored_lstsq(
     X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
     """
     X = np.empty((A.shape[1], B.shape[1]))
+
     # Missingness patterns
     if uniqueInfo is None:
         unique, uIDX = np.unique(np.isfinite(B), axis=1, return_inverse=True)
@@ -52,23 +53,21 @@ def censored_lstsq(
 
 
 def perform_CLS(
-    tOrig,
-    rank=6,
+    tOrig: np.ndarray,
+    rank: int=6,
     init=None,
     alpha=None,
-    tol=1e-6,
-    n_iter_max=50,
+    tol: float=1e-6,
+    n_iter_max: int=50,
     progress=False,
     callback=None,
-    **kwargs,
 ) -> tl.cp_tensor.CPTensor:
     """Perform CP decomposition."""
 
-    if init == None:
+    if init is None:
         tFac = initialize_fac(tOrig, rank)
     else:
         tFac = init
-        tFac_last = init
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
@@ -76,7 +75,6 @@ def perform_CLS(
 
     linesrc = Nesterov()
     fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
-    tFac.R2X = R2X
     tFac.factors = fac
 
     # Precalculate the missingness patterns
@@ -93,20 +91,17 @@ def perform_CLS(
                 kr, unfolded[m].T, uniqueInfo[m], alpha=alpha
             )
 
-        R2X_last = tFac.R2X
-
+        R2X_last = R2X
         fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
-        tFac.R2X = R2X
         tFac.factors = fac
 
         tq.set_postfix(
-            R2X=tFac.R2X, delta=tFac.R2X - R2X_last, jump=jump, refresh=False
+            R2X=R2X, delta=R2X - R2X_last, jump=jump, refresh=False
         )
-        assert tFac.R2X > 0.0
 
         if callback:
             callback(tFac)
-        if tFac.R2X - R2X_last < tol:
+        if R2X - R2X_last < tol:
             break
 
     tFac = cp_normalize(tFac)

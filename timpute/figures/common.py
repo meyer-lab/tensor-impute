@@ -1,12 +1,13 @@
 """
 This file contains functions that are used in multiple figures.
 """
-import seaborn as sns
 from string import ascii_lowercase
-import matplotlib
-from matplotlib import gridspec, pyplot as plt
-from matplotlib.lines import Line2D
 
+import matplotlib
+import seaborn as sns
+from matplotlib import gridspec
+from matplotlib import pyplot as plt
+from matplotlib.lines import Line2D
 
 matplotlib.rcParams["legend.labelspacing"] = 0.2
 matplotlib.rcParams["legend.fontsize"] = 8

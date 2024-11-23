@@ -1,14 +1,11 @@
 import numpy as np
-
 import tensorly as tl
-from tensorly.cp_tensor import (
-    cp_to_tensor,
-)
-from tensorly.cp_tensor import cp_normalize
-from tqdm import tqdm
-from .linesearch import Nesterov
+from tensorly.cp_tensor import cp_normalize, cp_to_tensor
 from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao
+from tqdm import tqdm
+
 from .initialization import initialize_fac
+from .linesearch import Nesterov
 
 
 def perform_ALS(

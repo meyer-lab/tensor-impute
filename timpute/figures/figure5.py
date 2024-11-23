@@ -1,8 +1,10 @@
 import numpy as np
+from figures import DATANAMES, METHODNAMES, METHODS, SAVENAMES
+
+from .common import getSetup, rgbs, subplotLabel
 from .figure_data import bestComps
 from .figure_helper import loadImputation
-from .common import getSetup, subplotLabel, rgbs
-from figures import METHODS, METHODNAMES, SAVENAMES, DATANAMES
+
 # from matplotlib.legend_handler import HandlerErrorbar
 
 # poetry run python -m timpute.figures.figure5

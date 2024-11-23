@@ -1,11 +1,11 @@
 import numpy as np
 import tensorly as tl
+from tensorly.cp_tensor import cp_flip_sign, cp_normalize
+from tensorly.tenalg import khatri_rao
 from tqdm import tqdm
 
-from tensorly.tenalg import khatri_rao
 from .impute_helper import calcR2X
 from .initialization import initialize_fac
-from tensorly.cp_tensor import cp_normalize, cp_flip_sign
 
 
 def perform_PM(
@@ -16,7 +16,6 @@ def perform_PM(
     callback=None,
     init=None,
     verbose=None,
-    **kwargs,
 ) -> tl.cp_tensor.CPTensor:
     # function [A, B, C, LFT, M]=PARAFACM(XIJK, Fac, epsilon)
     # % Input

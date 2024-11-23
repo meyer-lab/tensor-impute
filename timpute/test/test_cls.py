@@ -2,13 +2,15 @@
 Unit test file.
 """
 
+import warnings
+
 import numpy as np
 import tensorly as tl
-import warnings
-from ..method_CLS import perform_CLS, censored_lstsq
-from tensorly.tenalg import khatri_rao
-from ..initialization import initialize_fac
 from sklearn.linear_model import Ridge
+from tensorly.tenalg import khatri_rao
+
+from ..initialization import initialize_fac
+from ..method_CLS import censored_lstsq, perform_CLS
 
 
 def createCube(missing=0.0, size=(10, 20, 25)):
