@@ -4,7 +4,7 @@ Censored Least Squares
 
 import numpy as np
 import tensorly as tl
-from tensorly.cp_tensor import cp_normalize
+from tensorly.cp_tensor import cp_normalize, cp_flip_sign
 from tensorly.tenalg import khatri_rao
 from .initialization import initialize_fac
 from .impute_helper import calcR2X
