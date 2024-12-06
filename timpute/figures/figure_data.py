@@ -11,6 +11,7 @@ def real_data(datalist=SAVENAMES,
               max_comps=[20,20,20,20],
               reps=20,
               drops=DROPS,
+              methods = METHODS,
               nonmissing=True,
               savedir="timpute/figures/cache"):
     assert len(datalist) == len(max_comps)
@@ -38,7 +39,7 @@ def real_data(datalist=SAVENAMES,
 
             if os.path.isdir(folder+run) is False: os.makedirs(folder+run)
             impType = 'entry'
-            for m in METHODS:
+            for m in methods:
                 runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
                             repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6)
 
@@ -48,7 +49,7 @@ def real_data(datalist=SAVENAMES,
             run = f"drop_{i}/"
 
             if os.path.isdir(folder+run) is False: os.makedirs(folder+run)
-            for m in METHODS:
+            for m in methods:
                 impType = 'entry'
                 runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, repeat=reps, method=m,
                               impType=impType, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6,
@@ -106,8 +107,7 @@ def chordMasking(datalist=SAVENAMES, max_comps=[10,10,10,20], drops = (0.05, 0.1
                                   callback=False, repeat=reps, drop=d, init=init_type, seed=seed*i, tol=1e-6, chord_mode=mode)
 
 if __name__ == "__main__":
-    real_data(datalist=["hms", "coh_response"], 
-              max_comps=[40,40],
+    real_data(max_comps=[50,50,50,50],
               reps=20,
               savedir="timpute/figures/revision_cache")
 

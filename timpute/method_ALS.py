@@ -9,6 +9,7 @@ from tqdm import tqdm
 from .linesearch import Nesterov
 from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao
 from .initialization import initialize_fac
+from .impute_helper import calcR2X
 
 
 def perform_ALS(
@@ -18,6 +19,7 @@ def perform_ALS(
     init=None,
     tol=1e-6,
     callback=None,
+    progress=False,
 ) -> tl.cp_tensor.CPTensor:
     """CANDECOMP/PARAFAC decomposition via alternating least squares (ALS)
     Computes a rank-`rank` decomposition of `tensor` [1]_ such that:
@@ -75,8 +77,8 @@ def perform_ALS(
     tFac.R2X = R2X
     tFac.factors = fac
 
-    tq = tqdm(range(n_iter_max), disable=False)
-    for iteration in tq:
+    tq = tqdm(range(n_iter_max), disable = (not progress))
+    for _ in tq:
         weights, factors = tFac
 
         # Update the tensor based on the mask
@@ -115,6 +117,7 @@ def perform_ALS(
         if tFac.R2X - R2X_last < tol:
             break
 
-    tFac_norm = cp_normalize(tFac)
-    tFac_norm.R2X = tFac.R2X
+    tFac = cp_normalize(tFac)
+    tFac.R2X = calcR2X(tFac, tOrig)
+
     return tFac

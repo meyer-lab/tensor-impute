@@ -100,7 +100,6 @@ def perform_CLS(tOrig,
             break
 
     tFac = cp_normalize(tFac)
-    tFac = reorient_factors(tFac)
     tFac.R2X = calcR2X(tFac, tOrig)
 
     return tFac
