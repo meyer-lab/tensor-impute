@@ -13,19 +13,25 @@ def runImputation(data:np.ndarray,
                   callback = True,
                   savename:str = None,
                   printRuntime = False,
+                  continued:bool = False,
                   **kwargs):
+    
     assert impType == 'entry' or impType == 'chord'
-    decomposition = Decomposition(data=data, dataname=dataname, min_rr=min_rr, max_rr=max_rr)
-    if callback is True:
+    
+    if continued is True:
+        decomposition, tracker = loadImputation(impType, method, savename)
+    else:
+        decomposition = Decomposition(data=data, dataname=dataname, min_rr=min_rr, max_rr=max_rr)
         tracker = Tracker(data)
         tracker.begin()
-    else:
+
+    if callback is not True:
         tracker = None
     
     # run method & save
     # include **kwargs include: repeat=reps, drop=drop_perc, init=init_type, callback_r=max_rr
     decomposition.imputation(imp_type=impType, method=method, callback=tracker, printRuntime=printRuntime, **kwargs)
-    if tracker:
+    if tracker is not None:
         tracker.combine()
 
     if savename is not None:
@@ -37,11 +43,14 @@ def runImputation(data:np.ndarray,
     return decomposition, tracker
 
 
-def loadImputation(impType, method, savename):
+def loadImputation(impType, method, savename, callback=False):
     decomposition = Decomposition()
-    tracker = Tracker()
-
     decomposition.load(f"./{savename}{impType}-{method.__name__}.decomposition")
-    tracker.load(f"./{savename}{impType}-{method.__name__}.tracker")
+
+    if callback is True:
+        tracker = Tracker()
+        tracker.load(f"./{savename}{impType}-{method.__name__}.tracker")
+    else:
+        tracker = None
 
     return decomposition, tracker

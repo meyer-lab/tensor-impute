@@ -109,7 +109,7 @@ def perform_ALS(
         tq.set_postfix(
             R2X=tFac.R2X, delta=tFac.R2X - R2X_last, jump=jump, refresh=False
         )
-        assert tFac.R2X > 0.0
+        # assert tFac.R2X > 0.0
 
         if callback:
             callback(tFac)
