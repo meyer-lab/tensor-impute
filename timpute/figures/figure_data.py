@@ -3,6 +3,9 @@ import numpy as np
 from .figure_helper import runImputation, loadImputation
 from ..generateTensor import generateTensor
 from . import METHODS, METHODNAMES, SAVENAMES, DROPS
+from multiprocessing import Pool
+
+import argparse
 
 # poetry run python -m timpute.figures.figure_data  
 
@@ -11,7 +14,7 @@ def real_data(datalist=SAVENAMES,
               max_comps=[20,20,20,20],
               reps=20,
               drops=DROPS,
-              methods = METHODS,
+              methods=METHODS,
               nonmissing=True,
               savedir="timpute/figures/cache"):
     assert len(datalist) == len(max_comps)
@@ -59,6 +62,8 @@ def real_data(datalist=SAVENAMES,
                 runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, repeat=reps, method=m,
                               impType=impType, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6,
                               savename=folder+run, printRuntime=True)
+        
+    return True
 
 
 def bestComps(drop=0.1, impType = "entry", datalist=SAVENAMES):
@@ -107,15 +112,23 @@ def chordMasking(datalist=SAVENAMES, max_comps=[10,10,10,20], drops = (0.05, 0.1
                                   callback=False, repeat=reps, drop=d, init=init_type, seed=seed*i, tol=1e-6, chord_mode=mode)
 
 if __name__ == "__main__":
-    real_data(max_comps=[50,50,50,50],
-              reps=20,
-              savedir="timpute/figures/revision_cache")
 
-    # for i in ['entry', 'chord']:
-    #     data = dict()
-    #     for d in DROPS:
-    #         data[d] = bestComps(d, i)
-    #     with open(f'./timpute/figures/cache/bestComps_{i}.pickle', 'wb') as handle:
-    #         pickle.dump(data, handle)
+    datalist=SAVENAMES
+    reps=20
+    drops=DROPS
+    methods=METHODS
+    nonmissing=True
+    savedir="timpute/figures/revision_cache"
 
-    # chordMasking()
+    runSet = 1
+    if runSet = 1:
+        start_comps=[1]
+        max_comps=[30]
+    elif runSet = 2:
+        start_comps=[31]
+        max_comps=[50]
+
+    funcArgs = [([dataset], start_comps, max_comps, reps, drops, methods, nonmissing, savedir)
+                for dataset in SAVENAMES]
+    with Pool(processes=4) as pool:
+        results = pool.starmap(real_data, funcArgs))

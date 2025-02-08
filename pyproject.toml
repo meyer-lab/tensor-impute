@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "tensor-impute"
+name = "timpute"
 version = "0.1.0"
 description = "Examining various imputation methods for tensor decomposition."
 authors = ["Your Name <you@example.com>"]
@@ -7,7 +7,7 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
-numpy = "^1.26"
+numpy = "^2.0"
 tensorly = "^0.8.1"
 matplotlib = "^3.9.2"
 tqdm = "^4.65"
@@ -23,7 +23,7 @@ setuptools = "^69.5.1"
 [tool.poetry.dev-dependencies]
 pytest = "^8.3"
 pytest-cov = "^3.0.0"
-tensordata = {git = "https://github.com/meyer-lab/tensordata.git", branch = "main"}
+tensordata = { path = "../tensordata/", develop = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
