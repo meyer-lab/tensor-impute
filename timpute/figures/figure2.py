@@ -14,7 +14,7 @@ def figure2(datalist=SAVENAMES):
     ax, f = getSetup((16, 4), (1, 4))
 
     for i, data in enumerate(datalist):
-        folder = f"timpute/figures/cache/{data}/nonmissing/"
+        folder = f"timpute/figures/revision_cache/{data}/nonmissing/"
         impType = "entry"
         for mID, m in enumerate(METHODS):
             run, _ = loadImputation(impType, m, folder)
@@ -58,8 +58,8 @@ def figure2(datalist=SAVENAMES):
 
     # ax[0].legend(handles=h, labels=l, loc='best', handlelength=2, fontsize=TEXT_FONTSIZE)
     subplotLabel(ax)
-    f.savefig("timpute/figures/img/svg/figure2.svg", bbox_inches="tight", format="svg")
-    f.savefig("timpute/figures/img/figure2.png", bbox_inches="tight", format="png")
+    f.savefig("timpute/figures/revision_img/svg/figure2.svg", bbox_inches="tight", format="svg")
+    f.savefig("timpute/figures/revision_img/figure2.png", bbox_inches="tight", format="png")
 
 
 if __name__ == "__main__":

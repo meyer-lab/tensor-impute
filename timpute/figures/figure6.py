@@ -14,7 +14,7 @@ def figure6():
     TEXT_FONTSIZE = 8
 
     ax, f = getSetup((7,10), (3,2), multz={2:1,4:1}, empts=[3,5])
-    df = pd.read_excel("./timpute/figures/img/iterTime.xlsx", index_col=[0,1], header=[0,1])
+    df = pd.read_excel("./timpute/figures/revision_img/iterTime.xlsx", index_col=[0,1], header=[0,1])
 
     # a) 10% entry DyeDrop barplot (runtime per method) - CLS much slower (general pattern)
     ax[0].tick_params(axis='both', which='major', labelsize=TEXT_FONTSIZE)

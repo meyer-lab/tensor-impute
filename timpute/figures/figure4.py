@@ -12,7 +12,7 @@ drops = (0.01, 0.05, 0.1, 0.2, 0.3, 0.4)
 
 def figure4(datalist=SAVENAMES, errors=True):
     ax, f = getSetup((16, 8), (2, 4))
-    dirname = f"timpute/figures/img"
+    dirname = f"timpute/figures/revision_img"
     stdout = open(f"{dirname}/figure4.txt", "w")
     stdout.write(f"{drops}")
 
@@ -28,7 +28,7 @@ def figure4(datalist=SAVENAMES, errors=True):
             TotErrIQR = list()
             stdout.write(f"\n{data}, {impType} {m.__name__}: ")
             for d in drops:
-                folder = f"timpute/figures/cache/{data}/drop_{d}/"
+                folder = f"timpute/figures/revision_cache/{data}/drop_{d}/"
                 run, _ = loadImputation(impType, m, folder)
                 comp = np.median(run.entry_imputed,0).argmin() # best imp error
                 ImpErr.append(np.median(run.entry_imputed[:,comp]))
@@ -108,7 +108,7 @@ def figure4(datalist=SAVENAMES, errors=True):
             TotErrIQR = list()
             stdout.write(f"\n{data}, {impType} {m.__name__}: ")
             for d in drops:
-                folder = f"timpute/figures/cache/{data}/drop_{d}/"
+                folder = f"timpute/figures/revision_cache/{data}/drop_{d}/"
                 run, _ = loadImputation(impType, m, folder)
                 comp = np.median(run.chord_imputed,0).argmin() # best imp error
                 ImpErr.append(np.median(run.chord_imputed[:,comp]))
@@ -177,8 +177,8 @@ def figure4(datalist=SAVENAMES, errors=True):
     stdout.write("\n\n* values are indices, add 1 for component")
 
     subplotLabel(ax)
-    f.savefig("timpute/figures/img/svg/figure4.svg", bbox_inches="tight", format="svg")
-    f.savefig("timpute/figures/img/figure4.png", bbox_inches="tight", format="png")
+    f.savefig("timpute/figures/revision_img/svg/figure4.svg", bbox_inches="tight", format="svg")
+    f.savefig("timpute/figures/revision_img/figure4.png", bbox_inches="tight", format="png")
 
 
 if __name__ == "__main__":

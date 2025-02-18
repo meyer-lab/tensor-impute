@@ -3,7 +3,6 @@ import numpy as np
 from .figure_helper import runImputation, loadImputation
 from ..generateTensor import generateTensor
 from . import METHODS, METHODNAMES, SAVENAMES, DROPS
-from multiprocessing import Pool
 
 import argparse
 
@@ -16,7 +15,8 @@ def real_data(datalist=SAVENAMES,
               drops=DROPS,
               methods=METHODS,
               nonmissing=True,
-              savedir="timpute/figures/cache"):
+              savedir="timpute/figures/cache",
+              continued=True):
     assert len(datalist) == len(max_comps)
     
     seed = 1
@@ -44,7 +44,7 @@ def real_data(datalist=SAVENAMES,
             impType = 'entry'
             for m in methods:
                 runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
-                            repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6)
+                            repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6, continued=continued)
 
         for i in drops:
             print(f"--- BEGIN MISSING ({i}) ---")
@@ -56,12 +56,12 @@ def real_data(datalist=SAVENAMES,
                 impType = 'entry'
                 runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, repeat=reps, method=m,
                               impType=impType, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6,
-                              savename=folder+run, printRuntime=True)
+                              savename=folder+run, printRuntime=True, continued=continued)
 
                 impType = 'chord'
                 runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, repeat=reps, method=m,
                               impType=impType, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6,
-                              savename=folder+run, printRuntime=True)
+                              savename=folder+run, printRuntime=True, continued=continued)
         
     return True
 
@@ -120,15 +120,15 @@ if __name__ == "__main__":
     nonmissing=True
     savedir="timpute/figures/revision_cache"
 
-    runSet = 1
-    if runSet = 1:
+    runSet = 2
+    if runSet==1:
         start_comps=[1]
         max_comps=[30]
-    elif runSet = 2:
+    elif runSet==2:
         start_comps=[31]
         max_comps=[50]
 
     funcArgs = [([dataset], start_comps, max_comps, reps, drops, methods, nonmissing, savedir)
                 for dataset in SAVENAMES]
     with Pool(processes=4) as pool:
-        results = pool.starmap(real_data, funcArgs))
+        results = pool.starmap(real_data, funcArgs)

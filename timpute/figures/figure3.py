@@ -13,7 +13,7 @@ def figure3(datalist=SAVENAMES, legend=False):
 
     # Figure 3, a)-d)
     for i, data in enumerate(datalist):
-        folder = f"timpute/figures/cache/{data}/drop_0.1/"
+        folder = f"timpute/figures/revision_cache/{data}/drop_0.1/"
         impType = "entry"
         maxErr = 0
         for mID, m in enumerate(METHODS):
@@ -96,7 +96,7 @@ def figure3(datalist=SAVENAMES, legend=False):
         comp_data[m.__name__] = list()
 
     for i, data in enumerate(datalist):
-        folder = f"timpute/figures/cache/{data}/drop_{drop}/"
+        folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
         impType = "entry"
         for mID, m in enumerate(METHODS):
             run, _ = loadImputation(impType, m, folder)
@@ -151,7 +151,7 @@ def figure3(datalist=SAVENAMES, legend=False):
         comp_data[m.__name__] = list()
 
     for i, data in enumerate(datalist):
-        folder = f"timpute/figures/cache/{data}/drop_{drop}/"
+        folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
         impType = "chord"
         for mID, m in enumerate(METHODS):
             run, _ = loadImputation(impType, m, folder)
@@ -211,25 +211,23 @@ def figure3(datalist=SAVENAMES, legend=False):
             ],
         )
         f.savefig(
-            "timpute/figures/img/svg/figure3_legend.svg",
+            "timpute/figures/revision_img/svg/figure3_legend.svg",
             bbox_inches="tight",
             format="svg",
         )
     else:
-        f.savefig(
-            "timpute/figures/img/svg/figure3.svg", bbox_inches="tight", format="svg"
-        )
-        f.savefig("timpute/figures/img/figure3.png", bbox_inches="tight", format="png")
+        f.savefig("timpute/figures/revision_img/svg/figure3.svg", bbox_inches="tight", format="svg")
+        f.savefig("timpute/figures/revision_img/figure3.png", bbox_inches="tight", format="png")
 
 
 def figure3_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
     ax, f = getSetup((48, 40), (7, 8))
-    dirname = f"timpute/figures/img"
+    dirname = f"timpute/figures/revision_img"
 
     # Figure 1, a)-d)
     for d, drop in enumerate(DROPS):
         for i, data in enumerate(datalist):
-            folder = f"timpute/figures/cache/{data}/drop_{drop}/"
+            folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
             for mID, m in enumerate(METHODS):
                 run, _ = loadImputation("entry", m, folder)
 
@@ -357,12 +355,12 @@ def figure3_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
                     ax[i + 4 + d * 8].set_ylim(0, top=1)
 
     f.savefig(
-        "timpute/figures/img/svg/figure3-exp.svg", bbox_inches="tight", format="svg"
+        "timpute/figures/revision_img/svg/figure3-exp.svg", bbox_inches="tight", format="svg"
     )
-    f.savefig("timpute/figures/img/figure3-exp.png", bbox_inches="tight", format="png")
+    f.savefig("timpute/figures/revision_img/figure3-exp.png", bbox_inches="tight", format="png")
 
 
 if __name__ == "__main__":
-    figure3(legend=True)
+    # figure3(legend=True)
     figure3(legend=False)
     # figure3_exp()

@@ -26,16 +26,16 @@ def figure5():
     plotTime(ax[7], 3, "chord", 0.4)
 
     subplotLabel(ax)
-    f.savefig("timpute/figures/img/svg/figure5.svg", bbox_inches="tight", format="svg")
-    f.savefig("timpute/figures/img/figure5.png", bbox_inches="tight", format="png")
+    f.savefig("timpute/figures/revision_img/svg/figure5.svg", bbox_inches="tight", format="svg")
+    f.savefig("timpute/figures/revision_img/figure5.png", bbox_inches="tight", format="png")
 
 
 def plotTime(ax, dataN, dropType, drop):
     data = SAVENAMES[dataN]
     if drop == 0:
-        folder = f"timpute/figures/cache/{data}/nonmissing/"
+        folder = f"timpute/figures/revision_cache/{data}/nonmissing/"
     else:
-        folder = f"timpute/figures/cache/{data}/drop_{drop}/"
+        folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
 
     comps = bestComps(drop=drop, impType=dropType, datalist=[data])
     for mID, m in enumerate(METHODS):
@@ -74,7 +74,7 @@ def plotTime(ax, dataN, dropType, drop):
 
 
 def plotIter(ax, dataN, impType, drop, legend=False):
-    folder = f"timpute/figures/cache/{SAVENAMES[dataN]}/drop_{drop}/"
+    folder = f"timpute/figures/revision_cache/{SAVENAMES[dataN]}/drop_{drop}/"
     comps = bestComps(drop=drop, datalist=[SAVENAMES[dataN]])
 
     for mID, m in enumerate(METHODS):
@@ -135,7 +135,7 @@ def figure5_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
         for t, impType in enumerate(["entry", "chord"]):
             comps = bestComps(drop=drop, impType=impType, datalist=datalist)
             for dat, data in enumerate(datalist):
-                folder = f"timpute/figures/cache/{data}/drop_{drop}/"
+                folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
                 for mID, m in enumerate(METHODS):
                     _, tracker = loadImputation(impType, m, folder)
 
@@ -186,9 +186,9 @@ def figure5_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
 
     # subplotLabel(ax)
     f.savefig(
-        "timpute/figures/img/svg/figure5-exp.svg", bbox_inches="tight", format="svg"
+        "timpute/figures/revision_img/svg/figure5-exp.svg", bbox_inches="tight", format="svg"
     )
-    f.savefig("timpute/figures/img/figure5-exp.png", bbox_inches="tight", format="png")
+    f.savefig("timpute/figures/revision_img/figure5-exp.png", bbox_inches="tight", format="png")
 
 
 if __name__ == "__main__":
