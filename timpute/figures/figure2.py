@@ -58,8 +58,14 @@ def figure2(datalist=SAVENAMES):
 
     # ax[0].legend(handles=h, labels=l, loc='best', handlelength=2, fontsize=TEXT_FONTSIZE)
     subplotLabel(ax)
-    f.savefig("timpute/figures/revision_img/svg/figure2.svg", bbox_inches="tight", format="svg")
-    f.savefig("timpute/figures/revision_img/figure2.png", bbox_inches="tight", format="png")
+    f.savefig(
+        "timpute/figures/revision_img/svg/figure2.svg",
+        bbox_inches="tight",
+        format="svg",
+    )
+    f.savefig(
+        "timpute/figures/revision_img/figure2.png", bbox_inches="tight", format="png"
+    )
 
 
 if __name__ == "__main__":

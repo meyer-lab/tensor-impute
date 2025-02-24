@@ -77,7 +77,7 @@ def perform_ALS(
     tFac.R2X = R2X
     tFac.factors = fac
 
-    tq = tqdm(range(n_iter_max), disable = (not progress))
+    tq = tqdm(range(n_iter_max), disable=(not progress))
     for _ in tq:
         weights, factors = tFac
 

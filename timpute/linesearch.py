@@ -20,7 +20,8 @@ class Nesterov:
         jump = self.beta_i + 1.0
 
         factors_ls = [
-            self.factors_old[ii] + (factors[ii] - self.factors_old[ii]) * jump for ii in range(len(factors))
+            self.factors_old[ii] + (factors[ii] - self.factors_old[ii]) * jump
+            for ii in range(len(factors))
         ]
 
         R2X_ls = calcR2X((None, factors_ls), tOrig)

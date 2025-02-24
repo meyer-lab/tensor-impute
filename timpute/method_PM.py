@@ -3,19 +3,20 @@ import tensorly as tl
 from tqdm import tqdm
 
 from tensorly.tenalg import khatri_rao
-from .impute_helper import calcR2X,reorient_factors
+from .impute_helper import calcR2X, reorient_factors
 from .initialization import initialize_fac
 from tensorly.cp_tensor import cp_normalize
 
 
-def perform_PM(tOrig:np.ndarray=None,
-               rank:int=6,
-               n_iter_max:int=50,
-               tol = 1e-6,
-               callback=None,
-               init=None,
-               verbose=None,
-               **kwargs
+def perform_PM(
+    tOrig: np.ndarray = None,
+    rank: int = 6,
+    n_iter_max: int = 50,
+    tol=1e-6,
+    callback=None,
+    init=None,
+    verbose=None,
+    **kwargs
 ) -> tl.cp_tensor.CPTensor:
     # function [A, B, C, LFT, M]=PARAFACM(XIJK, Fac, epsilon)
     # % Input
@@ -43,8 +44,8 @@ def perform_PM(tOrig:np.ndarray=None,
 
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
 
-    # % -----------STEP 1--------------- 
-    # % initialize A & B and compute C 
+    # % -----------STEP 1---------------
+    # % initialize A & B and compute C
     # [A, B, C] = DTLD_nan(XIJK, Fac);
     # % A = rand(I, Fac);
     # % B = rand(J, Fac);
@@ -53,7 +54,7 @@ def perform_PM(tOrig:np.ndarray=None,
     # AB = krao(B, A);
     # for k = 1 : K
     #     ABK = AB;
-    #     XK = XKxIJ(k, :);    
+    #     XK = XKxIJ(k, :);
     #     ABK(isnan(XK), :) = [];
     #     XK(isnan(XK)) = [] ;
     #     C(k, :) = XK*ABK*pinv(ABK'*ABK);
@@ -84,7 +85,7 @@ def perform_PM(tOrig:np.ndarray=None,
     #      % normalization of A columnwisely
     #      A = A*diag(1./diag(sqrt(A'*A)));
     #     end
-    # % caculate loss function   
+    # % caculate loss function
     #     LFTT = 0;
     #     for k = 1 : K
     #         XX = XIJK(:, :, k);
@@ -107,16 +108,19 @@ def perform_PM(tOrig:np.ndarray=None,
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
             for i in range(tFac.factors[m].shape[0]):
-                  mIDs = np.isfinite(unfolded[m][i])
-                  X_miss = unfolded[m][i,mIDs]
-                  kr_miss = kr[mIDs,:]
-                  tFac.factors[m][i] = X_miss @ kr_miss @ np.linalg.pinv(kr_miss.T @ kr_miss)
+                mIDs = np.isfinite(unfolded[m][i])
+                X_miss = unfolded[m][i, mIDs]
+                kr_miss = kr[mIDs, :]
+                tFac.factors[m][i] = (
+                    X_miss @ kr_miss @ np.linalg.pinv(kr_miss.T @ kr_miss)
+                )
 
         R2X_last = tFac.R2X
         tFac.R2X = calcR2X(tFac, tOrig)
         tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
         # assert tFac.R2X > 0.0
-        if callback: callback(tFac)
+        if callback:
+            callback(tFac)
 
         if tFac.R2X - R2X_last < tol:
             break
@@ -140,6 +144,3 @@ def perform_PM(tOrig:np.ndarray=None,
     tFac.R2X = calcR2X(tFac, tOrig)
 
     return tFac
-
-
-

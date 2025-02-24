@@ -3,6 +3,7 @@ from .figure_data import bestComps
 from .figure_helper import loadImputation
 from .common import getSetup, subplotLabel, rgbs
 from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES
+
 # from matplotlib.legend_handler import HandlerErrorbar
 
 # poetry run python -m timpute.figures.figure5
@@ -26,8 +27,14 @@ def figure5():
     plotTime(ax[7], 3, "chord", 0.4)
 
     subplotLabel(ax)
-    f.savefig("timpute/figures/revision_img/svg/figure5.svg", bbox_inches="tight", format="svg")
-    f.savefig("timpute/figures/revision_img/figure5.png", bbox_inches="tight", format="png")
+    f.savefig(
+        "timpute/figures/revision_img/svg/figure5.svg",
+        bbox_inches="tight",
+        format="svg",
+    )
+    f.savefig(
+        "timpute/figures/revision_img/figure5.png", bbox_inches="tight", format="png"
+    )
 
 
 def plotTime(ax, dataN, dropType, drop):
@@ -186,9 +193,15 @@ def figure5_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
 
     # subplotLabel(ax)
     f.savefig(
-        "timpute/figures/revision_img/svg/figure5-exp.svg", bbox_inches="tight", format="svg"
+        "timpute/figures/revision_img/svg/figure5-exp.svg",
+        bbox_inches="tight",
+        format="svg",
     )
-    f.savefig("timpute/figures/revision_img/figure5-exp.png", bbox_inches="tight", format="png")
+    f.savefig(
+        "timpute/figures/revision_img/figure5-exp.png",
+        bbox_inches="tight",
+        format="png",
+    )
 
 
 if __name__ == "__main__":
