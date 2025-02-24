@@ -1,10 +1,10 @@
 #! /usr/bin/env sh
 
-# run `./timpute/figures/dataUsage.sh > ./timpute/figures/dataUsage.out`
+# run `./timpute/figures/memUsage.sh > ./timpute/figures/memUsage.out`
 
-if [ -e timpute/figures/cache/dataUsage/memory.pickle ]
+if [ -e timpute/figures/revision_cache/dataUsage/memory.pickle ]
 then
-    rm timpute/figures/cache/dataUsage/memory.pickle
+    rm timpute/figures/revision_cache/dataUsage/memory.pickle
 fi
 
 for a in {1..20}
@@ -16,7 +16,7 @@ do
         do 
             for j in "DO" "ALS" "CLS"
             do
-                poetry run python -m timpute.figures.dataUsage --dataname $i --method $j --filename $d --dropType $t --dropPerc $d --seed $a
+                poetry run python -m timpute.figures.memUsage --dataname $i --method $j --filename $d --dropType $t --dropPerc $d --seed $a
                 echo $a ":" $i $j "for" $t "drop" $d "%"
             done
         done

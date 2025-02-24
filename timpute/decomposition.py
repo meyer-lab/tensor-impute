@@ -87,6 +87,7 @@ class Decomposition():
             Each value in a row represents ernror of the FITTED (not dropped, not missing) values of the tensor
             calculated for components 1 to max_rr.
         """
+
         assert(chord_mode >= 0 and chord_mode < self.data.ndim)
         assert(drop < 1 and drop >= 0)
 

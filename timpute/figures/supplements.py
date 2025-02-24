@@ -1,5 +1,5 @@
 import pickle
-from figures import METHODNAMES, SAVENAMES, DATANAMES, DROPS
+from . import METHODNAMES, SAVENAMES, DATANAMES, DROPS
 import numpy as np
 import pandas as pd
 from .common import getSetup, rgbs
@@ -36,7 +36,7 @@ def tableS1() -> None:
                 modes = (0, 1, 2, 3) if (s == "coh_response") else (0, 1, 2)
                 for m in modes:
                     data.load(
-                        f"./timpute/figures/cache/modeComparison/{s}/drop_{d}/mode_{m}/chord-perform_{method}.decomposition"
+                        f"./timpute/figures/revision_cache/modeComparison/{s}/drop_{d}/mode_{m}/chord-perform_{method}.decomposition"
                     )
                     df.loc[(s, m + 1), (f"{int(d*100)}%", method)] = np.min(
                         np.mean(data.chord_fitted, axis=0)
@@ -53,7 +53,7 @@ def tableS1() -> None:
     )
 
     df.to_excel(
-        "./timpute/figures/img/chordModes.xlsx",
+        "./timpute/figures/revision_img/chordModes.xlsx",
         sheet_name=f"Chord Imputation by Mode per Dataset by Masking Percentage",
     )
 
@@ -67,7 +67,7 @@ def figureS1() -> None:
     for i, filename in enumerate([0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5]):
         print(filename)
         with open(
-            "timpute/figures/cache/dataUsage/" + str(filename) + ".pickle", "rb"
+            "timpute/figures/revision_cache/dataUsage/" + str(filename) + ".pickle", "rb"
         ) as handle:
             memory = pickle.load(handle)
         for n, m in enumerate(METHODNAMES):
@@ -102,29 +102,28 @@ def figureS1() -> None:
         ax[i].legend()
 
     f.savefig(
-        "timpute/figures/img/svg/RAM_Usage.svg", bbox_inches="tight", format="svg"
+        "timpute/figures/revision_img/svg/RAM_Usage.svg", bbox_inches="tight", format="svg"
     )
 
 
-def tableS3() -> None:
+def tableS2_3() -> None:
     # Supplemental 3
     df_list = []
     for i in ["entry", "chord"]:
-        with open(f"./timpute/figures/cache/bestComps_{i}.pickle", "rb") as handle:
-            data = pickle.load(handle)
-        df = pd.DataFrame(
-            columns=["dataset", "method"] + [f"{int(d*100)}%" for d in DROPS]
-        )
-        for n, name in enumerate(SAVENAMES):
-            for m in METHODNAMES:
-                df.loc[len(df.index)] = [DATANAMES[n], m] + [
-                    data[d][name][m] for d in DROPS
-                ]
-        df = df.set_index(["dataset", "method"])
+        for d in DROPS:
+            data = dict()
+                for d in DROPS:
+                    data[d] = bestComps(drop=d, impType=i, datalist=SAVENAMES)
+
+                df = pd.DataFrame(columns=["dataset", "method"] + [f"{int(d*100)}%" for d in DROPS])
+                for n, name in enumerate(SAVENAMES):
+                    for m in METHODNAMES:
+                        df.loc[len(df.index)] = [DATANAMES[n], m] + [data[d][name][m] for d in DROPS]
+                df = df.set_index(["dataset", "method"])
         # df = df.style.set_caption(f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage")
         df_list.append(df)
         df.to_excel(
-            f"./timpute/figures/img/bestComps_{i}.xlsx",
+            f"./timpute/figures/revision_img/bestComps_{i}.xlsx",
             sheet_name=f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage",
         )
 
@@ -147,7 +146,7 @@ def tableS4() -> None:
             for d in (0.05, 0.1, 0.2, 0.3, 0.4):
                 for impType in ['entry','chord']:
 
-                    data.load(f'./timpute/figures/cache/{s}/drop_{d}/{impType}-perform_{method}.tracker')
+                    data.load(f'./timpute/figures/revision_cache/{s}/drop_{d}/{impType}-perform_{method}.tracker')
                     rr = str(bestComps(d,impType,[s])[s][method])
                     
                     # take mean across samples of (ti+1 - ti) from 1 to maxIter
@@ -166,10 +165,11 @@ def tableS4() -> None:
     df_init.index = df_init.index.set_names(['Dataset', 'Imputation Type'])
     df_init = df_init.style.set_caption("Median Time for Data Processing, Prior to First Iteration for Optimal Rank Imputation")
 
-    df_iter.to_excel("./timpute/figures/img/iterTime.xlsx", sheet_name='Median Time per Iteration for Optimal Rank Imputation')
-    df_init.to_excel("./timpute/figures/img/initTime.xlsx", sheet_name='Median Time for Data Processing, Prior to First Iteration for Optimal Rank Imputation')
+    df_iter.to_excel("./timpute/figures/revision_img/iterTime.xlsx", sheet_name='Median Time per Iteration for Optimal Rank Imputation')
+    df_init.to_excel("./timpute/figures/revision_img/initTime.xlsx", sheet_name='Median Time for Data Processing, Prior to First Iteration for Optimal Rank Imputation')
 
 if __name__ == "__main__":
-    figureS1()
-    # figureS2()
-    # figureS3()
+    # tableS1()
+    # figureS1()
+    tableS2_3()
+    tableS4()

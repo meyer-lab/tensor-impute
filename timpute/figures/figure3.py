@@ -210,11 +210,8 @@ def figure3(datalist=SAVENAMES, legend=False):
                 for i, m in enumerate(METHODNAMES)
             ],
         )
-        f.savefig(
-            "timpute/figures/revision_img/svg/figure3_legend.svg",
-            bbox_inches="tight",
-            format="svg",
-        )
+        f.savefig("timpute/figures/revision_img/svg/figure3_legend.svg", bbox_inches="tight", format="svg")
+        f.savefig("timpute/figures/revision_img/figure3_legend.png", bbox_inches="tight", format="png")
     else:
         f.savefig("timpute/figures/revision_img/svg/figure3.svg", bbox_inches="tight", format="svg")
         f.savefig("timpute/figures/revision_img/figure3.png", bbox_inches="tight", format="png")
@@ -354,9 +351,7 @@ def figure3_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
                 if ax[i + 4 + d * 8].get_ylim()[1] > 1:
                     ax[i + 4 + d * 8].set_ylim(0, top=1)
 
-    f.savefig(
-        "timpute/figures/revision_img/svg/figure3-exp.svg", bbox_inches="tight", format="svg"
-    )
+    f.savefig("timpute/figures/revision_img/svg/figure3-exp.svg", bbox_inches="tight", format="svg")
     f.savefig("timpute/figures/revision_img/figure3-exp.png", bbox_inches="tight", format="png")
 
 

@@ -37,7 +37,7 @@ def figure4(datalist=SAVENAMES, errors=True):
                 TotErr.append(np.median(run.entry_total[:,comp]))
                 TotErrIQR.append(np.vstack((-(np.percentile(run.entry_total[:,comp],25,0) - np.median(run.entry_total[:,comp],0)),
                                           np.percentile(run.entry_total[:,comp],75,0) - np.median(run.entry_total[:,comp],0))))
-                stdout.write(f"{comp}, ")
+                stdout.write(f"{comp+1}, ")
 
             if errors is True:
                 ax[i].errorbar(
@@ -87,12 +87,8 @@ def figure4(datalist=SAVENAMES, errors=True):
 
         ax[i].set_xlabel("Drop Percent", fontsize=SUBTITLE_FONTSIZE)
         ax[i].set_ylabel("Median Error", fontsize=SUBTITLE_FONTSIZE)
-        # ax[i].set_yscale('log')
-        if i == 0 or i == 1:
-            maxErr = 0.15
-        else:
-            maxErr = 0.3
-        ax[i].set_ylim(top=maxErr, bottom=0)
+        ax[i].set_ylim(top=1e0, bottom=1e-3)
+        ax[i].set_yscale('log')
         ax[i].set_title(
             f"{DATANAMES[i]}, {impType} masking", fontsize=SUBTITLE_FONTSIZE * 1.1
         )
@@ -167,12 +163,13 @@ def figure4(datalist=SAVENAMES, errors=True):
             )
             ax[i + 4].plot([], [], label="Total Error", ls="solid", color="black")
 
-        ax[i + 4].set_ylim(top=1, bottom=0)
+        ax[i + 4].set_ylim(top=1e0, bottom=1e-3)
         ax[i + 4].set_xlabel("Drop Percent", fontsize=SUBTITLE_FONTSIZE)
         ax[i + 4].set_ylabel("Median Error", fontsize=SUBTITLE_FONTSIZE)
         ax[i + 4].set_title(
             f"{DATANAMES[i]}, {impType} masking", fontsize=SUBTITLE_FONTSIZE * 1.1
         )
+        ax[i + 4].set_yscale('log')
 
     stdout.write("\n\n* values are indices, add 1 for component")
 

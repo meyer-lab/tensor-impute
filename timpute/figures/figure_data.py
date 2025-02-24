@@ -15,8 +15,7 @@ def real_data(datalist=SAVENAMES,
               drops=DROPS,
               methods=METHODS,
               nonmissing=True,
-              savedir="timpute/figures/cache",
-              continued=True):
+              savedir="timpute/figures/cache"):
     assert len(datalist) == len(max_comps)
     
     seed = 1
@@ -24,7 +23,8 @@ def real_data(datalist=SAVENAMES,
 
     for i,dataset in enumerate(datalist):
         dirname = os.path.join(savedir,f"{dataset}")
-        if os.path.isdir(dirname) is False: os.makedirs(dirname)
+        if os.path.isdir(dirname) is False:
+            os.makedirs(dirname)
 
         orig = generateTensor(type=dataset)
         min_component = start_comps[i]
@@ -43,8 +43,10 @@ def real_data(datalist=SAVENAMES,
             if os.path.isdir(folder+run) is False: os.makedirs(folder+run)
             impType = 'entry'
             for m in methods:
-                runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
-                            repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6, continued=continued)
+                runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component,
+                              impType=impType, savename=folder+run, method=m, printRuntime=True,
+                              repeat=reps, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6)
+
 
         for i in drops:
             print(f"--- BEGIN MISSING ({i}) ---")
@@ -56,12 +58,12 @@ def real_data(datalist=SAVENAMES,
                 impType = 'entry'
                 runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, repeat=reps, method=m,
                               impType=impType, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6,
-                              savename=folder+run, printRuntime=True, continued=continued)
+                              savename=folder+run, printRuntime=True)
 
                 impType = 'chord'
                 runImputation(data=orig, dataname=dataset, min_rr=min_component, max_rr=max_component, repeat=reps, method=m,
                               impType=impType, drop=drop_perc, init=init_type, seed=seed*i, tol=1e-6,
-                              savename=folder+run, printRuntime=True, continued=continued)
+                              savename=folder+run, printRuntime=True)
         
     return True
 
@@ -73,9 +75,9 @@ def bestComps(drop=0.1, impType = "entry", datalist=SAVENAMES):
     """
     bestComp = dict()
     for data in datalist:
-        folder = f"timpute/figures/cache/{data}/drop_{drop}/"
+        folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
         if drop == 0:
-            folder = f"timpute/figures/cache/{data}/nonmissing/"
+            folder = f"timpute/figures/revision_cache/{data}/nonmissing/"
         tmp = dict()
         for n,m in enumerate(METHODS):
             run, _ = loadImputation(impType, m, folder)
@@ -110,25 +112,3 @@ def chordMasking(datalist=SAVENAMES, max_comps=[10,10,10,20], drops = (0.05, 0.1
                 for m in METHODS:
                     runImputation(data=orig, max_rr=max_component, impType=impType, savename=folder+run, method=m, printRuntime=True,
                                   callback=False, repeat=reps, drop=d, init=init_type, seed=seed*i, tol=1e-6, chord_mode=mode)
-
-if __name__ == "__main__":
-
-    datalist=SAVENAMES
-    reps=20
-    drops=DROPS
-    methods=METHODS
-    nonmissing=True
-    savedir="timpute/figures/revision_cache"
-
-    runSet = 2
-    if runSet==1:
-        start_comps=[1]
-        max_comps=[30]
-    elif runSet==2:
-        start_comps=[31]
-        max_comps=[50]
-
-    funcArgs = [([dataset], start_comps, max_comps, reps, drops, methods, nonmissing, savedir)
-                for dataset in SAVENAMES]
-    with Pool(processes=4) as pool:
-        results = pool.starmap(real_data, funcArgs)

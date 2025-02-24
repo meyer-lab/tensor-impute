@@ -29,7 +29,7 @@ export PATH=$PATH:~/.local/bin
 echo "path exported"
 
 # substitute the command to run your code in the two lines below:
-poetry run python -m timpute.figures.real_data_2
+poetry run python -m timpute.figures.real_data
 # submit job from ./tensor-impute using: qsub timpute/figures/generate_data.sh
 # check status using: myjobs
 

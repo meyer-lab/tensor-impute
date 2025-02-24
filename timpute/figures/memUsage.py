@@ -5,7 +5,7 @@ import numpy as np
 import resource
 import argparse
 
-from figures import METHODS, METHODNAMES, SAVENAMES
+from . import METHODS, METHODNAMES, SAVENAMES
 from ..decomposition import Decomposition
 from ..generateTensor import generateTensor
 
@@ -18,7 +18,7 @@ def createDictionary(filename='nonmissing'):
         for j in METHODNAMES:
             memory[i][j] = []
 
-    with open('./timpute/figures/cache/dataUsage/'+filename+'.pickle', 'wb') as handle:
+    with open('./timpute/figures/revision_cache/dataUsage/'+filename+'.pickle', 'wb') as handle:
         pickle.dump(memory, handle)
 
     return True
@@ -34,16 +34,16 @@ def testMemory(dataname, method, methodname, max_comp, filename,
     decomposition = Decomposition(orig, max_comp)
     
     # include **kwargs include: repeat=reps, drop=drop_perc, init=init_type
-    decomposition.profile_imputation(type=dropType, method=method, drop=float(dropPerc))
-    # decomposition.save(f"./timpute/figures/cache/dataUsage/{dataname}-{method.__name__}.decomposition")
+    decomposition.imputation(imp_type=dropType, method=method, drop=float(dropPerc))
+    # decomposition.save(f"./timpute/figures/revision_cache/dataUsage/{dataname}-{method.__name__}.decomposition")
 
-    if os.path.isfile('./timpute/figures/cache/dataUsage/'+filename+'.pickle') is False:
+    if os.path.isfile('./timpute/figures/revision_cache/dataUsage/'+filename+'.pickle') is False:
         createDictionary(filename)
     
-    with open('./timpute/figures/cache/dataUsage/'+filename+'.pickle', 'rb') as handle:
+    with open('./timpute/figures/revision_cache/dataUsage/'+filename+'.pickle', 'rb') as handle:
         memory = pickle.load(handle)
     memory[dataname][methodname].append(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024**2)
-    with open('./timpute/figures/cache/dataUsage/'+filename+'.pickle', 'wb') as handle:
+    with open('./timpute/figures/revision_cache/dataUsage/'+filename+'.pickle', 'wb') as handle:
         pickle.dump(memory, handle)
 
 if __name__ == "__main__":
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     elif args.method == 'CLS':
         j = 2
 
-    max_comps = [10,10,10,20]
+    max_comps = [50,50,50,50]
     # resource.setrlimit(resource.RLIMIT_AS, (int(1e9), int(1e9)))
     if args.dropType and args.dropPerc and args.seed:
         testMemory(SAVENAMES[i], METHODS[j], METHODNAMES[j], max_comps[i], args.filename,
