@@ -18,12 +18,12 @@ def test_impute_alter():
 
 def test_impute_zohar():
     np.random.seed(5)
-    tensor = generateTensor(type='zohar')
+    tensor = generateTensor(type="zohar")
     test = Decomposition(tensor)
-    test.imputation(type='chord', drop=0.05, repeat=1)
-    assert min(test.chord_total[0]) <= 1-.4
-    test.imputation(type='entry', drop=0.05, repeat=1)
-    assert min(test.entry_total[0]) <= 1-.5
+    test.imputation(type="chord", drop=0.05, repeat=1)
+    assert min(test.chord_total[0]) <= 1 - 0.4
+    test.imputation(type="entry", drop=0.05, repeat=1)
+    assert min(test.entry_total[0]) <= 1 - 0.5
     tensor = generateTensor(type="zohar")
     test = Decomposition(tensor)
     test.imputation(type="chord", drop=0.05, repeat=1)

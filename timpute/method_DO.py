@@ -1,6 +1,7 @@
 """
 Tensor decomposition methods
 """
+
 import numpy as np
 from scipy.optimize import minimize
 import tensorly as tl
@@ -27,7 +28,7 @@ def cost(pIn, tensor: np.ndarray, tmask: np.ndarray):
 
 
 class do_callback:
-    def __init__(self, callback:Tracker, shape:tuple):
+    def __init__(self, callback: Tracker, shape: tuple):
         self.callback = callback
         self.shape = shape
 
@@ -37,17 +38,17 @@ class do_callback:
 
 
 def perform_DO(
-    tensorOrig:np.ndarray=None,
-    rank:int=6,
-    n_iter_max:int=5_000,
-    tol = 1e-6,
+    tensorOrig: np.ndarray = None,
+    rank: int = 6,
+    n_iter_max: int = 5_000,
+    tol=1e-6,
     callback=None,
     init=None,
-    **kwargs
+    **kwargs,
 ) -> tl.cp_tensor.CPTensor:
     """Perform CP decomposition."""
     if tensorOrig is None:
-        tensorOrig = generateTensor('unknown')
+        tensorOrig = generateTensor("unknown")
     if init == None:
         init = initialize_fac(tensorOrig, rank)
     if callback:
@@ -69,7 +70,7 @@ def perform_DO(
         args=(tensorIn, tmask),
         options={"maxiter": n_iter_max},
         tol=tol,
-        callback=temp_callback
+        callback=temp_callback,
     )
 
     return cp_normalize(buildTensors(res.x, tensorIn.shape))
