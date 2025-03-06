@@ -2,7 +2,7 @@ import numpy as np
 from .figure_data import bestComps
 from .figure_helper import loadImputation
 from .common import getSetup, subplotLabel, rgbs
-from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES
+from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES, SUBTITLE_FONTSIZE, TEXT_FONTSIZE, LINE_WIDTH
 
 # from matplotlib.legend_handler import HandlerErrorbar
 
@@ -10,21 +10,21 @@ from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES
 
 drops = (0.05, 0.1, 0.2, 0.3, 0.4, 0.5)
 SUBTITLE_FONTSIZE = 15
-TEXT_FONTSIZE = 13
+TEXT_FONTSIZE = 13,
 
 
 def figure5():
     ax, f = getSetup((16, 8), (2, 4))
     # (w,h),  (r,c)
 
-    plotTime(ax[0], 0, "entry", 0)
-    plotTime(ax[1], 1, "entry", 0)
-    plotTime(ax[2], 2, "entry", 0)
-    plotTime(ax[3], 3, "entry", 0)
-    plotTime(ax[4], 0, "entry", 0.1)
-    plotTime(ax[5], 1, "entry", 0.2)
-    plotTime(ax[6], 2, "chord", 0.3)
-    plotTime(ax[7], 3, "chord", 0.4)
+    plotIter(ax[0], 0, "entry", 0)
+    plotIter(ax[1], 1, "entry", 0)
+    plotIter(ax[2], 2, "entry", 0)
+    plotIter(ax[3], 3, "entry", 0)
+    plotIter(ax[4], 0, "entry", 0.1)
+    plotIter(ax[5], 1, "entry", 0.2)
+    plotIter(ax[6], 2, "chord", 0.3)
+    plotIter(ax[7], 3, "chord", 0.4)
 
     subplotLabel(ax)
     f.savefig(
@@ -37,16 +37,16 @@ def figure5():
     )
 
 
-def plotTime(ax, dataN, dropType, drop):
+def plotTime(ax, dataN, impType, drop):
     data = SAVENAMES[dataN]
     if drop == 0:
         folder = f"timpute/figures/revision_cache/{data}/nonmissing/"
     else:
         folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
 
-    comps = bestComps(drop=drop, impType=dropType, datalist=[data])
+    comps = bestComps(drop=drop, impType=impType, datalist=[data])
     for mID, m in enumerate(METHODS):
-        _, tracker = loadImputation(dropType, m, folder)
+        _, tracker = loadImputation(impType, m, folder)
         timepoints = tracker.time_array[str(comps[data][METHODNAMES[mID]])]
         # for i in range(timepoints.shape[0]):
         #     timepoints[i] -= timepoints[i,0]
@@ -59,6 +59,7 @@ def plotTime(ax, dataN, dropType, drop):
                 color=rgbs(mID, 0.7),
                 ls="dashed",
                 errorevery=5,
+                lw=LINE_WIDTH,
             )
         totErr = tracker.total_array[str(comps[data][METHODNAMES[mID]])]
         ax.errorbar(
@@ -68,26 +69,32 @@ def plotTime(ax, dataN, dropType, drop):
             color=rgbs(mID, 0.7),
             ls="solid",
             errorevery=5,
+            lw=LINE_WIDTH,
         )
 
     ax.set_xlim(left=0)
     ax.set_xlabel("Iteration", size=SUBTITLE_FONTSIZE)
     ax.set_ylabel("Error", size=SUBTITLE_FONTSIZE)
     ax.set_title(
-        f"{DATANAMES[dataN]}\n{int(drop*100)}% {dropType} masking",
+        f"{DATANAMES[dataN]}\n{int(drop*100)}% {impType} masking",
         size=SUBTITLE_FONTSIZE * 1.1,
     )
     ax.set_xscale("symlog")
 
 
 def plotIter(ax, dataN, impType, drop, legend=False):
-    folder = f"timpute/figures/revision_cache/{SAVENAMES[dataN]}/drop_{drop}/"
-    comps = bestComps(drop=drop, datalist=[SAVENAMES[dataN]])
+    data = SAVENAMES[dataN]
+    if drop == 0:
+        folder = f"timpute/figures/revision_cache/{data}/nonmissing/"
+    else:
+        folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
+    comps = bestComps(drop=drop, impType=impType, datalist=[data])
 
     for mID, m in enumerate(METHODS):
         _, tracker = loadImputation(impType, m, folder)
 
-        impErr = tracker.imputed_array[str(comps[SAVENAMES[dataN]][mID])][:, :-1]
+        # print(str(comps[SAVENAMES[dataN]]))
+        impErr = tracker.imputed_array[str(comps[data][METHODNAMES[mID]])][:, :-1]
         imputed_errbar = np.vstack(
             (
                 -(np.percentile(impErr, 25, 0) - np.nanmedian(impErr, 0)),
@@ -101,10 +108,11 @@ def plotIter(ax, dataN, impType, drop, legend=False):
             yerr=imputed_errbar,
             ls="dashed",
             errorevery=5,
+            lw=LINE_WIDTH,
         )
 
         label = f"{METHODNAMES[mID]}"
-        totErr = tracker.total_array[str(comps[SAVENAMES[dataN]][mID])][:, :-1]
+        totErr = tracker.total_array[str(comps[data][METHODNAMES[mID]])][:, :-1]
         total_errbar = np.vstack(
             (
                 -(np.percentile(totErr, 25, 0) - np.nanmedian(totErr, 0)),
@@ -119,6 +127,7 @@ def plotIter(ax, dataN, impType, drop, legend=False):
             yerr=total_errbar,
             ls="solid",
             errorevery=5,
+            lw=LINE_WIDTH,
         )
 
     ax.errorbar([], [], label="Imputed Error", ls="dashed", color="black")

@@ -11,6 +11,7 @@ from . import (
     DROPS,
     SUBTITLE_FONTSIZE,
     TEXT_FONTSIZE,
+    LINE_WIDTH,
 )
 
 # poetry run python -m timpute.figures.figure3
@@ -50,6 +51,7 @@ def figure3(datalist=SAVENAMES, legend=False):
                 ls="dashed",
                 color=rgbs(mID, 0.7),
                 alpha=0.5,
+                lw=LINE_WIDTH
             )
             # e[-1][0].set_linestyle('dashed')
 
@@ -73,6 +75,7 @@ def figure3(datalist=SAVENAMES, legend=False):
                 label=label,
                 ls="solid",
                 color=rgbs(mID, 0.7),
+                lw=LINE_WIDTH
             )
 
             ax[i].tick_params(axis="both", which="major", labelsize=TEXT_FONTSIZE)
@@ -88,7 +91,7 @@ def figure3(datalist=SAVENAMES, legend=False):
         ax[i].set_title(f"{DATANAMES[i]}", fontsize=SUBTITLE_FONTSIZE * 1.1)
         ax[i].set_xlabel("Number of Components", fontsize=SUBTITLE_FONTSIZE)
         ax[i].set_ylabel("Error", fontsize=SUBTITLE_FONTSIZE)
-        ax[i].set_ylim(top=maxErr, bottom=0)
+        ax[i].set_ylim(top=min(maxErr,1), bottom=0)
 
     if legend is True:
         ax[0].legend(h, l, loc="best", handlelength=2)
@@ -124,6 +127,10 @@ def figure3(datalist=SAVENAMES, legend=False):
             + bar_spacing * mID,
             sym="",
             widths=bar_width,
+            boxprops=dict(linewidth=LINE_WIDTH),
+            medianprops=dict(linewidth=LINE_WIDTH),
+            whiskerprops=dict(linewidth=LINE_WIDTH),
+            flierprops=dict(markersize=LINE_WIDTH),
         )
         set_boxplot_color(box, rgbs(mID))
         for l, line in enumerate([1, 3, 5, 7]):
@@ -179,6 +186,10 @@ def figure3(datalist=SAVENAMES, legend=False):
             + bar_spacing * mID,
             sym="",
             widths=bar_width,
+            boxprops=dict(linewidth=LINE_WIDTH),
+            medianprops=dict(linewidth=LINE_WIDTH),
+            whiskerprops=dict(linewidth=LINE_WIDTH),
+            flierprops=dict(markersize=LINE_WIDTH),
         )
         set_boxplot_color(box, rgbs(mID))
         for l, line in enumerate([1, 3, 5, 7]):
@@ -274,6 +285,7 @@ def figure3_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
                     ls="solid",
                     color=rgbs(mID, 0.7),
                     alpha=0.5,
+                    lw=LINE_WIDTH
                 )
 
                 label = f"{METHODNAMES[mID]} Imputed"
@@ -297,6 +309,7 @@ def figure3_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
                     ls="dashed",
                     color=rgbs(mID, 0.7),
                     alpha=0.5,
+                    lw=LINE_WIDTH
                 )
                 e[-1][0].set_linestyle("dashed")
 
@@ -337,6 +350,7 @@ def figure3_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
                     ls="solid",
                     color=rgbs(mID, 0.7),
                     alpha=0.5,
+                    lw=LINE_WIDTH
                 )
 
                 label = f"{METHODNAMES[mID]} Imputed"
@@ -360,6 +374,7 @@ def figure3_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
                     ls="dashed",
                     color=rgbs(mID, 0.7),
                     alpha=0.5,
+                    lw=LINE_WIDTH
                 )
                 e[-1][0].set_linestyle("dashed")
 
@@ -389,5 +404,5 @@ def figure3_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
 
 if __name__ == "__main__":
     # figure3(legend=True)
-    figure3(legend=False)
+    figure3(legend=True)
     # figure3_exp()

@@ -2,7 +2,7 @@ import math
 import numpy as np
 from .figure_helper import loadImputation
 from .common import getSetup, subplotLabel, rgbs
-from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES
+from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES, LINE_WIDTH
 
 # poetry run python -m timpute.figures.figure2
 
@@ -40,6 +40,7 @@ def figure2(datalist=SAVENAMES):
                 label=label,
                 ls="solid",
                 color=rgbs(mID, 0.7),
+                lw=LINE_WIDTH
             )
 
             h, l = ax[i].get_legend_handles_labels()

@@ -5,10 +5,10 @@
 #$ -o timpute/figures/revision_cache/joblog.$JOB_ID
 #$ -j y
 ## Edit the line below as needed:
-#$ -l h_rt=144:00:00,h_data=4G
+#$ -l h_rt=2:00:00,h_data=4G
 ## Modify the parallel environment
 ## and the number of cores as needed:
-#$ -pe shared 4
+#$ -pe shared 1
 # Email address to notify
 #$ -M $ethanhung11@ucla.edu
 # Notify when
@@ -29,7 +29,12 @@ export PATH=$PATH:~/.local/bin
 echo "path exported"
 
 # substitute the command to run your code in the two lines below:
-poetry run python -m timpute.figures.real_data
+poetry run python -m timpute.figures.figure2
+poetry run python -m timpute.figures.figure3
+poetry run python -m timpute.figures.figure4
+poetry run python -m timpute.figures.figure5
+poetry run python -m timpute.figures.supplements
+poetry run python -m timpute.figures.figure6
 # submit job from ./tensor-impute using: qsub timpute/figures/generate_data.sh
 # check status using: myjobs
 

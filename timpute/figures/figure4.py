@@ -1,13 +1,13 @@
 import numpy as np
 from .figure_helper import loadImputation
 from .common import getSetup, subplotLabel, rgbs
-from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES
+from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES, LINE_WIDTH
 
 # poetry run python -m timpute.figures.figure4
 
 SUBTITLE_FONTSIZE = 15
 TEXT_FONTSIZE = 13
-drops = (0.01, 0.05, 0.1, 0.2, 0.3, 0.4)
+drops = (0.05, 0.1, 0.2, 0.3, 0.4)
 
 
 def figure4(datalist=SAVENAMES, errors=True):
@@ -66,6 +66,7 @@ def figure4(datalist=SAVENAMES, errors=True):
                     ls="dashed",
                     color=rgbs(mID, 0.7),
                     yerr=np.hstack(tuple(ImpErrIQR)),
+                    lw=LINE_WIDTH,
                 )
             else:
                 ax[i].plot(
@@ -73,6 +74,7 @@ def figure4(datalist=SAVENAMES, errors=True):
                     np.array(ImpErr),
                     ls="dashed",
                     color=rgbs(mID, 0.7),
+                    lw=LINE_WIDTH,
                 )
 
             label = f"{METHODNAMES[mID]}"
@@ -83,7 +85,8 @@ def figure4(datalist=SAVENAMES, errors=True):
                     ls="solid",
                     label=label,
                     color=rgbs(mID, 0.7),
-                    yerr=np.hstack(tuple(TotErrIQR)),
+                    yerr=np.hstack(tuple(TotErrIQR),
+                    lw=LINE_WIDTH),
                 )
             else:
                 ax[i].plot(
@@ -92,6 +95,8 @@ def figure4(datalist=SAVENAMES, errors=True):
                     ls="solid",
                     label=label,
                     color=rgbs(mID, 0.7),
+                    lw=LINE_WIDTH
+                    
                 )
 
         if errors is True:
@@ -153,7 +158,10 @@ def figure4(datalist=SAVENAMES, errors=True):
                         )
                     )
                 )
-                stdout.write(f"{comp}, ")
+                if data=='zohar' and d == 0.01:
+                    print(ImpErr)
+                    print(run.chord_imputed)
+                stdout.write(f"{comp+1}, ")
 
             if errors is True:
                 ax[i + 4].errorbar(
@@ -162,6 +170,7 @@ def figure4(datalist=SAVENAMES, errors=True):
                     ls="dashed",
                     color=rgbs(mID, 0.7),
                     yerr=np.hstack(tuple(ImpErrIQR)),
+                    lw=LINE_WIDTH,
                 )
             else:
                 ax[i + 4].plot(
@@ -169,6 +178,7 @@ def figure4(datalist=SAVENAMES, errors=True):
                     np.array(ImpErr),
                     ls="dashed",
                     color=rgbs(mID, 0.7),
+                    lw=LINE_WIDTH,
                 )
 
             label = f"{METHODNAMES[mID]}"
@@ -180,6 +190,7 @@ def figure4(datalist=SAVENAMES, errors=True):
                     label=label,
                     color=rgbs(mID, 0.7),
                     yerr=np.hstack(tuple(TotErrIQR)),
+                    lw=LINE_WIDTH,
                 )
             else:
                 ax[i + 4].plot(
@@ -188,6 +199,7 @@ def figure4(datalist=SAVENAMES, errors=True):
                     ls="solid",
                     label=label,
                     color=rgbs(mID, 0.7),
+                    lw=LINE_WIDTH,
                 )
 
         if errors is True:
@@ -211,8 +223,7 @@ def figure4(datalist=SAVENAMES, errors=True):
         )
         ax[i + 4].set_yscale("log")
 
-    stdout.write("\n\n* values are indices, add 1 for component")
-
+    f.set_constrained_layout_pads()
     subplotLabel(ax)
     f.savefig(
         "timpute/figures/revision_img/svg/figure4.svg",

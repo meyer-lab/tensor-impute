@@ -1,5 +1,5 @@
 import pickle
-from . import METHODNAMES, SAVENAMES, DATANAMES, DROPS
+from . import METHODNAMES, SAVENAMES, DATANAMES, DROPS, METHODS
 import numpy as np
 import pandas as pd
 from .common import getSetup, rgbs
@@ -9,6 +9,7 @@ from ..tracker import Tracker
 
 # poetry run python -m timpute.figures.supplements
 
+DROPS = (0.05, 0.1, 0.2, 0.3, 0.4, 0.5)
 
 def tableS1() -> None:
     # Supplemental 1
@@ -114,19 +115,20 @@ def tableS2_3() -> None:
     # Supplemental 3
     df_list = []
     for i in ["entry", "chord"]:
-        for d in DROPS:
-            data = dict()
-            data[d] = bestComps(drop=d, impType=i, datalist=SAVENAMES)
+        data = dict()
+        for drop_perc in DROPS:
+            data[drop_perc] = bestComps(drop=drop_perc, impType=i, datalist=SAVENAMES)
 
-            df = pd.DataFrame(
-                columns=["dataset", "method"] + [f"{int(d*100)}%" for d in DROPS]
-            )
-            for n, name in enumerate(SAVENAMES):
-                for m in METHODNAMES:
-                    df.loc[len(df.index)] = [DATANAMES[n], m] + [
-                        data[d][name][m] for d in DROPS
-                    ]
-            df = df.set_index(["dataset", "method"])
+        df = pd.DataFrame(
+            columns=["dataset", "method"] + [f"{int(d*100)}%" for d in DROPS]
+        )
+        
+        for n, name in enumerate(SAVENAMES):
+            for m in METHODNAMES:
+                df.loc[len(df.index)] = [DATANAMES[n], m] + [
+                    data[drop_perc][name][m] for drop_perc in DROPS
+                ]
+        df = df.set_index(["dataset", "method"])
         # df = df.style.set_caption(f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage")
         df_list.append(df)
         df.to_excel(
@@ -156,22 +158,23 @@ def tableS4() -> None:
 
     # fill dataframe
     data = Tracker()
-    for method in METHODNAMES:
-        for s in SAVENAMES:
-            for d in (0.05, 0.1, 0.2, 0.3, 0.4):
+    for mID,m in enumerate(METHODS):
+        for d in (0.05, 0.1, 0.2, 0.3, 0.4):
+            rank_data = bestComps(d, impType, SAVENAMES)
+            for s in SAVENAMES:
                 for impType in ["entry", "chord"]:
 
                     data.load(
-                        f"./timpute/figures/revision_cache/{s}/drop_{d}/{impType}-perform_{method}.tracker"
+                        f"./timpute/figures/revision_cache/{s}/drop_{d}/{impType}-{m.__name__}.tracker"
                     )
-                    rr = str(bestComps(d, impType, [s])[s][method])
+                    rr = str(rank_data[s][METHODNAMES[mID]])
 
                     # take mean across samples of (ti+1 - ti) from 1 to maxIter
-                    df_iter.loc[(s, impType), (f"{int(d*100)}%", method)] = np.median(
+                    df_iter.loc[(s, impType), (f"{int(d*100)}%", METHODNAMES[mID])] = np.median(
                         np.nanmedian(np.diff(data.time_array[rr][:, 1:]), axis=0)
                     )
                     # take mean across samples of (t1 - t0)
-                    df_init.loc[(s, impType), (f"{int(d*100)}%", method)] = (
+                    df_init.loc[(s, impType), (f"{int(d*100)}%", METHODNAMES[mID])] = (
                         np.nanmedian(np.diff(data.time_array[rr][:, 0:2]))
                     )
 
@@ -182,6 +185,9 @@ def tableS4() -> None:
     df_iter.index = df_iter.index.set_levels(
         [DATANAMES[SAVENAMES.index(i)] for i in df_iter.index.levels[0]], level=0
     )
+
+    print(df_iter)
+
     df_iter.index = df_iter.index.set_names(["Dataset", "Imputation Type"])
     df_iter = df_iter.style.set_caption(
         "Median Time per Iteration for Optimal Rank Imputation"
@@ -206,6 +212,7 @@ def tableS4() -> None:
         "./timpute/figures/revision_img/initTime.xlsx",
         sheet_name="Median Time for Data Processing, Prior to First Iteration for Optimal Rank Imputation",
     )
+
 
 
 if __name__ == "__main__":
