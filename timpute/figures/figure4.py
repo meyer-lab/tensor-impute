@@ -1,239 +1,318 @@
+import math
 import numpy as np
+from matplotlib.lines import Line2D
 from .figure_helper import loadImputation
-from .common import getSetup, subplotLabel, rgbs
-from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES, LINE_WIDTH
+from .common import getSetup, subplotLabel, rgbs, set_boxplot_color
+from . import (
+    METHODS,
+    METHODNAMES,
+    SAVENAMES,
+    DATANAMES,
+    DROPS,
+    SUBTITLE_FONTSIZE,
+    TEXT_FONTSIZE,
+    LINE_WIDTH,
+)
 
 # poetry run python -m timpute.figures.figure4
 
-SUBTITLE_FONTSIZE = 15
-TEXT_FONTSIZE = 13
-drops = (0.05, 0.1, 0.2, 0.3, 0.4)
+
+def plot_entry_decomp(ax, data, name, drop=0.1):
+    folder = f"timpute/figures/revision_cache/{data}/drop_0.1/"
+    impType = "entry"
+    maxErr = 0
+    for mID, m in enumerate(METHODS):
+        run, _ = loadImputation(impType, m, folder)
+        maxErr = max(maxErr, math.ceil(max(np.median(run.entry_total, 0)) * 10) / 10)
+
+        comps = np.arange(1, run.entry_imputed.shape[1] + 1)
+        imp_errbar = np.vstack(
+            (
+                abs(
+                    np.percentile(run.entry_imputed, 25, 0)
+                    - np.nanmedian(run.entry_imputed, 0)
+                ),
+                abs(
+                    np.percentile(run.entry_imputed, 75, 0)
+                    - np.nanmedian(run.entry_imputed, 0)
+                ),
+            )
+        )
+        e = ax.errorbar(
+            comps,
+            np.median(run.entry_imputed, 0),
+            yerr=imp_errbar,
+            ls="dashed",
+            color=rgbs(mID, 0.7),
+            alpha=0.5,
+            lw=LINE_WIDTH,
+        )
+        # e[-1][0].set_linestyle('dashed')
+
+        label = f"{METHODNAMES[mID]}"
+        total_errbar = np.vstack(
+            (
+                abs(
+                    np.percentile(run.entry_total, 25, 0)
+                    - np.nanmedian(run.entry_total, 0)
+                ),
+                abs(
+                    np.percentile(run.entry_total, 75, 0)
+                    - np.nanmedian(run.entry_total, 0)
+                ),
+            )
+        )
+        ax.errorbar(
+            comps,
+            np.median(run.entry_total, 0),
+            yerr=total_errbar,
+            label=label,
+            ls="solid",
+            color=rgbs(mID, 0.7),
+            lw=LINE_WIDTH,
+        )
+
+        ax.tick_params(axis="both", which="major", labelsize=TEXT_FONTSIZE)
+        ax.set_xticks(np.arange(max(comps) / 10, max(comps) + 1, max(comps) / 10))
+
+    ax.errorbar([], [], label="Imputed Error", ls="dashed", color="black")
+    ax.errorbar([], [], label="Total Error", ls="solid", color="black")
+
+    h, l = ax.get_legend_handles_labels()
+    h = [a[0] for a in h]
+    ax.set_title(f"{name}", fontsize=SUBTITLE_FONTSIZE * 1.1)
+    ax.set_xlabel("Number of Components", fontsize=SUBTITLE_FONTSIZE)
+    ax.set_ylabel("Error", fontsize=SUBTITLE_FONTSIZE)
+    ax.set_ylim(top=min(maxErr, 1), bottom=0)
 
 
-def figure4(datalist=SAVENAMES, errors=True):
-    ax, f = getSetup((16, 8), (2, 4))
-    dirname = f"timpute/figures/revision_img"
-    stdout = open(f"{dirname}/figure4.txt", "w")
-    stdout.write(f"{drops}")
+def plot_chord_decomp(ax, data, name, drop=0.1):
+    folder = f"timpute/figures/revision_cache/{data}/drop_0.1/"
+    impType = "chord"
+    maxErr = 0
+    for mID, m in enumerate(METHODS):
+        run, _ = loadImputation(impType, m, folder)
+        maxErr = max(maxErr, math.ceil(max(np.median(run.chord_total, 0)) * 10) / 10)
+
+        comps = np.arange(1, run.chord_imputed.shape[1] + 1)
+        imp_errbar = np.vstack(
+            (
+                abs(
+                    np.percentile(run.chord_imputed, 25, 0)
+                    - np.nanmedian(run.chord_imputed, 0)
+                ),
+                abs(
+                    np.percentile(run.chord_imputed, 75, 0)
+                    - np.nanmedian(run.chord_imputed, 0)
+                ),
+            )
+        )
+        e = ax.errorbar(
+            comps,
+            np.median(run.chord_imputed, 0),
+            yerr=imp_errbar,
+            ls="dashed",
+            color=rgbs(mID, 0.7),
+            alpha=0.5,
+            lw=LINE_WIDTH,
+        )
+        # e[-1][0].set_linestyle('dashed')
+
+        label = f"{METHODNAMES[mID]}"
+        total_errbar = np.vstack(
+            (
+                abs(
+                    np.percentile(run.chord_total, 25, 0)
+                    - np.nanmedian(run.chord_total, 0)
+                ),
+                abs(
+                    np.percentile(run.chord_total, 75, 0)
+                    - np.nanmedian(run.chord_total, 0)
+                ),
+            )
+        )
+        ax.errorbar(
+            comps,
+            np.median(run.chord_total, 0),
+            yerr=total_errbar,
+            label=label,
+            ls="solid",
+            color=rgbs(mID, 0.7),
+            lw=LINE_WIDTH,
+        )
+
+        ax.tick_params(axis="both", which="major", labelsize=TEXT_FONTSIZE)
+        ax.set_xticks(np.arange(max(comps) / 10, max(comps) + 1, max(comps) / 10))
+
+    ax.errorbar([], [], label="Imputed Error", ls="dashed", color="black")
+    ax.errorbar([], [], label="Total Error", ls="solid", color="black")
+
+    h, l = ax.get_legend_handles_labels()
+    h = [a[0] for a in h]
+    ax.set_title(f"{name}", fontsize=SUBTITLE_FONTSIZE * 1.1)
+    ax.set_xlabel("Number of Components", fontsize=SUBTITLE_FONTSIZE)
+    ax.set_ylabel("Error", fontsize=SUBTITLE_FONTSIZE)
+    ax.set_ylim(top=min(maxErr, 1), bottom=0)
+
+
+def best_imputed_boxplot(ax, impType, drop=0.1, datalist=SAVENAMES):
+    plot_data = dict()
+    comp_data = dict()
+    for m in METHODS:
+        plot_data[m.__name__] = list()
+        comp_data[m.__name__] = list()
 
     for i, data in enumerate(datalist):
-        # Figure 4, a)-d)
-        impType = "entry"
-        ax[i].tick_params(axis="both", which="major", labelsize=TEXT_FONTSIZE)
-
+        folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
         for mID, m in enumerate(METHODS):
-            ImpErr = list()
-            ImpErrIQR = list()
-            TotErr = list()
-            TotErrIQR = list()
-            stdout.write(f"\n{data}, {impType} {m.__name__}: ")
-            for d in drops:
-                folder = f"timpute/figures/revision_cache/{data}/drop_{d}/"
-                run, _ = loadImputation(impType, m, folder)
-                comp = np.median(run.entry_imputed, 0).argmin()  # best imp error
-                ImpErr.append(np.median(run.entry_imputed[:, comp]))
-                ImpErrIQR.append(
-                    np.vstack(
-                        (
-                            -(
-                                np.percentile(run.entry_imputed[:, comp], 25, 0)
-                                - np.median(run.entry_imputed[:, comp], 0)
-                            ),
-                            np.percentile(run.entry_imputed[:, comp], 75, 0)
-                            - np.median(run.entry_imputed[:, comp], 0),
-                        )
-                    )
-                )
-                TotErr.append(np.median(run.entry_total[:, comp]))
-                TotErrIQR.append(
-                    np.vstack(
-                        (
-                            -(
-                                np.percentile(run.entry_total[:, comp], 25, 0)
-                                - np.median(run.entry_total[:, comp], 0)
-                            ),
-                            np.percentile(run.entry_total[:, comp], 75, 0)
-                            - np.median(run.entry_total[:, comp], 0),
-                        )
-                    )
-                )
-                stdout.write(f"{comp+1}, ")
+            run, _ = loadImputation(impType, m, folder)
 
-            if errors is True:
-                ax[i].errorbar(
-                    [str(x * 100) for x in drops],
-                    np.array(ImpErr),
-                    ls="dashed",
-                    color=rgbs(mID, 0.7),
-                    yerr=np.hstack(tuple(ImpErrIQR)),
-                    lw=LINE_WIDTH,
-                )
+            if impType == "entry":
+                impMatrix = run.entry_imputed
+            elif impType == "chord":
+                impMatrix = run.chord_imputed
             else:
-                ax[i].plot(
-                    [str(x * 100) for x in drops],
-                    np.array(ImpErr),
-                    ls="dashed",
-                    color=rgbs(mID, 0.7),
-                    lw=LINE_WIDTH,
-                )
+                raise ValueError(f"{impType} not a valid impType arg")
 
-            label = f"{METHODNAMES[mID]}"
-            if errors is True:
-                ax[i].errorbar(
-                    [str(x * 100) for x in drops],
-                    np.array(TotErr),
-                    ls="solid",
-                    label=label,
-                    color=rgbs(mID, 0.7),
-                    yerr=np.hstack(tuple(TotErrIQR),
-                    lw=LINE_WIDTH),
-                )
-            else:
-                ax[i].plot(
-                    [str(x * 100) for x in drops],
-                    np.array(TotErr),
-                    ls="solid",
-                    label=label,
-                    color=rgbs(mID, 0.7),
-                    lw=LINE_WIDTH
-                    
-                )
+            impDist = impMatrix[:, np.median(impMatrix, axis=0).argmin()]
+            plot_data[m.__name__].append(impDist)
+            comp_data[m.__name__].append(np.median(impMatrix, axis=0).argmin())
 
-        if errors is True:
-            ax[i].errorbar(
-                [], [], label="Best Imputed Error", ls="dashed", color="black"
-            )
-            ax[i].errorbar([], [], label="Total Error", ls="solid", color="black")
-            h, l = ax[i].get_legend_handles_labels()
-            h = [a[0] for a in h]
-        else:
-            ax[i].plot([], [], label="Best Imputed Error", ls="dashed", color="black")
-            ax[i].plot([], [], label="Total Error", ls="solid", color="black")
-
-        ax[i].set_xlabel("Drop Percent", fontsize=SUBTITLE_FONTSIZE)
-        ax[i].set_ylabel("Median Error", fontsize=SUBTITLE_FONTSIZE)
-        ax[i].set_ylim(top=1e0, bottom=1e-3)
-        ax[i].set_yscale("log")
-        ax[i].set_title(
-            f"{DATANAMES[i]}, {impType} masking", fontsize=SUBTITLE_FONTSIZE * 1.1
+    bar_spacing = 0.5
+    bar_width = 0.4
+    exp_spacing = 2
+    for mID, m in enumerate(METHODS):
+        box = ax.boxplot(
+            plot_data[m.__name__],
+            positions=np.array(range(len(plot_data[m.__name__]))) * exp_spacing
+            - bar_spacing
+            + bar_spacing * mID,
+            sym="",
+            widths=bar_width,
+            boxprops=dict(linewidth=LINE_WIDTH - 1),
+            medianprops=dict(linewidth=LINE_WIDTH - 1),
+            whiskerprops=dict(linewidth=LINE_WIDTH - 1),
+            flierprops=dict(markersize=LINE_WIDTH - 1),
         )
-
-        # Figure 4, e)-h)
-        impType = "chord"
-        ax[i + 4].tick_params(axis="both", which="major", labelsize=TEXT_FONTSIZE)
-
-        for mID, m in enumerate(METHODS):
-            ImpErr = list()
-            ImpErrIQR = list()
-            TotErr = list()
-            TotErrIQR = list()
-            stdout.write(f"\n{data}, {impType} {m.__name__}: ")
-            for d in drops:
-                folder = f"timpute/figures/revision_cache/{data}/drop_{d}/"
-                run, _ = loadImputation(impType, m, folder)
-                comp = np.median(run.chord_imputed, 0).argmin()  # best imp error
-                ImpErr.append(np.median(run.chord_imputed[:, comp]))
-                ImpErrIQR.append(
-                    np.vstack(
-                        (
-                            -(
-                                np.percentile(run.chord_imputed[:, comp], 25, 0)
-                                - np.median(run.chord_imputed[:, comp], 0)
-                            ),
-                            np.percentile(run.chord_imputed[:, comp], 75, 0)
-                            - np.median(run.chord_imputed[:, comp], 0),
-                        )
-                    )
-                )
-                TotErr.append(np.median(run.chord_total[:, comp]))
-                TotErrIQR.append(
-                    np.vstack(
-                        (
-                            -(
-                                np.percentile(run.chord_total[:, comp], 25, 0)
-                                - np.median(run.chord_total[:, comp], 0)
-                            ),
-                            np.percentile(run.chord_total[:, comp], 75, 0)
-                            - np.median(run.chord_total[:, comp], 0),
-                        )
-                    )
-                )
-                if data=='zohar' and d == 0.01:
-                    print(ImpErr)
-                    print(run.chord_imputed)
-                stdout.write(f"{comp+1}, ")
-
-            if errors is True:
-                ax[i + 4].errorbar(
-                    [str(x * 100) for x in drops],
-                    np.array(ImpErr),
-                    ls="dashed",
-                    color=rgbs(mID, 0.7),
-                    yerr=np.hstack(tuple(ImpErrIQR)),
-                    lw=LINE_WIDTH,
-                )
-            else:
-                ax[i + 4].plot(
-                    [str(x * 100) for x in drops],
-                    np.array(ImpErr),
-                    ls="dashed",
-                    color=rgbs(mID, 0.7),
-                    lw=LINE_WIDTH,
-                )
-
-            label = f"{METHODNAMES[mID]}"
-            if errors is True:
-                ax[i + 4].errorbar(
-                    [str(x * 100) for x in drops],
-                    np.array(TotErr),
-                    ls="solid",
-                    label=label,
-                    color=rgbs(mID, 0.7),
-                    yerr=np.hstack(tuple(TotErrIQR)),
-                    lw=LINE_WIDTH,
-                )
-            else:
-                ax[i + 4].plot(
-                    [str(x * 100) for x in drops],
-                    np.array(TotErr),
-                    ls="solid",
-                    label=label,
-                    color=rgbs(mID, 0.7),
-                    lw=LINE_WIDTH,
-                )
-
-        if errors is True:
-            ax[i + 4].errorbar(
-                [], [], label="Best Imputed Error", ls="dashed", color="black"
+        set_boxplot_color(box, rgbs(mID))
+        for l, line in enumerate([1, 3, 5, 7]):
+            x = box["caps"][line].get_xdata().mean()
+            y = box["caps"][line].get_ydata()[0]
+            ax.text(
+                x,
+                y * 1.03,
+                comp_data[m.__name__][l] + 1,
+                ha="center",
+                va="bottom",
+                size=TEXT_FONTSIZE,
             )
-            ax[i + 4].errorbar([], [], label="Total Error", ls="solid", color="black")
-            h, l = ax[i + 4].get_legend_handles_labels()
-            h = [a[0] for a in h]
-        else:
-            ax[i + 4].plot(
-                [], [], label="Best Imputed Error", ls="dashed", color="black"
-            )
-            ax[i + 4].plot([], [], label="Total Error", ls="solid", color="black")
+    ax.tick_params(axis="both", which="major", labelsize=TEXT_FONTSIZE)
+    ax.set_xticks(range(0, len(DATANAMES) * exp_spacing, exp_spacing), DATANAMES)
 
-        ax[i + 4].set_ylim(top=1e0, bottom=1e-3)
-        ax[i + 4].set_xlabel("Drop Percent", fontsize=SUBTITLE_FONTSIZE)
-        ax[i + 4].set_ylabel("Median Error", fontsize=SUBTITLE_FONTSIZE)
-        ax[i + 4].set_title(
-            f"{DATANAMES[i]}, {impType} masking", fontsize=SUBTITLE_FONTSIZE * 1.1
-        )
-        ax[i + 4].set_yscale("log")
+    ax.set_title(
+        f"Best imputation error by dataset, {int(drop*100)}% {impType} masking",
+        fontsize=SUBTITLE_FONTSIZE * 1.1,
+    )
+    ax.set_xlabel("Dataset", fontsize=SUBTITLE_FONTSIZE)
+    ax.set_ylabel("Imputed Error", fontsize=SUBTITLE_FONTSIZE)
+    ax.set_xlim(right=7)
+    # ax.set_ylim(top=ax.get_ylim()[1]*1.5)
+    ax.set_ylim(top=1, bottom=0.01)
+    ax.set_yscale("log")
 
-    f.set_constrained_layout_pads()
+
+def figure4(datalist=SAVENAMES, legend=False):
+    ax, f = getSetup((16, 8), (2, 4), multz={4: 1, 6: 1}, empts=[5, 7])
+
+    # a-d) C-ALS outperforms other algorithms in many cases, but not all.
+    # DO has stable imputed error at higher components
+    # 10% missingness, component vs imputed & total error
+    for i, data in enumerate(datalist):
+        plot_entry_decomp(ax[i], data, DATANAMES[i])
+        print(f"completed figure 4{chr(ord('a') + i)}")
+
+    if legend is True:
+        ax[0].legend(h, l, loc="best", handlelength=2)
+
+    # e)-f) Best imputed error identifies best rank for each algorithm
+    # C-ALS outperforms other algorithms in many cases, but not all (DyeDrop, BC cytokine, Covid chord drop)
+    # component vs imputed & total error
+    # e) 10% missingness, all datasets ENTRY
+    # f) 10% missingness, all datasets CHORD
+
+    # --- ENTRY ---
+    best_imputed_boxplot(ax[4], "entry")
+    print("completed figure 4e")
+
+    # --- CHORD ---
+    best_imputed_boxplot(ax[5], "chord")
+    print("completed figure 4f")
+
     subplotLabel(ax)
+
+    if legend is True:
+        ax.legend(
+            loc="lower right",
+            handlelength=2,
+            fontsize=TEXT_FONTSIZE,
+            handles=[
+                Line2D([0], [0], label=m, color=rgbs(i))
+                for i, m in enumerate(METHODNAMES)
+            ],
+        )
+        f.savefig(
+            "timpute/figures/revision_img/svg/figure4_legend.svg",
+            bbox_inches="tight",
+            format="svg",
+        )
+        f.savefig(
+            "timpute/figures/revision_img/figure4_legend.png",
+            bbox_inches="tight",
+            format="png",
+        )
+    else:
+        f.savefig(
+            "timpute/figures/revision_img/svg/figure4.svg",
+            bbox_inches="tight",
+            format="svg",
+        )
+        f.savefig(
+            "timpute/figures/revision_img/figure4.png",
+            bbox_inches="tight",
+            format="png",
+        )
+
+    return f
+
+
+def figure4_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
+    ax, f = getSetup((48, 40), (7, 8))
+    dirname = f"timpute/figures/revision_img"
+
+    # Figure 1, a)-d)
+    for d, drop in enumerate(DROPS):
+        for i, data in enumerate(datalist):
+            for mID, m in enumerate(METHODS):
+                ## ENTRY
+                plot_entry_decomp(ax[i + d * 8], data, DATANAMES[i], drop)
+
+                ## CHORD
+                plot_chord_decomp(ax[i + 4 + d * 8], data, DATANAMES[i], drop)
+
     f.savefig(
-        "timpute/figures/revision_img/svg/figure4.svg",
+        "timpute/figures/revision_img/svg/figure4-exp.svg",
         bbox_inches="tight",
         format="svg",
     )
     f.savefig(
-        "timpute/figures/revision_img/figure4.png", bbox_inches="tight", format="png"
+        "timpute/figures/revision_img/figure4-exp.png",
+        bbox_inches="tight",
+        format="png",
     )
 
 
 if __name__ == "__main__":
-    figure4(errors=False)
+    print("\nbuilding figure 4...")
+    # figure4(legend=True)
+    figure4(legend=False)
+    # figure4_exp()

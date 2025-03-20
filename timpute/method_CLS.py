@@ -97,6 +97,10 @@ def perform_CLS(
         R2X_last = tFac.R2X
 
         fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
+
+        if R2X - R2X_last < tol:
+            break
+
         tFac.R2X = R2X
         tFac.factors = fac
 
@@ -107,9 +111,6 @@ def perform_CLS(
 
         if callback:
             callback(tFac)
-
-        if tFac.R2X - R2X_last < tol:
-            break
 
     tFac = cp_normalize(tFac)
     tFac.R2X = calcR2X(tFac, tOrig)

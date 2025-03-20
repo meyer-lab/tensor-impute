@@ -3,13 +3,14 @@ from . import METHODNAMES, SAVENAMES, DATANAMES, DROPS, METHODS
 import numpy as np
 import pandas as pd
 from .common import getSetup, rgbs
-from .figure_data import bestComps
+from .figure_data import bestComps, bestSimComps
 from ..decomposition import Decomposition
 from ..tracker import Tracker
 
 # poetry run python -m timpute.figures.supplements
 
 DROPS = (0.05, 0.1, 0.2, 0.3, 0.4, 0.5)
+
 
 def tableS1() -> None:
     # Supplemental 1
@@ -67,7 +68,7 @@ def figureS1() -> None:
     ind = np.arange(4)
 
     for i, filename in enumerate([0, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5]):
-        print(filename)
+        # print(filename)
         with open(
             "timpute/figures/revision_cache/dataUsage/" + str(filename) + ".pickle",
             "rb",
@@ -111,18 +112,63 @@ def figureS1() -> None:
     )
 
 
-def tableS2_3() -> None:
-    # Supplemental 3
+def tableS2_S3(imputed=True, outputData=False):
+    # Supplemental 2/3
     df_list = []
     for i in ["entry", "chord"]:
         data = dict()
         for drop_perc in DROPS:
-            data[drop_perc] = bestComps(drop=drop_perc, impType=i, datalist=SAVENAMES)
+            data[drop_perc] = bestSimComps(
+                drop=drop_perc,
+                impType=i,
+                first=5,
+                last=25,
+                imputed=imputed,
+                outputData=outputData,
+            )
+
+        df = pd.DataFrame(
+            columns=["true rank", "method"] + [f"{int(d*100)}%" for d in DROPS]
+        )
+
+        for rank in np.arange(5, 25 + 1):
+            for m in METHODNAMES:
+                df.loc[len(df.index)] = [int(rank), m] + [
+                    data[drop_perc][rank][m] for drop_perc in DROPS
+                ]
+
+        df = df.set_index(["true rank", "method"])
+        # df = df.style.set_caption(f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage")
+        df_list.append(df)
+
+        if outputData is False:
+            df.to_excel(
+                f"./timpute/figures/revision_img/bestSimComps_{i}{'_total' if imputed is False else ''}.xlsx",
+                sheet_name=f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage",
+            )
+        else:
+            df.to_excel(
+                f"./timpute/figures/revision_img/bestSimError_{i}{'_total' if imputed is False else ''}.xlsx",
+                sheet_name=f"Lowest Median Imputation Error, by {i} Masking Percentage",
+            )
+
+    return df_list
+
+
+def tableS4_S5(imputed=True, outputData=False):
+    # Supplemental 4/5
+    df_list = []
+    for i in ["entry", "chord"]:
+        data = dict()
+        for drop_perc in DROPS:
+            data[drop_perc] = bestComps(
+                drop=drop_perc, impType=i, imputed=imputed, datalist=SAVENAMES
+            )
 
         df = pd.DataFrame(
             columns=["dataset", "method"] + [f"{int(d*100)}%" for d in DROPS]
         )
-        
+
         for n, name in enumerate(SAVENAMES):
             for m in METHODNAMES:
                 df.loc[len(df.index)] = [DATANAMES[n], m] + [
@@ -131,13 +177,21 @@ def tableS2_3() -> None:
         df = df.set_index(["dataset", "method"])
         # df = df.style.set_caption(f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage")
         df_list.append(df)
-        df.to_excel(
-            f"./timpute/figures/revision_img/bestComps_{i}.xlsx",
-            sheet_name=f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage",
-        )
+        if outputData is False:
+            df.to_excel(
+                f"./timpute/figures/revision_img/bestComps_{i}{'_total' if imputed is False else ''}.xlsx",
+                sheet_name=f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage",
+            )
+        else:
+            df.to_excel(
+                f"./timpute/figures/revision_img/bestError_{i}{'_total' if imputed is False else ''}.xlsx",
+                sheet_name=f"Lowest Median Imputation Error, by {i} Masking Percentage",
+            )
+
+    return df_list
 
 
-def tableS4() -> None:
+def tableS6() -> None:
     impType = "chord"
     DROPS = (0.05, 0.1, 0.2, 0.3, 0.4)
 
@@ -158,7 +212,7 @@ def tableS4() -> None:
 
     # fill dataframe
     data = Tracker()
-    for mID,m in enumerate(METHODS):
+    for mID, m in enumerate(METHODS):
         for d in (0.05, 0.1, 0.2, 0.3, 0.4):
             rank_data = bestComps(d, impType, SAVENAMES)
             for s in SAVENAMES:
@@ -170,8 +224,10 @@ def tableS4() -> None:
                     rr = str(rank_data[s][METHODNAMES[mID]])
 
                     # take mean across samples of (ti+1 - ti) from 1 to maxIter
-                    df_iter.loc[(s, impType), (f"{int(d*100)}%", METHODNAMES[mID])] = np.median(
-                        np.nanmedian(np.diff(data.time_array[rr][:, 1:]), axis=0)
+                    df_iter.loc[(s, impType), (f"{int(d*100)}%", METHODNAMES[mID])] = (
+                        np.median(
+                            np.nanmedian(np.diff(data.time_array[rr][:, 1:]), axis=0)
+                        )
                     )
                     # take mean across samples of (t1 - t0)
                     df_init.loc[(s, impType), (f"{int(d*100)}%", METHODNAMES[mID])] = (
@@ -186,7 +242,7 @@ def tableS4() -> None:
         [DATANAMES[SAVENAMES.index(i)] for i in df_iter.index.levels[0]], level=0
     )
 
-    print(df_iter)
+    # print(df_iter)
 
     df_iter.index = df_iter.index.set_names(["Dataset", "Imputation Type"])
     df_iter = df_iter.style.set_caption(
@@ -214,9 +270,15 @@ def tableS4() -> None:
     )
 
 
-
 if __name__ == "__main__":
-    # tableS1()
+    print("\nbuilding supplements...")
+    # print("building figure S1...")
     # figureS1()
-    tableS2_3()
-    tableS4()
+    # print("building table S1...")
+    # tableS1()
+    print("building table S2 & S3...")
+    tableS2_S3(False, True)
+    print("building table S4 & S5...")
+    tableS4_S5()
+    print("building table S6...")
+    tableS6()

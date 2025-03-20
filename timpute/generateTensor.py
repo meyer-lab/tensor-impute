@@ -2,7 +2,8 @@ import numpy as np
 import tensorly as tl
 import xarray as xr
 import os
-from tensorly.cp_tensor import CPTensor
+from tensorly.cp_tensor import CPTensor, cp_to_tensor
+from tensorly.random import random_cp
 from .impute_helper import entry_drop
 
 from tensordata.atyeo import data as atyeo
@@ -12,7 +13,7 @@ from .data.import_hmsData import hms_tensor
 
 
 def generateTensor(
-    type=None,
+    tensor_type=None,
     r=6,
     shape=(10, 10, 10),
     scale=2,
@@ -25,8 +26,8 @@ def generateTensor(
     Tensor options: 'known', 'unknown', 'zohar', 'atyeo', 'alter', 'hms', 'coh_receptor', or 'coh response'.
     Defaults to 'known'
     """
-    if type == "known":
-        temp, _ = createKnownRank(
+    if tensor_type == "known":
+        temp, factors = createKnownRank(
             drop_perc=missingness,
             size=shape,
             rank=r,
@@ -34,8 +35,8 @@ def generateTensor(
             scale=scale,
             par=par,
         )
-        return createNoise(temp, noise_scale)
-    elif type == "unknown":
+        return createNoise(temp, noise_scale), factors
+    elif tensor_type == "unknown":
         temp = createUnknownRank(
             drop_perc=missingness,
             size=shape,
@@ -44,18 +45,27 @@ def generateTensor(
             par=par,
         )
         return createNoise(temp, noise_scale)
-    elif type == "zohar":
+    elif tensor_type == "tensorly":
+        factors = random_cp(
+            shape=shape,
+            rank=r,
+            full=False,
+        )
+        temp = cp_to_tensor(factors)
+        return createNoise(temp, noise_scale), factors
+
+    elif tensor_type == "zohar":
         return zohar().to_numpy().copy()
-    elif type == "atyeo":
+    elif tensor_type == "atyeo":
         return atyeo().to_numpy().copy()
-    elif type == "alter":
+    elif tensor_type == "alter":
         return alter()["Fc"].to_numpy().copy()
-    elif type == "hms":
+    elif tensor_type == "hms":
         return np.swapaxes(hms_tensor().to_numpy().copy(), 0, 2)
-    elif type == "coh_receptor":
+    elif tensor_type == "coh_receptor":
         receptor = xr.open_dataarray(f"{os.getcwd()}/timpute/data/CoH/CoH_Rec.nc")
         return receptor.to_numpy().copy()
-    elif type == "coh_response":
+    elif tensor_type == "coh_response":
         response = xr.open_dataarray(
             f"{os.getcwd()}/timpute/data/CoH/CoH_Tensor_DataSet.nc"
         )
