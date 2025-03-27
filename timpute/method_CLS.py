@@ -94,20 +94,22 @@ def perform_CLS(
 
     tq = tqdm(range(n_iter_max), disable=(not progress))
     for _ in tq:
+        R2X_last = R2X
         # Solve on each mode
+        factors = []
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
-            tFac.factors[m] = censored_lstsq(
+            factors[m] = censored_lstsq(
                 kr, unfolded[m].T, uniqueInfo[m], alpha=alpha
             )
-
-        R2X_last = tFac.R2X
 
         fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
 
         if R2X - R2X_last < tol:
             break
 
+
+        tFac.factors = factors
         tFac.R2X = R2X
         tFac.factors = fac
 
