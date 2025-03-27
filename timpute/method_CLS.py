@@ -99,8 +99,8 @@ def perform_CLS(
         factors = []
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
-            factors[m] = censored_lstsq(
-                kr, unfolded[m].T, uniqueInfo[m], alpha=alpha
+            factors.append(
+                censored_lstsq( kr, unfolded[m].T, uniqueInfo[m], alpha=alpha)
             )
 
         fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
