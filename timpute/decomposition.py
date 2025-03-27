@@ -20,8 +20,8 @@ class Decomposition:
         ----------
         data : ndarray
             Takes a tensor of any shape.
-        matrix : ndarray (optional)
-            Takes a matrix of any shape.
+        min_rr : int
+            Defines the minimum component to consider during factorization.
         max_rr : int
             Defines the maximum component to consider during factorization.
         method : function
@@ -36,16 +36,16 @@ class Decomposition:
         self,
         imp_type: str = "chord",
         repeat: int = 3,
-        drop: int = 0.05,
+        drop: float = 0.05,
         chord_mode: int = 0,
-        method=perform_CLS,
-        tol=1e-6,
-        init="random",
+        method = perform_CLS,
+        tol: float = 1e-6,
+        init: str = "random",
         maxiter: int = 50,
-        seed=1,
+        seed: int = 1,
         callback: Tracker = None,
-        trackCoreConsistency=False,
-        printRuntime=False,
+        printRuntime: bool = False,
+        verbose = False,
     ):
         """
         Performs imputation (chord or entry) from the [self.data] using [method] for factor decomposition,
@@ -100,10 +100,6 @@ class Decomposition:
         imputed_error[:] = np.nan
         fitted_error[:] = np.nan
 
-        if trackCoreConsistency is True:
-            assert drop == 0
-            corcon = np.zeros((repeat, self.rrs[-1]))
-
         if printRuntime:
             missingpatterns = tqdm(
                 range(repeat),
@@ -116,10 +112,11 @@ class Decomposition:
         - `tImp` is a copy of data, used a reference for imputation accuracy
         - `missingCube` is where values are dropped
         """
+
         tImp = self.data.copy()  # avoid editing in-place of data
-        tImp = self.data.copy()  # avoid editing in-place of data
+        if verbose is True:
+            print(tImp.shape)
         if chord_mode != 0:
-            tImp = np.moveaxis(tImp, chord_mode, 0)
             tImp = np.moveaxis(tImp, chord_mode, 0)
 
         if imp_type == "entry":
@@ -128,8 +125,7 @@ class Decomposition:
             drop = int(drop * tImp.size / tImp.shape[0])
         else:
             raise ValueError("invalid imputation type")
-            raise ValueError("invalid imputation type")
-
+        
         for x in missingpatterns:
             missingCube = tImp.copy()
 
@@ -150,9 +146,11 @@ class Decomposition:
 
             # for each component up to max, run method
             for rr in self.rrs:
+
+                if verbose is True:
+                    print(rr)
                 # if printRuntime and rr % 10 == 0: print(f"solving rank {rr}")
                 if isinstance(init, str):
-                    np.random.seed(int(x * seed))
                     np.random.seed(int(x * seed))
                     CPinit = initialize_fac(missingCube.copy(), rr, init)
                 elif isinstance(init, tl.cp_tensor.CPTensor):
@@ -170,17 +168,12 @@ class Decomposition:
 
                     if callback.track_runtime:
                         callback.begin()
+
                     callback(CPinit)
 
-                tFac = method(
-                    missingCube.copy(),
-                    rank=rr,
-                    n_iter_max=maxiter,
-                    init=CPinit,
-                    callback=callback,
-                    tol=tol,
-                )
 
+                if verbose is True:
+                    print("began")
                 tFac = method(
                     missingCube.copy(),
                     rank=rr,
@@ -188,19 +181,12 @@ class Decomposition:
                     init=CPinit,
                     callback=callback,
                     tol=tol,
+                    verbose=verbose,
                 )
 
                 # update error metrics
                 error[x, rr - 1] = calcR2X(tFac, tIn=tImp, calcError=True)
-                error[x, rr - 1] = calcR2X(tFac, tIn=tImp, calcError=True)
                 if drop > 0:
-                    imputed_error[x, rr - 1] = calcR2X(
-                        tFac, tIn=tImp, mask=imputed_vals, calcError=True
-                    )
-                    fitted_error[x, rr - 1] = calcR2X(
-                        tFac, tIn=tImp, mask=fitted_vals, calcError=True
-                    )
-
                     imputed_error[x, rr - 1] = calcR2X(
                         tFac, tIn=tImp, mask=imputed_vals, calcError=True
                     )
@@ -218,10 +204,6 @@ class Decomposition:
             self.chord_total = error
             self.chord_imputed = imputed_error
             self.chord_fitted = fitted_error
-
-        if trackCoreConsistency is True:
-            for r in self.rrs:
-                corcon[r - 1] = corcondia_3d(tFac, r)
 
     def save(self, pfile):
         with open(pfile, "wb") as output_file:

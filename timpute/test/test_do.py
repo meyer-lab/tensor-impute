@@ -8,7 +8,7 @@ from ..impute_helper import calcR2X
 from ..method_DO import perform_DO
 
 
-def test_decomp_dopt(method=perform_DO):
+def test_decomp(method=perform_DO):
     tensor, _ = generateTensor("known", shape=(10, 10, 10))
     decomp = Decomposition(tensor, max_rr=6)
     track = Tracker(tensor, track_runtime=False)

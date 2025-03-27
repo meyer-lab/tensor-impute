@@ -8,6 +8,7 @@ from tensorly.cp_tensor import cp_flip_sign, cp_normalize
 from tensorly.tenalg import khatri_rao
 from scipy.linalg import solve as sp_solve
 from tqdm import tqdm
+from copy import deepcopy
 
 from .initialization import initialize_fac
 from .impute_helper import calcR2X, reorient_factors
@@ -67,7 +68,7 @@ def perform_CLS(
     alpha=None,
     tol=1e-6,
     n_iter_max=50,
-    progress=False,
+    verbose=False,
     callback=None,
     **kwargs
 ) -> tl.cp_tensor.CPTensor:
@@ -77,7 +78,6 @@ def perform_CLS(
         tFac = initialize_fac(tOrig, rank)
     else:
         tFac = init
-        tFac_last = init
 
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
@@ -92,26 +92,24 @@ def perform_CLS(
         np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded
     ]
 
-    tq = tqdm(range(n_iter_max), disable=(not progress))
+    tq = tqdm(range(n_iter_max), disable=(not verbose))
     for _ in tq:
         R2X_last = R2X
         # Solve on each mode
-        factors = []
+        tFac_old = deepcopy(tFac)
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
-            factors.append(
-                censored_lstsq( kr, unfolded[m].T, uniqueInfo[m], alpha=alpha)
-            )
+            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m], alpha=alpha)
+
+        if verbose is True:
+            print(len(fac))
+            print(fac[0].shape, fac[1].shape, fac[2].shape)
 
         fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
 
         if R2X - R2X_last < tol:
+            tFac = tFac_old
             break
-
-
-        tFac.factors = factors
-        tFac.R2X = R2X
-        tFac.factors = fac
 
         tq.set_postfix(
             R2X=R2X, delta=R2X - R2X_last, jump=jump, refresh=False

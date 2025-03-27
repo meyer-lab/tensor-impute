@@ -3,9 +3,11 @@ import tensorly as tl
 from tensorly.cp_tensor import cp_normalize, cp_to_tensor
 from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao
 from tqdm import tqdm
+from copy import deepcopy
 
 from .initialization import initialize_fac
 from .linesearch import Nesterov
+from .impute_helper import calcR2X
 
 
 def perform_ALS(
@@ -76,6 +78,7 @@ def perform_ALS(
     tq = tqdm(range(n_iter_max), disable=(not progress))
     for _ in tq:
         # Update the tensor based on the mask
+        tFac_old = deepcopy(tFac)
         low_rank_component = cp_to_tensor(tFac)
         tensor = tensor * mask + low_rank_component * (1 - mask)
 
@@ -91,10 +94,10 @@ def perform_ALS(
             tFac.factors[mode] = factor
 
         R2X_last = tFac.R2X
-
         fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
 
         if R2X - R2X_last < tol:
+            tFac = tFac_old
             break
 
         tFac.R2X = R2X
@@ -103,7 +106,6 @@ def perform_ALS(
         tq.set_postfix(
             R2X=tFac.R2X, delta=tFac.R2X - R2X_last, jump=jump, refresh=False
         )
-        # assert tFac.R2X > 0.0
 
         if callback:
             callback(tFac)
