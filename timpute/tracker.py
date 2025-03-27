@@ -1,7 +1,10 @@
-import numpy as np
-import time
 import pickle
+import time
+
+import numpy as np
+
 from .impute_helper import calcR2X
+
 
 
 class Tracker:

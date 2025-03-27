@@ -2,6 +2,7 @@ import numpy as np
 import tensorly as tl
 
 
+
 def reorient_factors(tFac):
     """This function ensures that factors are negative on at most one direction."""
     # Flip the types to be positive

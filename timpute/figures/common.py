@@ -4,6 +4,7 @@ This file contains functions that are used in multiple figures.
 
 import seaborn as sns
 from string import ascii_lowercase
+
 import matplotlib
 from matplotlib import gridspec, pyplot as plt
 

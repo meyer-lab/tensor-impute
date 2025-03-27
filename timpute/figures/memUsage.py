@@ -1,11 +1,12 @@
 # import psutil
-import pickle
-import os
-import numpy as np
-import resource
 import argparse
+import os
+import pickle
+import resource
 
-from . import METHODS, METHODNAMES, SAVENAMES
+import numpy as np
+from figures import METHODNAMES, METHODS, SAVENAMES
+
 from ..decomposition import Decomposition
 from ..generateTensor import generateTensor
 

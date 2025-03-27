@@ -7,23 +7,21 @@ license = "MIT"
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
-numpy = "^2.0"
-tensorly = "^0.8.1"
-matplotlib = "^3.9.2"
-tqdm = "^4.65"
+numpy = "^2.1"
+tensorly = "^0.8"
+matplotlib = "^3.9"
+tqdm = "^4.67"
 seaborn = "^0.13"
-xarray = "^2023"
-ipykernel = "^6.16.0"
-tensorpack = "^0.11"
+xarray = "^2024"
 scikit-learn = "^1.1.3"
-jinja2 = "^3.1.3"
-openpyxl = "^3.1.2"
-setuptools = "^69.5.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^8.3"
-pytest-cov = "^3.0.0"
+pytest-cov = "^6.0"
 tensordata = { path = "../tensordata/", develop = true }
+# tensordata = {git = "https://github.com/meyer-lab/tensordata.git", rev = "6afaec35c552c3ee91990db74c740728ddf37a55"}
+pyright = "^1.1.389"
+isort = "^5.13"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

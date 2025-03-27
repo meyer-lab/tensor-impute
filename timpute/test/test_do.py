@@ -1,9 +1,11 @@
 import numpy as np
-from ..method_DO import perform_DO
-from ..impute_helper import calcR2X
-from ..generateTensor import generateTensor
-from timpute.tracker import Tracker
+
 from timpute.decomposition import Decomposition
+from timpute.tracker import Tracker
+
+from ..generateTensor import generateTensor
+from ..impute_helper import calcR2X
+from ..method_DO import perform_DO
 
 
 def test_decomp_dopt(plot=False, method=perform_DO):
@@ -22,8 +24,6 @@ def test_decomp_dopt(plot=False, method=perform_DO):
         "average imputed Q2X: "
         + np.array2string(np.average(decomp.entry_imputed, axis=0))
     )
-
-    return decomp, track
 
 
 def test_unit_dopt():

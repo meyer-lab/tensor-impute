@@ -4,16 +4,25 @@ Censored Least Squares
 
 import numpy as np
 import tensorly as tl
-from tensorly.cp_tensor import cp_normalize
+from tensorly.cp_tensor import cp_flip_sign, cp_normalize
 from tensorly.tenalg import khatri_rao
+from scipy.linalg import solve as sp_solve
+from tqdm import tqdm
+
 from .initialization import initialize_fac
 from .impute_helper import calcR2X, reorient_factors
 from .linesearch import Nesterov
-from tqdm import tqdm
-from sklearn.linear_model import Ridge
-
 
 tl.set_backend("numpy")
+
+
+def ridge_solve_cholesky(X, y, alpha: float):
+    # w = inv(X^t X + alpha*Id) * X.T y
+    A = X.T @ X
+    Xy = X.T @ y
+
+    A.flat[:: X.shape[1] + 1] += alpha
+    return sp_solve(A, Xy, assume_a="pos", overwrite_a=True)
 
 
 def censored_lstsq(
@@ -31,6 +40,7 @@ def censored_lstsq(
     X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
     """
     X = np.empty((A.shape[1], B.shape[1]))
+
     # Missingness patterns
     if uniqueInfo is None:
         unique, uIDX = np.unique(np.isfinite(B), axis=1, return_inverse=True)
@@ -39,22 +49,20 @@ def censored_lstsq(
 
     for i in range(unique.shape[1]):
         uI = uIDX == i
-        uu = np.squeeze(unique[:, i])
+        uu = unique[:, i]
 
         Bx = B[uu, :]
 
         if alpha is None:
-            X[:, uI] = np.linalg.lstsq(A[uu, :], Bx[:, uI], rcond=-1)[0]
+            X[:, uI] = np.linalg.lstsq(A[uu, :], Bx[:, uI], rcond=None)[0]
         else:
-            clf = Ridge(alpha=alpha, fit_intercept=False)
-            clf.fit(A[uu, :], Bx[:, uI])
-            X[:, uI] = clf.coef_.T
+            X[:, uI] = ridge_solve_cholesky(A[uu, :], Bx[:, uI], alpha=alpha)
     return X.T
 
 
 def perform_CLS(
-    tOrig,
-    rank=6,
+    tOrig:np.ndarray,
+    rank:int=6,
     init=None,
     alpha=None,
     tol=1e-6,
@@ -65,7 +73,7 @@ def perform_CLS(
 ) -> tl.cp_tensor.CPTensor:
     """Perform CP decomposition."""
 
-    if init == None:
+    if init is None:
         tFac = initialize_fac(tOrig, rank)
     else:
         tFac = init
@@ -77,7 +85,6 @@ def perform_CLS(
 
     linesrc = Nesterov()
     fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
-    tFac.R2X = R2X
     tFac.factors = fac
 
     # Precalculate the missingness patterns
@@ -105,14 +112,14 @@ def perform_CLS(
         tFac.factors = fac
 
         tq.set_postfix(
-            R2X=tFac.R2X, delta=tFac.R2X - R2X_last, jump=jump, refresh=False
+            R2X=R2X, delta=R2X - R2X_last, jump=jump, refresh=False
         )
-        # assert tFac.R2X > 0.0
 
         if callback:
             callback(tFac)
 
     tFac = cp_normalize(tFac)
-    tFac.R2X = calcR2X(tFac, tOrig)
+    tFac = cp_flip_sign(tFac)
+    tFac.R2X = R2X
 
     return tFac

@@ -1,15 +1,11 @@
 import numpy as np
-
 import tensorly as tl
-from tensorly.cp_tensor import (
-    cp_to_tensor,
-)
-from tensorly.cp_tensor import cp_normalize
-from tqdm import tqdm
-from .linesearch import Nesterov
+from tensorly.cp_tensor import cp_normalize, cp_to_tensor
 from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao
+from tqdm import tqdm
+
 from .initialization import initialize_fac
-from .impute_helper import calcR2X
+from .linesearch import Nesterov
 
 
 def perform_ALS(
@@ -79,26 +75,20 @@ def perform_ALS(
 
     tq = tqdm(range(n_iter_max), disable=(not progress))
     for _ in tq:
-        weights, factors = tFac
-
         # Update the tensor based on the mask
-        low_rank_component = cp_to_tensor((weights, factors))
+        low_rank_component = cp_to_tensor(tFac)
         tensor = tensor * mask + low_rank_component * (1 - mask)
 
         for mode in range(np.ndim(tensor)):
             pseudo_inverse = np.ones((rank, rank))
-            for i, factor in enumerate(factors):
+            for i, factor in enumerate(tFac.factors):
                 if i != mode:
                     pseudo_inverse = pseudo_inverse * np.dot(factor.T, factor)
-            pseudo_inverse = (
-                np.reshape(weights, (-1, 1))
-                * pseudo_inverse
-                * np.reshape(weights, (1, -1))
-            )
-            mttkrp = unfolding_dot_khatri_rao(tensor, (weights, factors), mode)
+
+            mttkrp = unfolding_dot_khatri_rao(tensor, tFac, mode)
 
             factor = np.linalg.solve(pseudo_inverse.T, mttkrp.T).T
-            factors[mode] = factor
+            tFac.factors[mode] = factor
 
         R2X_last = tFac.R2X
 

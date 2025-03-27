@@ -1,8 +1,12 @@
 import numpy as np
 import tensorly as tl
+from tensorly.cp_tensor import cp_flip_sign, cp_normalize
 from tqdm import tqdm
 
 from tensorly.tenalg import khatri_rao
+from tqdm import tqdm
+
+from .impute_helper import calcR2X
 from .impute_helper import calcR2X, reorient_factors
 from .initialization import initialize_fac
 from tensorly.cp_tensor import cp_normalize
@@ -64,7 +68,6 @@ def perform_PM(
         tFac = initialize_fac(tOrig, rank)
     else:
         tFac = init
-        tFac_last = init
 
     # % ------------STEP 2---------------
     # % start to caculate LFT and do iteration
@@ -143,4 +146,5 @@ def perform_PM(
     tFac = reorient_factors(tFac)
     tFac.R2X = calcR2X(tFac, tOrig)
 
+    return tFac
     return tFac

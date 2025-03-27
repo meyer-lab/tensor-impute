@@ -2,7 +2,8 @@ import os
 from os.path import join
 import pickle
 import numpy as np
-from .figure_helper import runImputation, loadImputation
+from figures import DROPS, METHODNAMES, METHODS, SAVENAMES
+
 from ..generateTensor import generateTensor
 from . import METHODS, METHODNAMES, SAVENAMES, DROPS
 

@@ -1,15 +1,14 @@
 import pickle
+from typing import Optional
+
 import numpy as np
 import tensorly as tl
-
-from .tracker import Tracker
-from .initialization import initialize_fac
-from .impute_helper import entry_drop, chord_drop
-from .impute_helper import calcR2X, corcondia_3d
-from .method_CLS import perform_CLS
-
-from copy import deepcopy
 from tqdm import tqdm
+
+from .impute_helper import calcR2X, chord_drop, entry_drop
+from .initialization import initialize_fac
+from .method_CLS import perform_CLS
+from .tracker import Tracker
 
 
 class Decomposition:
@@ -118,7 +117,9 @@ class Decomposition:
         - `missingCube` is where values are dropped
         """
         tImp = self.data.copy()  # avoid editing in-place of data
+        tImp = self.data.copy()  # avoid editing in-place of data
         if chord_mode != 0:
+            tImp = np.moveaxis(tImp, chord_mode, 0)
             tImp = np.moveaxis(tImp, chord_mode, 0)
 
         if imp_type == "entry":
@@ -126,6 +127,7 @@ class Decomposition:
         elif imp_type == "chord":
             drop = int(drop * tImp.size / tImp.shape[0])
         else:
+            raise ValueError("invalid imputation type")
             raise ValueError("invalid imputation type")
 
         for x in missingpatterns:
@@ -145,14 +147,16 @@ class Decomposition:
             imputed_vals = np.ones_like(missingCube) - mask
             fitted_vals = np.ones_like(missingCube) - imputed_vals
 
+
             # for each component up to max, run method
             for rr in self.rrs:
                 # if printRuntime and rr % 10 == 0: print(f"solving rank {rr}")
                 if isinstance(init, str):
                     np.random.seed(int(x * seed))
+                    np.random.seed(int(x * seed))
                     CPinit = initialize_fac(missingCube.copy(), rr, init)
                 elif isinstance(init, tl.cp_tensor.CPTensor):
-                    CPinit = deepcopy(init)
+                    CPinit = init.cp_copy()
                 else:
                     raise ValueError(f'Initialization method "{init}" not recognized')
 
@@ -177,9 +181,26 @@ class Decomposition:
                     tol=tol,
                 )
 
+                tFac = method(
+                    missingCube.copy(),
+                    rank=rr,
+                    n_iter_max=maxiter,
+                    init=CPinit,
+                    callback=callback,
+                    tol=tol,
+                )
+
                 # update error metrics
                 error[x, rr - 1] = calcR2X(tFac, tIn=tImp, calcError=True)
+                error[x, rr - 1] = calcR2X(tFac, tIn=tImp, calcError=True)
                 if drop > 0:
+                    imputed_error[x, rr - 1] = calcR2X(
+                        tFac, tIn=tImp, mask=imputed_vals, calcError=True
+                    )
+                    fitted_error[x, rr - 1] = calcR2X(
+                        tFac, tIn=tImp, mask=fitted_vals, calcError=True
+                    )
+
                     imputed_error[x, rr - 1] = calcR2X(
                         tFac, tIn=tImp, mask=imputed_vals, calcError=True
                     )

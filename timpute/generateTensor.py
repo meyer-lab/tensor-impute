@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import tensorly as tl
 import xarray as xr
@@ -80,6 +82,15 @@ def generateTensor(
             par=par,
         )
         return createNoise(temp, noise_scale)
+        temp, _ = createKnownRank(
+            drop_perc=missingness,
+            size=shape,
+            rank=r,
+            distribution=distribution,
+            scale=scale,
+            par=par,
+        )
+        return createNoise(temp, noise_scale)
 
 
 def createNoise(tensor, scale=1.0):
@@ -107,7 +118,10 @@ def createUnknownRank(
 
     if scale != 1:
         tensor *= scale
+    if scale != 1:
+        tensor *= scale
 
+    entry_drop(tensor, int(drop_perc * tensor.size), dropany=True)
     entry_drop(tensor, int(drop_perc * tensor.size), dropany=True)
     return tensor
 
@@ -130,7 +144,7 @@ def createKnownRank(
 
     factors = []
 
-    if type(distribution) == str:
+    if isinstance(distribution, str):
         for i in size:
             if distribution == "gamma":
                 factors.append(rng.gamma(par, scale, size=(i, rank)))
