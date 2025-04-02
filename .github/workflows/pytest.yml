@@ -11,7 +11,5 @@ jobs:
     runs-on: self-hosted
     steps:
     - uses: actions/checkout@v3
-    - name: Install dependencies
-      run: poetry install --no-root
-    - name: Test with pytest
-      run: make coverage.xml
+    - name: Test with pytest using rye
+      run: rye test
