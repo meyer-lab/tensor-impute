@@ -15,7 +15,7 @@ from .data.import_hmsData import hms_tensor
 
 
 def generateTensor(
-    tensor_type=None,
+    tensor_type="known",
     r=6,
     shape=(10, 10, 10),
     scale=2,
@@ -26,7 +26,6 @@ def generateTensor(
 ):
     """
     Tensor options: 'known', 'unknown', 'zohar', 'atyeo', 'alter', 'hms', 'coh_receptor', or 'coh response'.
-    Defaults to 'known'
     """
     if tensor_type == "known":
         temp, factors = createKnownRank(
@@ -38,15 +37,7 @@ def generateTensor(
             par=par,
         )
         return createNoise(temp, noise_scale), factors
-    elif tensor_type == "unknown":
-        temp = createUnknownRank(
-            drop_perc=missingness,
-            size=shape,
-            distribution=distribution,
-            scale=scale,
-            par=par,
-        )
-        return createNoise(temp, noise_scale)
+    
     elif tensor_type == "tensorly":
         factors = random_cp(
             shape=shape,
@@ -72,25 +63,11 @@ def generateTensor(
             f"{os.getcwd()}/timpute/data/CoH/CoH_Tensor_DataSet.nc"
         )
         return response.to_numpy().copy()
+    
     else:
-        temp, _ = createKnownRank(
-            drop_perc=missingness,
-            size=shape,
-            rank=r,
-            distribution=distribution,
-            scale=scale,
-            par=par,
+        ValueError(
+            f"Tensor type {tensor_type} not recognized. Please use one of the following: 'known', 'unknown', 'zohar', 'atyeo', 'alter', 'hms', 'coh_receptor', or 'coh response'."
         )
-        return createNoise(temp, noise_scale)
-        temp, _ = createKnownRank(
-            drop_perc=missingness,
-            size=shape,
-            rank=r,
-            distribution=distribution,
-            scale=scale,
-            par=par,
-        )
-        return createNoise(temp, noise_scale)
 
 
 def createNoise(tensor, scale=1.0):
@@ -98,32 +75,6 @@ def createNoise(tensor, scale=1.0):
     noise = np.random.normal(0, scale, tensor.shape)
     noisyTensor = noise + np.copy(tensor)
     return noisyTensor
-
-
-def createUnknownRank(
-    drop_perc=0.0, size=(10, 20, 25), distribution="gamma", scale=1, par=1
-):
-    if distribution == "gamma":
-        tensor = np.random.gamma(par, scale, size=size)
-    if distribution == "chisquare":
-        tensor = np.random.chisquare(size=size)
-    if distribution == "logistic":
-        tensor = np.random.logistic(size=size)
-    if distribution == "exponential":
-        tensor = np.random.exponential(size=size)
-    if distribution == "uniform":
-        tensor = np.random.uniform(size=size)
-    if distribution == "normal":
-        tensor = np.random.normal(size=size)
-
-    if scale != 1:
-        tensor *= scale
-    if scale != 1:
-        tensor *= scale
-
-    entry_drop(tensor, int(drop_perc * tensor.size), dropany=True)
-    entry_drop(tensor, int(drop_perc * tensor.size), dropany=True)
-    return tensor
 
 
 def createKnownRank(
