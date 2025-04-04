@@ -78,9 +78,9 @@ def import_cellLine(cellline_name: str, cellline_df, agents):
             tensor[:, :, :, ln_0 + 1 :, i] = np.nan
 
 
-        ln = len(df2)
         for j, cons in enumerate(concents[len(concents) - 9 :]):
             df2 = df1.loc[df1["concentration"] == cons]
+            ln = len(df2)
             # for those that have less than 4 replicates, set the last l columns as nan
             tensor[:, :, ln:, j + 1, i] = np.nan
             tensor[:, :, ln:, 0, i] = np.nan
