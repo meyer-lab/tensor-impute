@@ -243,7 +243,6 @@ def bestComps(
             for n, m in enumerate(METHODS):
                 run, _ = loadImputation(impType, m, folder)
                 if imputed is True:
-
                     if outputData is False:
                         if impType == "entry":
                             tmp[METHODNAMES[n]] = int(
@@ -401,7 +400,7 @@ def chordMasking(
         )
 
         for d in drops:
-            print(f"--- BEGIN {dataset}: {int(d*100)}% MISSING ---")
+            print(f"--- BEGIN {dataset}: {int(d * 100)}% MISSING ---")
             for mode in range(orig.ndim):
                 run = f"drop_{d}/mode_{mode}/"
                 if os.path.isdir(folder + run) is False:

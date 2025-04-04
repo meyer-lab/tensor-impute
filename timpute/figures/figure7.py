@@ -30,11 +30,11 @@ def figure7():
 
     for m, method in enumerate(METHODNAMES):
         x = [sep * i + width * m for i in range(len(DROPS))]
-        y = [tmp.loc[(dataset_a, "chord"), (method, f"{int(d*100)}%")] for d in DROPS]
+        y = [tmp.loc[(dataset_a, "chord"), (method, f"{int(d * 100)}%")] for d in DROPS]
         ax[0].bar(x, y, color=rgbs(m), width=0.25)
 
     ax[0].set_xticks(
-        [sep * i + 0.25 for i in range(len(DROPS))], [f"{int(d*100)}%" for d in DROPS]
+        [sep * i + 0.25 for i in range(len(DROPS))], [f"{int(d * 100)}%" for d in DROPS]
     )
     ax[0].set_title(
         f"Time per Iteration by Chord Masking Percentage\n{dataset_a}",
@@ -62,7 +62,6 @@ def figure7():
 
     print("completed figure 7b")
 
-
     # C) entry & chord lineplot (ALS & DO x-fold diff of CLS vs drop %) - ALS & DO doesn't vary, but C-ALS decreases over time # noqa: E501
     dataset_c = DATANAMES[0]
     linestyles = ["solid", "dashed"]
@@ -71,10 +70,10 @@ def figure7():
 
     for t, impType in enumerate(["entry", "chord"]):
         for m, method in enumerate(METHODNAMES[:2]):
-            x = [f"{int(d*100)}%" for d in DROPS]
+            x = [f"{int(d * 100)}%" for d in DROPS]
             y = [
-                tmp.loc[(dataset_c, impType), ("C-ALS", f"{int(d*100)}%")]
-                / tmp.loc[(dataset_c, impType), (method, f"{int(d*100)}%")]
+                tmp.loc[(dataset_c, impType), ("C-ALS", f"{int(d * 100)}%")]
+                / tmp.loc[(dataset_c, impType), (method, f"{int(d * 100)}%")]
                 for d in DROPS
             ]
             ax[2].plot(

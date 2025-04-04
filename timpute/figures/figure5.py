@@ -64,7 +64,7 @@ def figure5(datalist=SAVENAMES, errors=True, drops=(0.05, 0.1, 0.2, 0.3, 0.4)):
                         )
                     )
                 )
-                stdout.write(f"{comp+1}, ")
+                stdout.write(f"{comp + 1}, ")
 
             if errors is True:
                 ax[i].errorbar(
@@ -168,7 +168,7 @@ def figure5(datalist=SAVENAMES, errors=True, drops=(0.05, 0.1, 0.2, 0.3, 0.4)):
                 if data == "zohar" and d == 0.01:
                     print(ImpErr)
                     print(run.chord_imputed)
-                stdout.write(f"{comp+1}, ")
+                stdout.write(f"{comp + 1}, ")
 
             if errors is True:
                 ax[i + 4].errorbar(

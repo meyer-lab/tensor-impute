@@ -17,7 +17,6 @@ def runImputation(
     printRuntime: bool = False,
     **kwargs,
 ):
-
     assert impType == "entry" or impType == "chord"
 
     decomposition = Decomposition(

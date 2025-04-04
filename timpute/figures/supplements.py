@@ -18,7 +18,7 @@ def tableS1() -> None:
 
     # create dataframe
     col = [
-        [f"{int(d*100)}%" for d in DROPS for _ in METHODNAMES],
+        [f"{int(d * 100)}%" for d in DROPS for _ in METHODNAMES],
         METHODNAMES * len(DROPS),
     ]
     row = [
@@ -42,7 +42,7 @@ def tableS1() -> None:
                         f"./timpute/figures/revision_cache/modeComparison/{s}\
                         /drop_{d}/mode_{m}/chord-perform_{method}.decomposition"
                     )
-                    df.loc[(s, m + 1), (f"{int(d*100)}%", method)] = np.min(
+                    df.loc[(s, m + 1), (f"{int(d * 100)}%", method)] = np.min(
                         np.mean(data.chord_fitted, axis=0)
                     )
 
@@ -129,7 +129,7 @@ def tableS2_S3(imputed=True, outputData=False):
             )
 
         df = pd.DataFrame(
-            columns=["true rank", "method"] + [f"{int(d*100)}%" for d in DROPS]
+            columns=["true rank", "method"] + [f"{int(d * 100)}%" for d in DROPS]
         )
 
         for rank in np.arange(5, 25 + 1):
@@ -172,7 +172,7 @@ def tableS4_S5(imputed=True, outputData=False):
             )
 
         df = pd.DataFrame(
-            columns=["dataset", "method"] + [f"{int(d*100)}%" for d in DROPS]
+            columns=["dataset", "method"] + [f"{int(d * 100)}%" for d in DROPS]
         )
 
         for n, name in enumerate(SAVENAMES):
@@ -207,7 +207,7 @@ def tableS6() -> None:
 
     # create dataframe
     col = [
-        [f"{int(d*100)}%" for d in DROPS for _ in METHODNAMES],
+        [f"{int(d * 100)}%" for d in DROPS for _ in METHODNAMES],
         METHODNAMES * len(DROPS),
     ]
     row = [sorted(SAVENAMES * 2), ["entry", "chord"] * len(SAVENAMES)]
@@ -227,22 +227,21 @@ def tableS6() -> None:
             rank_data = bestComps(d, impType, SAVENAMES)
             for s in SAVENAMES:
                 for impType in ["entry", "chord"]:
-
                     data.load(
                         f"./timpute/figures/revision_cache/{s}/drop_{d}/{impType}-{m.__name__}.tracker"
                     )
                     rr = str(rank_data[s][METHODNAMES[mID]])
 
                     # take mean across samples of (ti+1 - ti) from 1 to maxIter
-                    df_iter.loc[(s, impType), (f"{int(d*100)}%", METHODNAMES[mID])] = (
-                        np.median(
-                            np.nanmedian(np.diff(data.time_array[rr][:, 1:]), axis=0)
-                        )
+                    df_iter.loc[
+                        (s, impType), (f"{int(d * 100)}%", METHODNAMES[mID])
+                    ] = np.median(
+                        np.nanmedian(np.diff(data.time_array[rr][:, 1:]), axis=0)
                     )
                     # take mean across samples of (t1 - t0)
-                    df_init.loc[(s, impType), (f"{int(d*100)}%", METHODNAMES[mID])] = (
-                        np.nanmedian(np.diff(data.time_array[rr][:, 0:2]))
-                    )
+                    df_init.loc[
+                        (s, impType), (f"{int(d * 100)}%", METHODNAMES[mID])
+                    ] = np.nanmedian(np.diff(data.time_array[rr][:, 0:2]))
 
     # cleaning
     df_iter = df_iter.reindex(

@@ -6,7 +6,6 @@ from . import DROPS, METHODS
 from .figure_data import sim_data
 
 if __name__ == "__main__":
-
     CORES = 6
 
     shape = (50, 50, 50)

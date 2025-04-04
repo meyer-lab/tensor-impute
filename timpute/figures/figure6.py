@@ -90,7 +90,7 @@ def plotTime(ax, dataN, impType, drop):
     ax.set_xlabel("Iteration", size=SUBTITLE_FONTSIZE)
     ax.set_ylabel("Error", size=SUBTITLE_FONTSIZE)
     ax.set_title(
-        f"{DATANAMES[dataN]}\n{int(drop*100)}% {impType} masking",
+        f"{DATANAMES[dataN]}\n{int(drop * 100)}% {impType} masking",
         size=SUBTITLE_FONTSIZE * 1.1,
     )
     ax.set_xscale("symlog")
@@ -159,7 +159,7 @@ def plotIter(ax, dataN, impType, drop, legend=False):
     ax.set_xlim((0, totErr.shape[1] - 1))
     ax.set_xlabel("Iteration")
     ax.set_ylabel("Error")
-    ax.set_title(f"{DATANAMES[dataN]}, {int(drop*100)}% {impType} masking")
+    ax.set_title(f"{DATANAMES[dataN]}, {int(drop * 100)}% {impType} masking")
     ax.set_yscale("log")
 
 

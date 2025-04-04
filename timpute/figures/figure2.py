@@ -125,7 +125,7 @@ def plot_simulated_data(ax, rank, drop, impType="entry", methods=METHODS):
             raise ValueError(f"{impType} is not a valid impType arg")
 
     ax.set_title(
-        f"True Rank {rank} dataset, {int(drop*100)} {impType} masking",
+        f"True Rank {rank} dataset, {int(drop * 100)} {impType} masking",
         fontsize=SUBTITLE_FONTSIZE * 1.1,
     )
     ax.set_xlabel("Number of Components", fontsize=SUBTITLE_FONTSIZE)
@@ -177,10 +177,7 @@ def figure2():
                 best_imputed_ranks,
                 color=rgbs(mID),
                 alpha=0.7,
-                label=(
-                    "RMSE ="
-                    f" {round(rmse(true_ranks, best_imputed_ranks),4)}"
-                ),
+                label=(f"RMSE = {round(rmse(true_ranks, best_imputed_ranks), 4)}"),
             )
 
         ax[n * 4 + 1].legend()

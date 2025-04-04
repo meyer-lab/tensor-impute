@@ -95,7 +95,7 @@ class IterativeSVD:
             mae = np.mean(np.abs(X[observed_mask] - X_reconstructed[observed_mask]))
 
             if self.verbose:
-                print(f"[IterativeSVD] Iter {i+1}: observed MAE={mae}")
+                print(f"[IterativeSVD] Iter {i + 1}: observed MAE={mae}")
             converged = self._converged(
                 X_old=X_filled, X_new=X_reconstructed, missing_mask=missing_mask
             )

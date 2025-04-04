@@ -4,7 +4,6 @@ from . import DROPS, METHODS, SAVENAMES
 from .figure_data import real_data
 
 if __name__ == "__main__":
-
     datalist = SAVENAMES
     reps = 20
     drops = DROPS

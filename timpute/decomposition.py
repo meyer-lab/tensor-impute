@@ -109,7 +109,7 @@ class Decomposition:
                 range(repeat),
                 desc=(
                     f'Decomposing "{self.dataname}" {repeat} times using'
-                    f" {method.__name__} at {int(drop*100)}% {imp_type} imputation"
+                    f" {method.__name__} at {int(drop * 100)}% {imp_type} imputation"
                 ),
             )
         else:
@@ -153,7 +153,6 @@ class Decomposition:
 
             # for each component up to max, run method
             for rr in self.rrs:
-
                 if verbose is True:
                     print(rr)
                 # if printRuntime and rr % 10 == 0: print(f"solving rank {rr}")

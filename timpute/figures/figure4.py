@@ -207,7 +207,7 @@ def best_imputed_boxplot(ax, impType, drop=0.1, datalist=SAVENAMES):
     ax.set_xticks(range(0, len(DATANAMES) * exp_spacing, exp_spacing), DATANAMES)
 
     ax.set_title(
-        f"Best imputation error by dataset, {int(drop*100)}% {impType} masking",
+        f"Best imputation error by dataset, {int(drop * 100)}% {impType} masking",
         fontsize=SUBTITLE_FONTSIZE * 1.1,
     )
     ax.set_xlabel("Dataset", fontsize=SUBTITLE_FONTSIZE)
