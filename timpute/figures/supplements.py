@@ -1,13 +1,16 @@
 import pickle
-from . import METHODNAMES, SAVENAMES, DATANAMES, DROPS, METHODS
+
 import numpy as np
 import pandas as pd
-from .common import getSetup, rgbs
-from .figure_data import bestComps, bestSimComps
+
 from ..decomposition import Decomposition
 from ..tracker import Tracker
+from . import DATANAMES, DROPS, METHODNAMES, METHODS, SAVENAMES
+from .common import getSetup, rgbs
+from .figure_data import bestComps, bestSimComps
 
 # poetry run python -m timpute.figures.supplements
+
 
 def tableS1() -> None:
     # Supplemental 1
@@ -36,7 +39,8 @@ def tableS1() -> None:
                 modes = (0, 1, 2, 3) if (s == "coh_response") else (0, 1, 2)
                 for m in modes:
                     data.load(
-                        f"./timpute/figures/revision_cache/modeComparison/{s}/drop_{d}/mode_{m}/chord-perform_{method}.decomposition"
+                        f"./timpute/figures/revision_cache/modeComparison/{s}\
+                        /drop_{d}/mode_{m}/chord-perform_{method}.decomposition"
                     )
                     df.loc[(s, m + 1), (f"{int(d*100)}%", method)] = np.min(
                         np.mean(data.chord_fitted, axis=0)
@@ -135,18 +139,23 @@ def tableS2_S3(imputed=True, outputData=False):
                 ]
 
         df = df.set_index(["true rank", "method"])
-        # df = df.style.set_caption(f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage")
         df_list.append(df)
 
         if outputData is False:
             df.to_excel(
-                f"./timpute/figures/revision_img/bestSimComps_{i}{'_total' if imputed is False else ''}.xlsx",
-                sheet_name=f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage",
+                f"./timpute/figures/revision_img/bestSimComps_{i}\
+                    {'_total' if imputed is False else ''}.xlsx",
+                sheet_name=(
+                    f"Factorization Rank with Lowest Median Imputation Error, by\
+                    {i} Masking Percentage"
+                ),
             )
         else:
             df.to_excel(
-                f"./timpute/figures/revision_img/bestSimError_{i}{'_total' if imputed is False else ''}.xlsx",
-                sheet_name=f"Lowest Median Imputation Error, by {i} Masking Percentage",
+                f"./timpute/figures/revision_img/bestSimError_{i}\
+                    {'_total' if imputed is False else ''}.xlsx",
+                sheet_name=f"Lowest Median Imputation Error, \
+                    by {i} Masking Percentage",
             )
 
     return df_list
@@ -172,16 +181,20 @@ def tableS4_S5(imputed=True, outputData=False):
                     data[drop_perc][name][m] for drop_perc in DROPS
                 ]
         df = df.set_index(["dataset", "method"])
-        # df = df.style.set_caption(f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage")
         df_list.append(df)
         if outputData is False:
             df.to_excel(
-                f"./timpute/figures/revision_img/bestComps_{i}{'_total' if imputed is False else ''}.xlsx",
-                sheet_name=f"Factorization Rank with Lowest Median Imputation Error, by {i} Masking Percentage",
+                f"./timpute/figures/revision_img/bestComps_{i}\
+                    {'_total' if imputed is False else ''}.xlsx",
+                sheet_name=(
+                    "Factorization Rank with Lowest Median Imputation Error, by"
+                    f" {i} Masking Percentage"
+                ),
             )
         else:
             df.to_excel(
-                f"./timpute/figures/revision_img/bestError_{i}{'_total' if imputed is False else ''}.xlsx",
+                f"./timpute/figures/revision_img/bestError_{i}\
+                    {'_total' if imputed is False else ''}.xlsx",
                 sheet_name=f"Lowest Median Imputation Error, by {i} Masking Percentage",
             )
 
@@ -254,7 +267,8 @@ def tableS6() -> None:
     )
     df_init.index = df_init.index.set_names(["Dataset", "Imputation Type"])
     df_init = df_init.style.set_caption(
-        "Median Time for Data Processing, Prior to First Iteration for Optimal Rank Imputation"
+        "Median Time for Data Processing, Prior to First Iteration for Optimal Rank"
+        " Imputation"
     )
 
     df_iter.to_excel(
@@ -263,7 +277,10 @@ def tableS6() -> None:
     )
     df_init.to_excel(
         "./timpute/figures/revision_img/initTime.xlsx",
-        sheet_name="Median Time for Data Processing, Prior to First Iteration for Optimal Rank Imputation",
+        sheet_name=(
+            "Median Time for Data Processing, Prior to First Iteration for Optimal Rank"
+            " Imputation"
+        ),
     )
 
 

@@ -4,8 +4,7 @@ from tensorly.random import random_cp
 from tensorly.tenalg import svd_interface
 
 
-
-class IterativeSVD(object):
+class IterativeSVD:
     def __init__(
         self,
         rank,
@@ -30,9 +29,9 @@ class IterativeSVD(object):
         """
         X = np.asarray(X)
         if self.min_value is not None:
-            X[X < self.min_value] = self.min_value
+            X[self.min_value > X] = self.min_value
         if self.max_value is not None:
-            X[X > self.max_value] = self.max_value
+            X[self.max_value < X] = self.max_value
         return X
 
     def prepare_input_data(self, X):
@@ -96,7 +95,7 @@ class IterativeSVD(object):
             mae = np.mean(np.abs(X[observed_mask] - X_reconstructed[observed_mask]))
 
             if self.verbose:
-                print("[IterativeSVD] Iter %d: observed MAE=%0.6f" % (i + 1, mae))
+                print(f"[IterativeSVD] Iter {i+1}: observed MAE={mae}")
             converged = self._converged(
                 X_old=X_filled, X_new=X_reconstructed, missing_mask=missing_mask
             )

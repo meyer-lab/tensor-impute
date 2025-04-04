@@ -1,6 +1,7 @@
-from .figure_data import real_data
-from . import METHODS, SAVENAMES, DROPS
 from multiprocessing import Pool
+
+from . import DROPS, METHODS, SAVENAMES
+from .figure_data import real_data
 
 if __name__ == "__main__":
 

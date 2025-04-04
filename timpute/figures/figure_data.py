@@ -1,12 +1,12 @@
 import os
 import pickle
+from os.path import join
+
 import numpy as np
 
-from os.path import join
-from .figure_helper import runImputation, loadImputation
 from ..generateTensor import generateTensor
-from . import METHODS, METHODNAMES, SAVENAMES, DROPS
-
+from . import DROPS, METHODNAMES, METHODS, SAVENAMES
+from .figure_helper import loadImputation, runImputation
 
 # poetry run python -m timpute.figures.figure_data
 
@@ -116,8 +116,8 @@ def sim_data(
 
 def real_data(
     datalist=SAVENAMES,
-    start_comps=[1, 1, 1, 1],
-    max_comps=[20, 20, 20, 20],
+    start_comps=(1, 1, 1, 1),
+    max_comps=(20, 20, 20, 20),
     reps=20,
     drops=DROPS,
     methods=METHODS,
@@ -214,7 +214,7 @@ def bestComps(
     drop=0.1, impType="entry", datalist=SAVENAMES, imputed=True, outputData=False
 ):
     """
-    determines  best component for all methods of all datasets for a given imputation type
+    determines best component for all methods of all datasets for a given setting
     returns in the form of {'data' : {'method' : #}}
     """
     bestComp = dict()
@@ -239,7 +239,6 @@ def bestComps(
             folder = join(data_folder, f"drop_{drop}/")
             # print(folder)
 
-
             tmp = dict()
             for n, m in enumerate(METHODS):
                 run, _ = loadImputation(impType, m, folder)
@@ -259,9 +258,13 @@ def bestComps(
 
                     else:
                         if impType == "entry":
-                            tmp[METHODNAMES[n]] = np.median(run.entry_imputed, axis=0).min()
+                            tmp[METHODNAMES[n]] = np.median(
+                                run.entry_imputed, axis=0
+                            ).min()
                         elif impType == "chord":
-                            tmp[METHODNAMES[n]] = np.median(run.chord_imputed, axis=0).min()
+                            tmp[METHODNAMES[n]] = np.median(
+                                run.chord_imputed, axis=0
+                            ).min()
                         else:
                             raise ValueError(f'impType "{impType}" not recognized')
 
@@ -279,9 +282,13 @@ def bestComps(
                             raise ValueError(f'impType "{impType}" not recognized')
                     else:
                         if impType == "entry":
-                            tmp[METHODNAMES[n]] = np.median(run.entry_total, axis=0).min()
+                            tmp[METHODNAMES[n]] = np.median(
+                                run.entry_total, axis=0
+                            ).min()
                         elif impType == "chord":
-                            tmp[METHODNAMES[n]] = np.median(run.chord_total, axis=0).min()
+                            tmp[METHODNAMES[n]] = np.median(
+                                run.chord_total, axis=0
+                            ).min()
                         else:
                             raise ValueError(f'impType "{impType}" not recognized')
 
@@ -375,7 +382,7 @@ def bestSimComps(
 
 
 def chordMasking(
-    datalist=SAVENAMES, max_comps=[10, 10, 10, 20], drops=(0.05, 0.1, 0.2, 0.3, 0.4)
+    datalist=SAVENAMES, max_comps=(10, 10, 10, 20), drops=(0.05, 0.1, 0.2, 0.3, 0.4)
 ):
     assert len(datalist) == len(max_comps)
 

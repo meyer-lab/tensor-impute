@@ -1,11 +1,14 @@
 [project]
 name = "tensor-impute"
 version = "0.1.0"
-description = "Add your description here"
+description = "Comparison of tensor factorization algorithms for biological datasets."
 license = "MIT"
 authors = [
-    { name = "ehung", email = "ethanhung11@gmail.com" }
+    {name = "Ethan Hung", email="ethanhung11@ucla.edu"},
+    {name = "Aaron Meyer", email="git@asmlab.org"}
 ]
+requires-python = ">= 3.12"
+
 dependencies = [
     "numpy>=2.1",
     "tensorly>=0.8",
@@ -15,9 +18,9 @@ dependencies = [
     "xarray>=2024",
     "scikit-learn>=1.1.3",
     "tensordata @ git+https://github.com/meyer-lab/tensordata",
+    "black>=25.1.0",
 ]
 readme = "README.md"
-requires-python = ">= 3.8"
 
 [build-system]
 requires = ["hatchling"]
@@ -29,11 +32,25 @@ dev-dependencies = [
     "pytest>=8.3.5",
     "pytest-cov>=6.1.0",
     "pyright>=1.1.398",
-    "isort>=6.0.1",
 ]
 
 [tool.hatch.metadata]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/tensor_impute"]
+packages = ["timpute"]
+
+[tool.ruff.lint]
+exclude = ["timpute/data/*.py"]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # isort
+    "I",
+]

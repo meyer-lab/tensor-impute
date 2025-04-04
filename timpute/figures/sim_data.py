@@ -1,7 +1,9 @@
-import numpy as np
-from .figure_data import sim_data
-from . import METHODS, DROPS
 from multiprocessing import Pool
+
+import numpy as np
+
+from . import DROPS, METHODS
+from .figure_data import sim_data
 
 if __name__ == "__main__":
 

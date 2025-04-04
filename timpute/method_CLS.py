@@ -2,13 +2,14 @@
 Censored Least Squares
 """
 
+from copy import deepcopy
+
 import numpy as np
 import tensorly as tl
+from scipy.linalg import solve as sp_solve
 from tensorly.cp_tensor import cp_flip_sign, cp_normalize
 from tensorly.tenalg import khatri_rao
-from scipy.linalg import solve as sp_solve
 from tqdm import tqdm
-from copy import deepcopy
 
 from .initialization import initialize_fac
 from .linesearch import Nesterov
@@ -61,15 +62,15 @@ def censored_lstsq(
 
 
 def perform_CLS(
-    tOrig:np.ndarray,
-    rank:int=6,
+    tOrig: np.ndarray,
+    rank: int = 6,
     init=None,
     alpha=None,
     tol=1e-6,
     n_iter_max=50,
     verbose=False,
     callback=None,
-    **kwargs
+    **kwargs,
 ) -> tl.cp_tensor.CPTensor:
     """Perform CP decomposition."""
 
@@ -98,7 +99,9 @@ def perform_CLS(
         tFac_old = deepcopy(tFac)
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
-            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m], alpha=alpha)
+            tFac.factors[m] = censored_lstsq(
+                kr, unfolded[m].T, uniqueInfo[m], alpha=alpha
+            )
 
         if verbose is True:
             print(len(fac))
@@ -110,9 +113,7 @@ def perform_CLS(
             tFac = tFac_old
             break
 
-        tq.set_postfix(
-            R2X=R2X, delta=R2X - R2X_last, jump=jump, refresh=False
-        )
+        tq.set_postfix(R2X=R2X, delta=R2X - R2X_last, jump=jump, refresh=False)
 
         if callback:
             callback(tFac)

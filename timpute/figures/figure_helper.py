@@ -1,4 +1,5 @@
 import os
+
 import numpy as np
 
 from ..decomposition import Decomposition
@@ -26,7 +27,7 @@ def runImputation(
     tracker.begin()
 
     # run method & save
-    # include **kwargs include: repeat=reps, drop=drop_perc, init=init_type, callback_r=max_rr
+    # include **kwargs include: repeat, drop, init, callback_r
     decomposition.imputation(
         imp_type=impType,
         method=method,

@@ -1,15 +1,16 @@
 import numpy as np
+
+from . import (
+    DATANAMES,
+    LINE_WIDTH,
+    METHODNAMES,
+    METHODS,
+    SAVENAMES,
+    SUBTITLE_FONTSIZE,
+)
+from .common import getSetup, rgbs, subplotLabel
 from .figure_data import bestComps
 from .figure_helper import loadImputation
-from .common import getSetup, subplotLabel, rgbs
-from . import (
-    METHODS,
-    METHODNAMES,
-    SAVENAMES,
-    DATANAMES,
-    SUBTITLE_FONTSIZE,
-    LINE_WIDTH,
-)
 
 # from matplotlib.legend_handler import HandlerErrorbar
 
@@ -108,7 +109,9 @@ def plotIter(ax, dataN, impType, drop, legend=False):
         _, tracker = loadImputation(impType, m, folder)
 
         # print(str(comps[SAVENAMES[dataN]]))
-        impErr = tracker.imputed_array[str(comps[SAVENAMES[dataN]][METHODNAMES[mID]])][:, :-1]
+        impErr = tracker.imputed_array[str(comps[SAVENAMES[dataN]][METHODNAMES[mID]])][
+            :, :-1
+        ]
         imputed_errbar = np.vstack(
             (
                 -(np.percentile(impErr, 25, 0) - np.nanmedian(impErr, 0)),
@@ -126,7 +129,9 @@ def plotIter(ax, dataN, impType, drop, legend=False):
         )
 
         label = f"{METHODNAMES[mID]}"
-        totErr = tracker.total_array[str(comps[SAVENAMES[dataN]][METHODNAMES[mID]])][:, :-1]
+        totErr = tracker.total_array[str(comps[SAVENAMES[dataN]][METHODNAMES[mID]])][
+            :, :-1
+        ]
         total_errbar = np.vstack(
             (
                 -(np.percentile(totErr, 25, 0) - np.nanmedian(totErr, 0)),
@@ -158,7 +163,7 @@ def plotIter(ax, dataN, impType, drop, legend=False):
     ax.set_yscale("log")
 
 
-def figure6_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
+def figure6_exp(datalist=SAVENAMES):
     ax, f = getSetup((48, 40), (6, 8))
 
     for d, drop in enumerate(drops):

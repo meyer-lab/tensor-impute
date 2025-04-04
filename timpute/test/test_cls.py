@@ -2,8 +2,6 @@
 Unit test file.
 """
 
-import warnings
-
 import numpy as np
 import tensorly as tl
 from sklearn.linear_model import Ridge
@@ -28,10 +26,6 @@ def test_cp():
     fac6 = perform_CLS(tensor, rank=6)
     assert fac3.R2X < fac6.R2X
     assert fac3.R2X > 0.0
-    if fac3.R2X < 0.67:
-        warnings.warn(
-            "CP (rank=3) with 20% missingness, R2X < 0.67 (expected)" + str(fac3.R2X)
-        )
 
     # test case where mode size < rank
     tensor2 = createCube(missing=0.2, size=(10, 4, 50))

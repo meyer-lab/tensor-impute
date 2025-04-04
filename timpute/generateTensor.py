@@ -3,14 +3,14 @@ import os
 import numpy as np
 import tensorly as tl
 import xarray as xr
-from tensorly.cp_tensor import CPTensor, cp_to_tensor
-from tensorly.random import random_cp
-from .impute_helper import entry_drop
-
+from tensordata.alter import data as alter
 from tensordata.atyeo import data as atyeo
 from tensordata.zohar import data as zohar
-from tensordata.alter import data as alter
+from tensorly.cp_tensor import CPTensor, cp_to_tensor
+from tensorly.random import random_cp
+
 from .data.import_hmsData import hms_tensor
+from .impute_helper import entry_drop
 
 
 def generateTensor(
@@ -24,7 +24,8 @@ def generateTensor(
     noise_scale=50,
 ):
     """
-    Tensor options: 'known', 'unknown', 'zohar', 'atyeo', 'alter', 'hms', 'coh_receptor', or 'coh response'.
+    Tensor options: 'known', 'unknown', 'zohar', 'atyeo',
+                    'alter', 'hms', 'coh_receptor', or 'coh response'.
     """
     if tensor_type == "known":
         temp, factors = createKnownRank(
@@ -36,7 +37,7 @@ def generateTensor(
             par=par,
         )
         return createNoise(temp, noise_scale), factors
-    
+
     elif tensor_type == "tensorly":
         factors = random_cp(
             shape=shape,
@@ -62,10 +63,12 @@ def generateTensor(
             f"{os.getcwd()}/timpute/data/CoH/CoH_Tensor_DataSet.nc"
         )
         return response.to_numpy().copy()
-    
+
     else:
         ValueError(
-            f"Tensor type {tensor_type} not recognized. Please use one of the following: 'known', 'unknown', 'zohar', 'atyeo', 'alter', 'hms', 'coh_receptor', or 'coh response'."
+            f"Tensor type {tensor_type} not recognized. Please use one of\
+            the following: 'known', 'unknown', 'zohar', 'atyeo', 'alter',\
+            'hms','coh_receptor', or 'coh response'."
         )
 
 
@@ -87,7 +90,7 @@ def createKnownRank(
 ):
     r"""
     Creates a random tensor following a set of possible distributions:
-    `distribution` = "gamma", "chisquare", "logistic", "exponential", "uniform", "normal"
+    "gamma", "chisquare", "logistic", "exponential", "uniform", "normal"
     may also a tuple of distributions w/ same order as `size`
     """
     rng = np.random.default_rng(10)

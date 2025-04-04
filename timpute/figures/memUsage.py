@@ -47,7 +47,6 @@ def testMemory(
 
     # include **kwargs include: repeat=reps, drop=drop_perc, init=init_type
     decomposition.imputation(imp_type=dropType, method=method, drop=float(dropPerc))
-    # decomposition.save(f"./timpute/figures/revision_cache/dataUsage/{dataname}-{method.__name__}.decomposition")
 
     if (
         os.path.isfile(

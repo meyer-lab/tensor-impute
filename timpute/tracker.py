@@ -6,13 +6,12 @@ import numpy as np
 from .impute_helper import calcR2X
 
 
-
 class Tracker:
     """Tracks next unfilled entry & runtime, holds tracked name for plotting"""
 
-    def __init__(self, tOrig=[0], mask=None, track_runtime=True):
+    def __init__(self, tOrig=(0), mask=None, track_runtime=True):
         """self.data should be the original tensor (e.g. prior to running imputation)"""
-        self.data = tOrig.copy()
+        self.data = np.array(tOrig).copy()
         self.mask = mask  # mask represents untouched (1) vs dropped (0) entries
         self.track_runtime = track_runtime
         self.rank = None
@@ -22,7 +21,6 @@ class Tracker:
         self.imputed_error = dict()
         if self.track_runtime:
             self.timer = dict()
-        # [np.full((1, 0), 0)]
 
         self.combined = False
 

@@ -1,9 +1,18 @@
 import math
 
 import numpy as np
+
+from . import (
+    DATANAMES,
+    LINE_WIDTH,
+    METHODNAMES,
+    METHODS,
+    SAVENAMES,
+    SUBTITLE_FONTSIZE,
+    TEXT_FONTSIZE,
+)
+from .common import getSetup, rgbs, subplotLabel
 from .figure_helper import loadImputation
-from .common import getSetup, subplotLabel, rgbs
-from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES, LINE_WIDTH, SUBTITLE_FONTSIZE, TEXT_FONTSIZE
 
 # poetry run python -m timpute.figures.figure3
 

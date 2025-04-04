@@ -14,7 +14,9 @@ def test_decomp(method=perform_DO):
     track = Tracker(tensor, track_runtime=False)
 
     # average Q2X for components 1-6 (n=10) for a single test tensor with 10% imputation
-    decomp.imputation(method=method, drop=0.1, repeat=10, callback=track, imp_type="entry")
+    decomp.imputation(
+        method=method, drop=0.1, repeat=10, callback=track, imp_type="entry"
+    )
     print("average Q2X: " + np.array2string(np.average(decomp.entry_total, axis=0)))
     print(
         "average fitted Q2X: "

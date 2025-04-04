@@ -29,7 +29,7 @@ def separate_cellLines():
 
     # includes ['AZD1775', 'AZD2014', 'AZD5363', 'AZD6738', 'BJP-6-5-3', 'BMS-265246', 'BSJ-01-175', 'BSJ-03-123', 'BSJ-03-124', 'BVD523', 'FMF-03-146-1', 'FMF-04-107-2', 'FMF-04-112-1', 'Flavopiridol', 'GSK2334470', 'LEE011/Ribociclib', 'LY3023414', 'Pin1-3', 'R0-3306',  'Rucaparib', 'SHP099', 'THZ-P1-2', 'THZ-P1-2R', 'THZ1', 'THZ531', 'YKL-5-124', 'ZZ1-33B', 'senexin b']
     agents = set(df_dict["AU565"]["agent"].unique())
-    for i in df_dict.keys():
+    for i in df_dict:
         agents = agents & set(df_dict[i]["agent"].unique())
 
     common_agents = list(sorted(agents))
@@ -76,7 +76,6 @@ def import_cellLine(cellline_name: str, cellline_df, agents):
         if len(concents) < 10:
             ln_0 = len(concents)
             tensor[:, :, :, ln_0 + 1 :, i] = np.nan
-
 
         for j, cons in enumerate(concents[len(concents) - 9 :]):
             df2 = df1.loc[df1["concentration"] == cons]

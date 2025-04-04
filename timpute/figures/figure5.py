@@ -1,14 +1,23 @@
 import numpy as np
-from .figure_helper import loadImputation
-from .common import getSetup, subplotLabel, rgbs
-from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES, LINE_WIDTH, SUBTITLE_FONTSIZE, TEXT_FONTSIZE
 
+from . import (
+    DATANAMES,
+    LINE_WIDTH,
+    METHODNAMES,
+    METHODS,
+    SAVENAMES,
+    SUBTITLE_FONTSIZE,
+    TEXT_FONTSIZE,
+)
+from .common import getSetup, rgbs, subplotLabel
+from .figure_helper import loadImputation
 
 # from matplotlib.legend_handler import HandlerErrorbar
 
 # poetry run python -m timpute.figures.figure5
 
-def figure5(datalist=SAVENAMES, errors=True, drops = (0.05, 0.1, 0.2, 0.3, 0.4)):
+
+def figure5(datalist=SAVENAMES, errors=True, drops=(0.05, 0.1, 0.2, 0.3, 0.4)):
     ax, f = getSetup((16, 8), (2, 4))
     dirname = "timpute/figures/revision_img"
     stdout = open(f"{dirname}/figure5.txt", "w")

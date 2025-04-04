@@ -40,9 +40,9 @@ class do_callback:
 
 def perform_DO(
     tensorOrig: np.ndarray,
-    rank:int=6,
-    n_iter_max:int=5_000,
-    tol = 1e-6,
+    rank: int = 6,
+    n_iter_max: int = 5_000,
+    tol=1e-6,
     callback=None,
     init=None,
     **kwargs,

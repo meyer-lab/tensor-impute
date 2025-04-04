@@ -1,13 +1,14 @@
+from copy import deepcopy
+
 import numpy as np
 import tensorly as tl
 from tensorly.cp_tensor import cp_normalize, cp_to_tensor
 from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao
 from tqdm import tqdm
-from copy import deepcopy
 
+from .impute_helper import calcR2X
 from .initialization import initialize_fac
 from .linesearch import Nesterov
-from .impute_helper import calcR2X
 
 
 def perform_ALS(
@@ -48,7 +49,8 @@ def perform_ALS(
           * all ones if normalize_factors is False (default)
           * weights of the (normalized) factors otherwise
 
-        * factors : List of factors of the CP decomposition element `i` is of shape ``(tensor.shape[i], rank)``
+        * factors : List of factors of the CP decomposition element `i`
+          is of shape ``(tensor.shape[i], rank)``
 
     errors : list
         A list of reconstruction errors at each iteration of the algorithms.

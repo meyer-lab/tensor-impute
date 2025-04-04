@@ -11,7 +11,7 @@ from .tracker import Tracker
 
 
 class Decomposition:
-    def __init__(self, data=np.ndarray([0]), min_rr=1, max_rr=5, dataname=None):
+    def __init__(self, data=(0), min_rr=1, max_rr=5, dataname=None):
         """
         Decomposition object designed for plotting. Capable of handling a single tensor.
 
@@ -27,7 +27,7 @@ class Decomposition:
             Takes a factorization method. Default set to perform_CLS() from cmtf.py
             other methods include: tucker_decomp
         """
-        self.data = data.copy()
+        self.data = np.array(data).copy()
         self.dataname = dataname
         self.rrs = np.arange(min_rr, max_rr + 1)
 
@@ -37,27 +37,30 @@ class Decomposition:
         repeat: int = 3,
         drop: float = 0.05,
         chord_mode: int = 0,
-        method = perform_CLS,
+        method=perform_CLS,
         tol: float = 1e-6,
         init: str = "random",
         maxiter: int = 50,
         seed: int = 1,
         callback: Tracker = None,
         printRuntime: bool = False,
-        verbose = False,
+        verbose=False,
     ):
         """
-        Performs imputation (chord or entry) from the [self.data] using [method] for factor decomposition,
-        comparing each component. Drops in Q2X from one component to the next may signify overfitting.
+        Performs imputation (chord or entry) from the [self.data] using [method] for
+        factor decomposition, comparing each component. Drops in Q2X from one component
+        to the next may signify overfitting.
 
         Parameters
         ----------
         imp_type : str
             'chord' or 'entry' imputation
         repeat : int
-            Number of repetitions to run imputation (for every component up to self.max_rr). Defaults to 3.
+            Number of repetitions to run imputation (for every component up
+            to self.max_rr). Defaults to 3.
         drop : int
-            Percent dropped from tensor during imputation (rounded to int). Defaults to 5%.
+            Percent dropped from tensor during imputation (rounded to int).
+            Defaults to 5%.
         chord_mode : 0 ≤ int < self.data.ndim
             Mode to drop chords along (ignore for entry drop). Defaults to 0.
         method : function
@@ -65,27 +68,29 @@ class Decomposition:
         tol : float
             minimum error difference to tolerate between iterations
         init : str // CPTensor // list of list of CPTensors
-            Valid strings include 'svd' and 'random'. Otherwise, an initial guess for the CPTensor must be provided.
+            Valid strings include 'svd' and 'random'. Otherwise, an initial
+            guess for the CPTensor must be provided.
         maxiter : int
             Max iterations to cap method at. Defaults to 50.
         seed : int
             seed for random initialziations
         callback : tracker class.
-            Optional callback class to track R2X over iteration/runtime for the factorization with max_rr components.
+            Optional callback class to track R2X over iteration/runtime for the
+            factorization with max_rr components.
 
 
 
         Returns
         -------
         self.Q2X : ndarray of size (repeat, max_rr)
-            Each value in a row represents the Q2X of the tensor calculated for components 1 to max_rr.
-            Each row represents a single repetition.
+            Each value in a row represents the Q2X of the tensor calculated for
+            components 1 to max_rr. Each row represents a single repetition.
         self.chord_imputed / self.entry_imputed : ndarray of size (repeat, max_rr)
-            Each value in a row represents error of the IMPUTED artificial dropped values of the tensor
-            calculated for components 1 to max_rr.
+            Each value in a row represents error of the IMPUTED artificial dropped
+            values of the tensor calculated for components 1 to max_rr.
         self.chord_fitted / self.entry_fitted : ndarray of size (repeat, max_rr)
-            Each value in a row represents ernror of the FITTED (not dropped, not missing) values of the tensor
-            calculated for components 1 to max_rr.
+            Each value in a row represents ernror of the FITTED (not dropped, not
+            missing) values of the tensor calculated for components 1 to max_rr.
         """
 
         assert chord_mode >= 0 and chord_mode < self.data.ndim
@@ -102,7 +107,10 @@ class Decomposition:
         if printRuntime:
             missingpatterns = tqdm(
                 range(repeat),
-                desc=f'Decomposing "{self.dataname}" {repeat} times using {method.__name__} at {int(drop*100)}% {imp_type} imputation',
+                desc=(
+                    f'Decomposing "{self.dataname}" {repeat} times using'
+                    f" {method.__name__} at {int(drop*100)}% {imp_type} imputation"
+                ),
             )
         else:
             missingpatterns = range(repeat)
@@ -124,13 +132,14 @@ class Decomposition:
             drop = int(drop * tImp.size / tImp.shape[0])
         else:
             raise ValueError("invalid imputation type")
-        
+
         for x in missingpatterns:
             missingCube = tImp.copy()
 
             """ track masks 
             - `imputed_vals` has a 1 where values were artifically dropped
-            - `fitted_vals` has a 1 where values were not artifically dropped (considers non-imputed values)
+            - `fitted_vals` has a 1 where values were not artifically dropped
+              (considers non-imputed values)
             """
             if imp_type == "entry":
                 mask = entry_drop(missingCube, drop)
@@ -141,7 +150,6 @@ class Decomposition:
                 callback.set_mask(mask)
             imputed_vals = np.ones_like(missingCube) - mask
             fitted_vals = np.ones_like(missingCube) - imputed_vals
-
 
             # for each component up to max, run method
             for rr in self.rrs:
@@ -169,7 +177,6 @@ class Decomposition:
                         callback.begin()
 
                     callback(CPinit)
-
 
                 if verbose is True:
                     print("began")

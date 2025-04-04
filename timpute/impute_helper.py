@@ -2,7 +2,6 @@ import numpy as np
 import tensorly as tl
 
 
-
 def reorient_factors(tFac):
     """This function ensures that factors are negative on at most one direction."""
     # Flip the types to be positive
@@ -24,10 +23,12 @@ def calcR2X(
     tFac: tl.cp_tensor.CPTensor,
     tIn: np.ndarray,
     calcError=False,
-    mask: np.ndarray=None,
+    mask: np.ndarray = None,
 ) -> float:
-    """Calculate R2X. Optionally it can be calculated for only the tensor or matrix.
-    Mask is for imputation and must be of same shape as tIn/tFac, with 0s indicating artifically dropped values
+    """
+    Calculate R2X. Optionally it can be calculated for only the tensor or matrix.
+    Mask is for imputation and must be of same shape as tIn/tFac,
+    with 0s indicating artifically dropped values
     """
     vTop, vBottom = 0.0, 1e-8
     vTop, vBottom = 0.0, 1e-8
@@ -52,24 +53,26 @@ def calcR2X(
 
 def entry_drop(tensor: np.ndarray, drop: int, dropany=False, seed: int = None):
     """
-    Drops random values within a tensor. Finds a bare minimum cube before dropping values to ensure PCA remains viable.
+    Drops random values within a tensor. Can ensure a bare minimum cube
+    before dropping values to ensure PCA remains viable.
 
     Parameters
     ----------
     tensor : ndarray
-        Takes a tensor of any shape. Preference for at least two values present per chord.
+        Takes a tensor of any shape.
+        Preference for at least two values present per chord.
     drop : int
-        To set a percentage, multiply np.sum(np.isfinite(tensor)) by the percentage
-        to find the relevant drop value, rounding to nearest int.
+        To set a percentage, use np.sum(np.isfinite(tensor))*percent
+        by the percentage, rounding to nearest int.
 
     Returns
     -------
     mask : ndarray (boolean)
         artificial missingness mask
         0 = indicates artificial missingness added
-        1 = indicates original data was untouched (regardless of true missingness status)
+        1 = indicates original data was untouched
+            (regardless of true missingness status)
     """
-    # Track chords for each mode to ensure bare minimum cube covers each chord at least once
 
     if seed is not None:
         np.random.seed(seed)
@@ -109,7 +112,8 @@ def entry_drop(tensor: np.ndarray, drop: int, dropany=False, seed: int = None):
         tensor[i] = np.nan
         data_pattern[i] = 0
 
-    # missingness pattern holds 0s where dropped, 1s if left alone (does not guarantee nonmissing)
+    # missingness pattern holds 0s where dropped,
+    # 1s if left alone (does not guarantee nonmissing)
 
     return np.array(data_pattern, dtype=bool)
 
@@ -131,7 +135,8 @@ def chord_drop(tensor: np.ndarray, drop: int, seed: int = None):
     mask : ndarray (boolean)
         artificial missingness mask
         0 = indicates artificial missingness added
-        1 = indicates original data was untouched (regardless of true missingness status)
+        1 = indicates original data was untouched
+            (regardless of true missingness status)
     """
 
     if seed is not None:
@@ -150,6 +155,7 @@ def chord_drop(tensor: np.ndarray, drop: int, seed: int = None):
                 data_pattern[d] = 0
             tensor[d] = np.nan
 
-    # missingness pattern holds 0s where dropped, 1s if left alone (may be inherently missing or undropped)
+    # missingness pattern holds 0s where dropped,
+    # 1s if left alone (may be inherently missing or undropped)
 
     return np.array(data_pattern, dtype=bool)

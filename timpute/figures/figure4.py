@@ -1,18 +1,20 @@
 import math
+
 import numpy as np
 from matplotlib.lines import Line2D
-from .figure_helper import loadImputation
-from .common import getSetup, subplotLabel, rgbs, set_boxplot_color
+
 from . import (
-    METHODS,
-    METHODNAMES,
-    SAVENAMES,
     DATANAMES,
     DROPS,
+    LINE_WIDTH,
+    METHODNAMES,
+    METHODS,
+    SAVENAMES,
     SUBTITLE_FONTSIZE,
     TEXT_FONTSIZE,
-    LINE_WIDTH,
 )
+from .common import getSetup, rgbs, set_boxplot_color, subplotLabel
+from .figure_helper import loadImputation
 
 # poetry run python -m timpute.figures.figure4
 
@@ -159,7 +161,7 @@ def best_imputed_boxplot(ax, impType, drop=0.1, datalist=SAVENAMES):
 
     for data in datalist:
         folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
-        for mID, m in enumerate(METHODS):
+        for m in METHODS:
             run, _ = loadImputation(impType, m, folder)
 
             if impType == "entry":
@@ -227,7 +229,8 @@ def figure4(datalist=SAVENAMES, legend=False):
         print(f"completed figure 4{chr(ord('a') + i)}")
 
     # e)-f) Best imputed error identifies best rank for each algorithm
-    # C-ALS outperforms other algorithms in many cases, but not all (DyeDrop, BC cytokine, Covid chord drop)
+    # C-ALS outperforms other algorithms in many cases, but not all
+    # (DyeDrop, BC cytokine, Covid chord drop)
     # component vs imputed & total error
     # e) 10% missingness, all datasets ENTRY
     # f) 10% missingness, all datasets CHORD
@@ -277,18 +280,17 @@ def figure4(datalist=SAVENAMES, legend=False):
     return f
 
 
-def figure4_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
+def figure4_exp(datalist=SAVENAMES):
     ax, f = getSetup((48, 40), (7, 8))
 
     # Figure 1, a)-d)
     for d, drop in enumerate(DROPS):
         for i, data in enumerate(datalist):
-            for mID, m in enumerate(METHODS):
-                ## ENTRY
-                plot_entry_decomp(ax[i + d * 8], data, DATANAMES[i], drop)
+            ## ENTRY
+            plot_entry_decomp(ax[i + d * 8], data, DATANAMES[i], drop)
 
-                ## CHORD
-                plot_chord_decomp(ax[i + 4 + d * 8], data, DATANAMES[i], drop)
+            ## CHORD
+            plot_chord_decomp(ax[i + 4 + d * 8], data, DATANAMES[i], drop)
 
     f.savefig(
         "timpute/figures/revision_img/svg/figure4-exp.svg",

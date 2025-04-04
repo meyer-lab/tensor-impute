@@ -1,12 +1,10 @@
 import numpy as np
 import tensorly as tl
 from tensorly.cp_tensor import cp_normalize
+from tensorly.tenalg import khatri_rao
 from tqdm import tqdm
 
-from tensorly.tenalg import khatri_rao
-
-from .impute_helper import calcR2X
-from .impute_helper import reorient_factors
+from .impute_helper import calcR2X, reorient_factors
 from .initialization import initialize_fac
 
 
@@ -18,7 +16,7 @@ def perform_PM(
     callback=None,
     init=None,
     verbose=None,
-    **kwargs
+    **kwargs,
 ) -> tl.cp_tensor.CPTensor:
     # function [A, B, C, LFT, M]=PARAFACM(XIJK, Fac, epsilon)
     # % Input
@@ -126,7 +124,7 @@ def perform_PM(
         if tFac.R2X - R2X_last < tol:
             break
 
-        # % ------------STEP 3---------------
+    # % ------------STEP 3---------------
     # % post-processing to keep sign convention
     # [maxa, inda] = max(abs(A));
     # [maxb, indb] = max(abs(B));
@@ -144,5 +142,4 @@ def perform_PM(
     tFac = reorient_factors(tFac)
     tFac.R2X = calcR2X(tFac, tOrig)
 
-    return tFac
     return tFac

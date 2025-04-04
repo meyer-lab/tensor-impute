@@ -1,7 +1,8 @@
-import pandas as pd
 import numpy as np
-from .common import getSetup, subplotLabel, rgbs
-from . import METHODNAMES, DATANAMES, LINE_WIDTH
+import pandas as pd
+
+from . import DATANAMES, LINE_WIDTH, METHODNAMES
+from .common import getSetup, rgbs, subplotLabel
 
 # poetry run python -m timpute.figures.figure7
 
@@ -61,7 +62,8 @@ def figure7():
 
     print("completed figure 7b")
 
-    # C) entry & chord lineplot (ALS & DO x-fold diff of CLS vs drop %) - ALS & DO doesn't vary, but C-ALS decreases over time
+
+    # C) entry & chord lineplot (ALS & DO x-fold diff of CLS vs drop %) - ALS & DO doesn't vary, but C-ALS decreases over time # noqa: E501
     dataset_c = DATANAMES[0]
     linestyles = ["solid", "dashed"]
     ax[2].tick_params(axis="both", which="major", labelsize=TEXT_FONTSIZE)
@@ -85,7 +87,8 @@ def figure7():
             )
 
     ax[2].set_title(
-        f"Time per Iteration Fold-Speedup Versus C-ALS\nby Drop Percentage, {dataset_c}",
+        "Time per Iteration Fold-Speedup Versus C-ALS\nby Drop Percentage,"
+        f" {dataset_c}",
         fontsize=TITLE_FONTSIZE,
     )
     ax[2].set_xlabel("Drop Percentage", fontsize=SUBTITLE_FONTSIZE)
@@ -100,7 +103,7 @@ def figure7():
 
     print("completed figure 7c")
 
-    # D) 20% entry & chord barplot (runtime per method) - ALS & DO similar -> C-ALS much improved
+    # D) 20% entry & chord barplot (runtime per method) - ALS & DO similar, C-ALS much improved # noqa: E501
     dataset_d = DATANAMES[1]
     ax[3].tick_params(axis="both", which="major", labelsize=TEXT_FONTSIZE)
     ax[3].bar(

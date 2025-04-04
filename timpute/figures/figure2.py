@@ -1,9 +1,10 @@
 import numpy as np
-from sklearn.metrics import root_mean_squared_error
+from sklearn.metrics import root_mean_squared_error as rmse
+
+from . import DROPS, LINE_WIDTH, METHODNAMES, METHODS, SUBTITLE_FONTSIZE, TEXT_FONTSIZE
 from .common import getSetup, rgbs
-from .figure_helper import loadImputation
 from .figure_data import bestSimComps
-from . import METHODNAMES, METHODS, DROPS, LINE_WIDTH, SUBTITLE_FONTSIZE, TEXT_FONTSIZE
+from .figure_helper import loadImputation
 
 # poetry run python -m timpute.figures.figure2
 
@@ -68,7 +69,7 @@ def plot_simulated_data(ax, rank, drop, impType="entry", methods=METHODS):
                 lw=LINE_WIDTH,
             )
             e[-1][0].set_linestyle("dashed")
-        
+
         elif impType == "chord":
             comps = np.arange(1, run.chord_imputed.shape[1] + 1)
             label = f"{METHODNAMES[mID]}"
@@ -119,12 +120,13 @@ def plot_simulated_data(ax, rank, drop, impType="entry", methods=METHODS):
                 lw=LINE_WIDTH,
             )
             e[-1][0].set_linestyle("dashed")
-        
+
         else:
             raise ValueError(f"{impType} is not a valid impType arg")
 
     ax.set_title(
-        f"True Rank {rank} dataset, {int(drop*100)} {impType} masking", fontsize=SUBTITLE_FONTSIZE * 1.1
+        f"True Rank {rank} dataset, {int(drop*100)} {impType} masking",
+        fontsize=SUBTITLE_FONTSIZE * 1.1,
     )
     ax.set_xlabel("Number of Components", fontsize=SUBTITLE_FONTSIZE)
     ax.set_ylabel("Error", fontsize=SUBTITLE_FONTSIZE)
@@ -159,7 +161,10 @@ def figure2():
         comp_info = bestSimComps(drop=0.1, impType=impType)
         plot_limits = (4.7, 25.3)
         ax[n * 4 + 1].plot(
-            np.linspace(*plot_limits), np.linspace(*plot_limits), color="black", lw=LINE_WIDTH,
+            np.linspace(*plot_limits),
+            np.linspace(*plot_limits),
+            color="black",
+            lw=LINE_WIDTH,
         )
 
         for mID, m in enumerate(METHODNAMES):
@@ -172,7 +177,10 @@ def figure2():
                 best_imputed_ranks,
                 color=rgbs(mID),
                 alpha=0.7,
-                label=f"RMSE = {round(root_mean_squared_error(true_ranks, best_imputed_ranks),4)}",
+                label=(
+                    "RMSE ="
+                    f" {round(rmse(true_ranks, best_imputed_ranks),4)}"
+                ),
             )
 
         ax[n * 4 + 1].legend()
@@ -191,7 +199,7 @@ def figure2():
 
     print("completed figure 2c")
 
-    # d) as artifical missingness increases, best imputed rank increasingly underestimates
+    # d) as artifical missingness increases, best imputed rank increasingly underestimates #noqa E501
     # scatter plot, per method - best rank vs true rank
     # i) all missingness true rank 25 ENTRY
     # ii) all missingness true rank 25 CHORD
@@ -204,21 +212,30 @@ def figure2():
                 bestSimComps(drop=drop, impType=impType)[rank][m] for drop in DROPS
             ]
 
-            ax[n * 4 + 2].plot(np.arange(len(DROPS))*2, best_imputed_ranks, color=rgbs(mID), lw=LINE_WIDTH,)
+            ax[n * 4 + 2].plot(
+                np.arange(len(DROPS)) * 2,
+                best_imputed_ranks,
+                color=rgbs(mID),
+                lw=LINE_WIDTH,
+            )
 
         ax[n * 4 + 2].tick_params(axis="both", which="major", labelsize=TEXT_FONTSIZE)
-        ax[n * 4 + 2].set_xticks(
-            range(0, len(DROPS) * spacing, spacing), DROPS
-        )
+        ax[n * 4 + 2].set_xticks(range(0, len(DROPS) * spacing, spacing), DROPS)
 
         ax[n * 4 + 2].set_title(
-            f"Best Imputed Rank by {(impType.capitalize())} Masking Percentage\nTrue Rank 25",
+            f"Best Imputed Rank by {(impType.capitalize())} Masking Percentage\nTrue"
+            " Rank 25",
             fontsize=SUBTITLE_FONTSIZE * 1.1,
         )
         ax[n * 4 + 2].set_xlabel("Best Imputed Rank", fontsize=SUBTITLE_FONTSIZE)
         ax[n * 4 + 2].set_ylabel("Masking Percentage", fontsize=SUBTITLE_FONTSIZE)
 
-        ax[n * 4 + 2].axhline(rank, *ax[n * 4 + 2].set_xlim(), color="black", lw=LINE_WIDTH,)
+        ax[n * 4 + 2].axhline(
+            rank,
+            *ax[n * 4 + 2].set_xlim(),
+            color="black",
+            lw=LINE_WIDTH,
+        )
 
     print("completed figure 2d")
 
@@ -235,14 +252,14 @@ def figure2():
             correct_comp[m] = 0
             closest_comp[m] = 0
 
-        for d, drop in enumerate(DROPS):
+        for drop in DROPS:
             comp_info = bestSimComps(drop=drop, impType=impType)
 
-            for i, rank in enumerate(ALL_RANKS):
+            for rank in ALL_RANKS:
                 # finds the distance of best imputed from true rank
                 closest = np.abs(np.array(list(comp_info[rank].values())) - rank).min()
 
-                for mID, m in enumerate(METHODNAMES):
+                for m in METHODNAMES:
                     if comp_info[rank][m] == rank:
                         correct_comp[m] += 1
                     if np.abs(comp_info[rank][m] - rank) == closest:
@@ -300,7 +317,7 @@ def figure2():
     return f
 
 
-def figure2_exp(ranks=[5, 10, 15, 20, 25]):
+def figure2_exp(ranks=(5, 10, 15, 20, 25)):
     ax, f = getSetup((60, 36), (6, 10))
 
     # Figure 2, a)-d)
