@@ -24,7 +24,7 @@ def calcR2X(
     tFac: tl.cp_tensor.CPTensor,
     tIn: np.ndarray,
     calcError=False,
-    mask: np.ndarray = None,
+    mask: np.ndarray=None,
 ) -> float:
     """Calculate R2X. Optionally it can be calculated for only the tensor or matrix.
     Mask is for imputation and must be of same shape as tIn/tFac, with 0s indicating artifically dropped values
@@ -71,7 +71,7 @@ def entry_drop(tensor: np.ndarray, drop: int, dropany=False, seed: int = None):
     """
     # Track chords for each mode to ensure bare minimum cube covers each chord at least once
 
-    if seed != None:
+    if seed is not None:
         np.random.seed(seed)
 
     # withhold base missingness from entry dropping
@@ -97,7 +97,7 @@ def entry_drop(tensor: np.ndarray, drop: int, dropany=False, seed: int = None):
                     removable = True
                 midxs[modecounter[counter], i] = 0
                 counter += 1
-            if removable == True:
+            if removable is True:
                 idxs = np.delete(idxs, ran, axis=0)
         assert idxs.shape[0] >= drop
 
@@ -134,7 +134,7 @@ def chord_drop(tensor: np.ndarray, drop: int, seed: int = None):
         1 = indicates original data was untouched (regardless of true missingness status)
     """
 
-    if seed != None:
+    if seed is not None:
         np.random.seed(seed)
 
     # Drop chords based on random idxs

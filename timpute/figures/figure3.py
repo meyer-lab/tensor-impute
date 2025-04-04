@@ -3,12 +3,9 @@ import math
 import numpy as np
 from .figure_helper import loadImputation
 from .common import getSetup, subplotLabel, rgbs
-from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES, LINE_WIDTH
+from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES, LINE_WIDTH, SUBTITLE_FONTSIZE, TEXT_FONTSIZE
 
 # poetry run python -m timpute.figures.figure3
-
-SUBTITLE_FONTSIZE = 16
-TEXT_FONTSIZE = 13
 
 
 def figure3(datalist=SAVENAMES):
@@ -37,7 +34,7 @@ def figure3(datalist=SAVENAMES):
                     ),
                 )
             )
-            e = ax[i].errorbar(
+            ax[i].errorbar(
                 comps,
                 np.median(run.entry_total, 0),
                 yerr=total_errbar,
@@ -46,9 +43,6 @@ def figure3(datalist=SAVENAMES):
                 color=rgbs(mID, 0.7),
                 lw=LINE_WIDTH,
             )
-
-            h, l = ax[i].get_legend_handles_labels()
-            h = [a[0] for a in h]
 
             ax[i].set_title(DATANAMES[i], fontsize=SUBTITLE_FONTSIZE * 1.1)
             ax[i].set_xlabel("Number of Components", fontsize=SUBTITLE_FONTSIZE)
@@ -63,7 +57,6 @@ def figure3(datalist=SAVENAMES):
 
         print(f"completed figure 3{chr(ord('a') + i)}")
 
-    # ax[0].legend(handles=h, labels=l, loc='best', handlelength=2, fontsize=TEXT_FONTSIZE)
     subplotLabel(ax)
     f.savefig(
         "timpute/figures/revision_img/svg/figure3.svg",

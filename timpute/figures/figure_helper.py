@@ -1,5 +1,4 @@
 import os
-
 import numpy as np
 
 from ..decomposition import Decomposition

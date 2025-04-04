@@ -1,22 +1,16 @@
 import numpy as np
 from .figure_helper import loadImputation
-from .figure_data import bestComps
 from .common import getSetup, subplotLabel, rgbs
-from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES, LINE_WIDTH
+from . import METHODS, METHODNAMES, SAVENAMES, DATANAMES, LINE_WIDTH, SUBTITLE_FONTSIZE, TEXT_FONTSIZE
 
 
 # from matplotlib.legend_handler import HandlerErrorbar
 
 # poetry run python -m timpute.figures.figure5
 
-SUBTITLE_FONTSIZE = 15
-TEXT_FONTSIZE = 13
-drops = (0.05, 0.1, 0.2, 0.3, 0.4)
-
-
-def figure5(datalist=SAVENAMES, errors=True):
+def figure5(datalist=SAVENAMES, errors=True, drops = (0.05, 0.1, 0.2, 0.3, 0.4)):
     ax, f = getSetup((16, 8), (2, 4))
-    dirname = f"timpute/figures/revision_img"
+    dirname = "timpute/figures/revision_img"
     stdout = open(f"{dirname}/figure5.txt", "w")
     stdout.write(f"{drops}")
 
@@ -106,8 +100,8 @@ def figure5(datalist=SAVENAMES, errors=True):
                 [], [], label="Best Imputed Error", ls="dashed", color="black"
             )
             ax[i].errorbar([], [], label="Total Error", ls="solid", color="black")
-            h, l = ax[i].get_legend_handles_labels()
-            h = [a[0] for a in h]
+            handles, _ = ax[i].get_legend_handles_labels()
+            handles = [a[0] for a in handles]
         else:
             ax[i].plot([], [], label="Best Imputed Error", ls="dashed", color="black")
             ax[i].plot([], [], label="Total Error", ls="solid", color="black")
@@ -211,8 +205,8 @@ def figure5(datalist=SAVENAMES, errors=True):
                 [], [], label="Best Imputed Error", ls="dashed", color="black"
             )
             ax[i + 4].errorbar([], [], label="Total Error", ls="solid", color="black")
-            h, l = ax[i + 4].get_legend_handles_labels()
-            h = [a[0] for a in h]
+            handles, _ = ax[i + 4].get_legend_handles_labels()
+            handles = [a[0] for a in handles]
         else:
             ax[i + 4].plot(
                 [], [], label="Best Imputed Error", ls="dashed", color="black"

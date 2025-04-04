@@ -9,9 +9,6 @@ from ..tracker import Tracker
 
 # poetry run python -m timpute.figures.supplements
 
-DROPS = (0.05, 0.1, 0.2, 0.3, 0.4, 0.5)
-
-
 def tableS1() -> None:
     # Supplemental 1
     DROPS = (0.05, 0.1, 0.2, 0.3, 0.4)
@@ -52,12 +49,12 @@ def tableS1() -> None:
     )
     df.index = df.index.set_names(["Dataset", "Mode"])
     df = df.style.set_caption(
-        f"Chord Imputation by Mode per Dataset by Masking Percentage"
+        "Chord Imputation by Mode per Dataset by Masking Percentage"
     )
 
     df.to_excel(
         "./timpute/figures/revision_img/chordModes.xlsx",
-        sheet_name=f"Chord Imputation by Mode per Dataset by Masking Percentage",
+        sheet_name="Chord Imputation by Mode per Dataset by Masking Percentage",
     )
 
 

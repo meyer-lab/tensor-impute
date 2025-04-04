@@ -1,5 +1,5 @@
 import pandas as pd
-from .figure_helper import *
+import numpy as np
 from .common import getSetup, subplotLabel, rgbs
 from . import METHODNAMES, DATANAMES, LINE_WIDTH
 

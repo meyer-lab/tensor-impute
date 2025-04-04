@@ -8,7 +8,6 @@ from . import (
     SAVENAMES,
     DATANAMES,
     SUBTITLE_FONTSIZE,
-    TEXT_FONTSIZE,
     LINE_WIDTH,
 )
 
@@ -17,8 +16,6 @@ from . import (
 # poetry run python -m timpute.figures.figure6
 
 drops = (0.05, 0.1, 0.2, 0.3, 0.4, 0.5)
-SUBTITLE_FONTSIZE = 15
-TEXT_FONTSIZE = (13,)
 
 
 def figure6():
@@ -150,9 +147,9 @@ def plotIter(ax, dataN, impType, drop, legend=False):
     ax.errorbar([], [], label="Imputed Error", ls="dashed", color="black")
     ax.errorbar([], [], label="Total Error", ls="solid", color="black")
     if legend is True:
-        h, l = ax.get_legend_handles_labels()
-        h = [a[0] for a in h]
-        ax.legend(h, l, loc="best", handlelength=2)
+        handles, labels = ax.get_legend_handles_labels()
+        handles = [a[0] for a in handles]
+        ax.legend(handles, labels, loc="best", handlelength=2)
 
     ax.set_xlim((0, totErr.shape[1] - 1))
     ax.set_xlabel("Iteration")

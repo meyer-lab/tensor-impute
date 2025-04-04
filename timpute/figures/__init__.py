@@ -1,7 +1,6 @@
 from ..method_ALS import perform_ALS
 from ..method_CLS import perform_CLS
 from ..method_DO import perform_DO
-from ..method_PM import perform_PM
 
 METHODS = (perform_DO, perform_ALS, perform_CLS)
 METHODNAMES = ["DO", "ALS-SI", "C-ALS"]

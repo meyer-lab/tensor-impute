@@ -1,13 +1,12 @@
 import os
-from os.path import join
 import pickle
 import numpy as np
-from figures import DROPS, METHODNAMES, METHODS, SAVENAMES
 
+from os.path import join
+from .figure_helper import runImputation, loadImputation
 from ..generateTensor import generateTensor
 from . import METHODS, METHODNAMES, SAVENAMES, DROPS
 
-import argparse
 
 # poetry run python -m timpute.figures.figure_data
 
@@ -28,9 +27,9 @@ def sim_data(
 
     for i, true_r in enumerate(np.arange(true_ranks[0], true_ranks[1] + 1)):
         dataset = f"rank_{true_r}"
-        folder = join(savedir, dataset)
-        if os.path.isdir(folder) is False:
-            os.makedirs(folder)
+        dirname = join(savedir, dataset)
+        if os.path.isdir(dirname) is False:
+            os.makedirs(dirname)
 
         tensor, factors = generateTensor(
             "tensorly",
@@ -39,7 +38,7 @@ def sim_data(
             noise_scale=1,
         )
 
-        with open(join(folder, "CPfactors.pickle"), "wb") as output_file:
+        with open(join(dirname, "CPfactors.pickle"), "wb") as output_file:
             pickle.dump(factors, output_file)
 
         if nonmissing is True:
@@ -48,9 +47,9 @@ def sim_data(
             drop_perc = 0.0
 
             run = "nonmissing/"
-            rundir = join(folder, run)
-            if os.path.isdir(rundir) is False:
-                os.makedirs(rundir)
+            folder = join(dirname, run)
+            if os.path.isdir(folder) is False:
+                os.makedirs(folder)
 
             impType = "entry"
             for m in methods:
@@ -60,7 +59,7 @@ def sim_data(
                     min_rr=min_component,
                     max_rr=max_component,
                     impType=impType,
-                    savename=rundir,
+                    savename=folder,
                     method=m,
                     printRuntime=True,
                     repeat=reps,
@@ -73,10 +72,10 @@ def sim_data(
         for drop_perc in drops:
             print(f"--- BEGIN MISSING ({i}) ---")
             run = f"drop_{drop_perc}/"
-            rundir = join(folder, run)
+            folder = join(dirname, run)
 
-            if os.path.isdir(rundir) is False:
-                os.makedirs(rundir)
+            if os.path.isdir(folder) is False:
+                os.makedirs(folder)
             for m in methods:
                 impType = "entry"
                 runImputation(
@@ -91,7 +90,7 @@ def sim_data(
                     init=init_type,
                     seed=seed * i,
                     tol=1e-6,
-                    savename=rundir,
+                    savename=folder,
                     printRuntime=True,
                 )
 
@@ -108,7 +107,7 @@ def sim_data(
                     init=init_type,
                     seed=seed * i,
                     tol=1e-6,
-                    savename=rundir,
+                    savename=folder,
                     printRuntime=True,
                 )
 
@@ -144,10 +143,10 @@ def real_data(
             # stdout.write("--- BEGIN NONMISSING ---\n")
             drop_perc = 0.0
             run = "nonmissing/"
-            rundir = join(dirname, run)
+            folder = join(dirname, run)
 
             if os.path.isdir() is False:
-                os.makedirs(rundir)
+                os.makedirs(folder)
             impType = "entry"
             for m in methods:
                 runImputation(
@@ -156,7 +155,7 @@ def real_data(
                     min_rr=min_component,
                     max_rr=max_component,
                     impType=impType,
-                    savename=folder + run,
+                    savename=folder,
                     method=m,
                     printRuntime=True,
                     repeat=reps,
@@ -169,10 +168,10 @@ def real_data(
         for drop_perc in drops:
             print(f"--- BEGIN MISSING ({i}) ---")
             run = f"drop_{drop_perc}/"
-            rundir = join(dirname, run)
+            folder = join(dirname, run)
 
-            if os.path.isdir(rundir) is False:
-                os.makedirs(rundir)
+            if os.path.isdir(folder) is False:
+                os.makedirs(folder)
             for m in methods:
                 impType = "entry"
                 runImputation(
@@ -187,7 +186,7 @@ def real_data(
                     init=init_type,
                     seed=seed * i,
                     tol=1e-6,
-                    savename=rundir,
+                    savename=folder,
                     printRuntime=True,
                 )
 
@@ -204,7 +203,7 @@ def real_data(
                     init=init_type,
                     seed=seed * i,
                     tol=1e-6,
-                    savename=rundir,
+                    savename=folder,
                     printRuntime=True,
                 )
 
@@ -219,7 +218,7 @@ def bestComps(
     returns in the form of {'data' : {'method' : #}}
     """
     bestComp = dict()
-    dirname = f"timpute/figures/revision_cache"
+    dirname = "timpute/figures/revision_cache"
 
     for data in datalist:
         data_folder = join(dirname, data)

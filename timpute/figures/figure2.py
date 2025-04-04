@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.metrics import root_mean_squared_error
 from .common import getSetup, rgbs
 from .figure_helper import loadImputation
@@ -275,7 +274,7 @@ def figure2():
             np.arange(2) * group_spacing + bar_width, ["Correct Rank", "Closest Rank"]
         )
         ax[n * 4 + 3].set_title(
-            f"Best Imputed Rank\nAll-Case Correctness & Closeness",
+            "Best Imputed Rank\nAll-Case Correctness & Closeness",
             fontsize=SUBTITLE_FONTSIZE * 1.1,
         )
         ax[n * 4 + 3].set_ylabel("Percentage", fontsize=SUBTITLE_FONTSIZE)
@@ -303,7 +302,6 @@ def figure2():
 
 def figure2_exp(ranks=[5, 10, 15, 20, 25]):
     ax, f = getSetup((60, 36), (6, 10))
-    dirname = f"timpute/figures/revision_img"
 
     # Figure 2, a)-d)
     for d, drop in enumerate(DROPS):

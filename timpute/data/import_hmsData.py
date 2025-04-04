@@ -74,47 +74,48 @@ def import_cellLine(cellline_name: str, cellline_df, agents):
 
         # for those agents that have less than 10 concentrations, set the last ln columns as nan
         if len(concents) < 10:
-            ln = len(concents)
-            tensor[:, :, :, ln + 1 :, i] = np.nan
+            ln_0 = len(concents)
+            tensor[:, :, :, ln_0 + 1 :, i] = np.nan
 
+
+        ln = len(df2)
         for j, cons in enumerate(concents[len(concents) - 9 :]):
             df2 = df1.loc[df1["concentration"] == cons]
             # for those that have less than 4 replicates, set the last l columns as nan
-            l = len(df2)
-            tensor[:, :, l:, j + 1, i] = np.nan
-            tensor[:, :, l:, 0, i] = np.nan
+            tensor[:, :, ln:, j + 1, i] = np.nan
+            tensor[:, :, ln:, 0, i] = np.nan
 
             # treatment
             # time = 72 hours
-            tensor[0, 1, :l, j + 1, i] = np.array(df2["G1"]) * np.array(
+            tensor[0, 1, :ln, j + 1, i] = np.array(df2["G1"]) * np.array(
                 df2["cell_count"]
             )
-            tensor[1, 1, :l, j + 1, i] = np.array(df2["S"]) * np.array(
+            tensor[1, 1, :ln, j + 1, i] = np.array(df2["S"]) * np.array(
                 df2["cell_count"]
             )
-            tensor[2, 1, :l, j + 1, i] = (
+            tensor[2, 1, :ln, j + 1, i] = (
                 np.array(df2["G2"]) + np.array(df2["M"])
             ) * np.array(df2["cell_count"])
-            tensor[3, 1, :l, j + 1, i] = np.array(df2["dead_count"]) + (
+            tensor[3, 1, :ln, j + 1, i] = np.array(df2["dead_count"]) + (
                 np.array(df2["subG1"]) + np.array(df2["beyondG2"])
             ) * np.array(df2["cell_count"])
 
         # control
         ## time = 0
         cont = ctr.loc[ctr["timepoint"] == "time0_ctrl"]
-        tensor[0, 0, :l, :, i] = (
+        tensor[0, 0, :ln, :, i] = (
             np.array(cont.loc[cont["cell_line"] == cellline_name]["G1"])
             * np.array(df1["cell_count__time0"].unique())[0]
         )
-        tensor[1, 0, :l, :, i] = (
+        tensor[1, 0, :ln, :, i] = (
             np.array(cont.loc[cont["cell_line"] == cellline_name]["S"])
             * np.array(df1["cell_count__time0"].unique())[0]
         )
-        tensor[2, 0, :l, :, i] = (
+        tensor[2, 0, :ln, :, i] = (
             np.array(cont.loc[cont["cell_line"] == cellline_name]["G2"])
             + np.array(cont.loc[cont["cell_line"] == cellline_name]["M"])
         ) * np.array(df1["cell_count__time0"].unique())[0]
-        tensor[3, 0, :l, :, i] = (
+        tensor[3, 0, :ln, :, i] = (
             np.array(df1["dead_count__time0"])[0]
             + np.array(cont.loc[cont["cell_line"] == cellline_name]["subG1"])
             * np.array(df1["cell_count__time0"].unique())[0]
@@ -122,19 +123,19 @@ def import_cellLine(cellline_name: str, cellline_df, agents):
 
         ## time = 72 hours
         cont_72 = ctr.loc[ctr["timepoint"] == "72"]
-        tensor[0, 1, :l, 0, i] = (
+        tensor[0, 1, :ln, 0, i] = (
             np.array(cont_72.loc[cont_72["cell_line"] == cellline_name]["G1"])
             * np.array(df1["cell_count__ctrl"].unique())[0]
         )
-        tensor[1, 1, :l, 0, i] = (
+        tensor[1, 1, :ln, 0, i] = (
             np.array(cont_72.loc[cont_72["cell_line"] == cellline_name]["S"])
             * np.array(df1["cell_count__ctrl"].unique())[0]
         )
-        tensor[2, 1, :l, 0, i] = (
+        tensor[2, 1, :ln, 0, i] = (
             np.array(cont_72.loc[cont_72["cell_line"] == cellline_name]["G2"])
             + np.array(cont_72.loc[cont_72["cell_line"] == cellline_name]["M"])
         ) * np.array(df1["cell_count__ctrl"].unique())[0]
-        tensor[3, 1, :l, 0, i] = (
+        tensor[3, 1, :ln, 0, i] = (
             np.array(df1["dead_count__ctrl"])[0]
             + np.array(cont_72.loc[cont_72["cell_line"] == cellline_name]["subG1"])
             * np.array(df1["cell_count__ctrl"].unique())[0]

@@ -11,7 +11,6 @@ from tqdm import tqdm
 from copy import deepcopy
 
 from .initialization import initialize_fac
-from .impute_helper import calcR2X, reorient_factors
 from .linesearch import Nesterov
 
 tl.set_backend("numpy")

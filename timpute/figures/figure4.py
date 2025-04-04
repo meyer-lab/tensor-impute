@@ -18,7 +18,7 @@ from . import (
 
 
 def plot_entry_decomp(ax, data, name, drop=0.1):
-    folder = f"timpute/figures/revision_cache/{data}/drop_0.1/"
+    folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
     impType = "entry"
     maxErr = 0
     for mID, m in enumerate(METHODS):
@@ -38,7 +38,7 @@ def plot_entry_decomp(ax, data, name, drop=0.1):
                 ),
             )
         )
-        e = ax.errorbar(
+        ax.errorbar(
             comps,
             np.median(run.entry_imputed, 0),
             yerr=imp_errbar,
@@ -77,9 +77,6 @@ def plot_entry_decomp(ax, data, name, drop=0.1):
 
     ax.errorbar([], [], label="Imputed Error", ls="dashed", color="black")
     ax.errorbar([], [], label="Total Error", ls="solid", color="black")
-
-    h, l = ax.get_legend_handles_labels()
-    h = [a[0] for a in h]
     ax.set_title(f"{name}", fontsize=SUBTITLE_FONTSIZE * 1.1)
     ax.set_xlabel("Number of Components", fontsize=SUBTITLE_FONTSIZE)
     ax.set_ylabel("Error", fontsize=SUBTITLE_FONTSIZE)
@@ -87,7 +84,7 @@ def plot_entry_decomp(ax, data, name, drop=0.1):
 
 
 def plot_chord_decomp(ax, data, name, drop=0.1):
-    folder = f"timpute/figures/revision_cache/{data}/drop_0.1/"
+    folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
     impType = "chord"
     maxErr = 0
     for mID, m in enumerate(METHODS):
@@ -107,7 +104,7 @@ def plot_chord_decomp(ax, data, name, drop=0.1):
                 ),
             )
         )
-        e = ax.errorbar(
+        ax.errorbar(
             comps,
             np.median(run.chord_imputed, 0),
             yerr=imp_errbar,
@@ -147,8 +144,6 @@ def plot_chord_decomp(ax, data, name, drop=0.1):
     ax.errorbar([], [], label="Imputed Error", ls="dashed", color="black")
     ax.errorbar([], [], label="Total Error", ls="solid", color="black")
 
-    h, l = ax.get_legend_handles_labels()
-    h = [a[0] for a in h]
     ax.set_title(f"{name}", fontsize=SUBTITLE_FONTSIZE * 1.1)
     ax.set_xlabel("Number of Components", fontsize=SUBTITLE_FONTSIZE)
     ax.set_ylabel("Error", fontsize=SUBTITLE_FONTSIZE)
@@ -162,7 +157,7 @@ def best_imputed_boxplot(ax, impType, drop=0.1, datalist=SAVENAMES):
         plot_data[m.__name__] = list()
         comp_data[m.__name__] = list()
 
-    for i, data in enumerate(datalist):
+    for data in datalist:
         folder = f"timpute/figures/revision_cache/{data}/drop_{drop}/"
         for mID, m in enumerate(METHODS):
             run, _ = loadImputation(impType, m, folder)
@@ -195,13 +190,13 @@ def best_imputed_boxplot(ax, impType, drop=0.1, datalist=SAVENAMES):
             flierprops=dict(markersize=LINE_WIDTH - 1),
         )
         set_boxplot_color(box, rgbs(mID))
-        for l, line in enumerate([1, 3, 5, 7]):
+        for i, line in enumerate([1, 3, 5, 7]):
             x = box["caps"][line].get_xdata().mean()
             y = box["caps"][line].get_ydata()[0]
             ax.text(
                 x,
                 y * 1.03,
-                comp_data[m.__name__][l] + 1,
+                comp_data[m.__name__][i] + 1,
                 ha="center",
                 va="bottom",
                 size=TEXT_FONTSIZE,
@@ -230,9 +225,6 @@ def figure4(datalist=SAVENAMES, legend=False):
     for i, data in enumerate(datalist):
         plot_entry_decomp(ax[i], data, DATANAMES[i])
         print(f"completed figure 4{chr(ord('a') + i)}")
-
-    if legend is True:
-        ax[0].legend(h, l, loc="best", handlelength=2)
 
     # e)-f) Best imputed error identifies best rank for each algorithm
     # C-ALS outperforms other algorithms in many cases, but not all (DyeDrop, BC cytokine, Covid chord drop)
@@ -287,7 +279,6 @@ def figure4(datalist=SAVENAMES, legend=False):
 
 def figure4_exp(datalist=["zohar", "alter", "hms", "coh_response"]):
     ax, f = getSetup((48, 40), (7, 8))
-    dirname = f"timpute/figures/revision_img"
 
     # Figure 1, a)-d)
     for d, drop in enumerate(DROPS):

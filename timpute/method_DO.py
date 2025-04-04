@@ -50,7 +50,7 @@ def perform_DO(
     """Perform CP decomposition."""
     if tensorOrig is None:
         tensorOrig = generateTensor("unknown")
-    if init == None:
+    if init is None:
         init = initialize_fac(tensorOrig, rank)
     if callback:
         temp_callback = do_callback(callback, tensorOrig.shape)

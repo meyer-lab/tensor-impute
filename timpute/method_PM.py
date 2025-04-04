@@ -1,15 +1,13 @@
 import numpy as np
 import tensorly as tl
-from tensorly.cp_tensor import cp_flip_sign, cp_normalize
+from tensorly.cp_tensor import cp_normalize
 from tqdm import tqdm
 
 from tensorly.tenalg import khatri_rao
-from tqdm import tqdm
 
 from .impute_helper import calcR2X
-from .impute_helper import calcR2X, reorient_factors
+from .impute_helper import reorient_factors
 from .initialization import initialize_fac
-from tensorly.cp_tensor import cp_normalize
 
 
 def perform_PM(
