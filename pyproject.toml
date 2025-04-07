@@ -1,29 +1,56 @@
-[tool.poetry]
+[project]
 name = "tensor-impute"
 version = "0.1.0"
-description = "Examining various imputation methods for tensor decomposition."
-authors = ["Your Name <you@example.com>"]
+description = "Comparison of tensor factorization algorithms for biological datasets."
 license = "MIT"
+authors = [
+    {name = "Ethan Hung", email="ethanhung11@ucla.edu"},
+    {name = "Aaron Meyer", email="git@asmlab.org"}
+]
+requires-python = ">= 3.12"
 
-[tool.poetry.dependencies]
-python = ">=3.11,<3.13"
-numpy = "^1.26"
-tensorly = "^0.8.1"
-matplotlib = "^3.5.0"
-tqdm = "^4.65"
-seaborn = "^0.13"
-xarray = "^2023"
-tensorpack = "^0.11"
-scikit-learn = "^1.1.3"
-openpyxl = "^3.1.2"
-setuptools = "^69.5.1"
-pyright = "^1.1.389"
-
-[tool.poetry.dev-dependencies]
-pytest = "^8.3"
-pytest-cov = "^3.0.0"
-tensordata = {git = "https://github.com/meyer-lab/tensordata.git", branch = "main"}
+dependencies = [
+    "numpy>=2.1",
+    "tensorly>=0.8",
+    "matplotlib>=3.9",
+    "tqdm>=4.67",
+    "seaborn>=0.13",
+    "xarray>=2024",
+    "scikit-learn>=1.1.3",
+    "tensordata @ git+https://github.com/meyer-lab/tensordata",
+    "black>=25.1.0",
+]
+readme = "README.md"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.0",
+    "pyright>=1.1.398",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["timpute"]
+
+[tool.ruff.lint]
+exclude = ["timpute/data/*.py"]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # isort
+    "I",
+]

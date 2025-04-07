@@ -2,19 +2,33 @@
 Censored Least Squares
 """
 
+from copy import deepcopy
+
 import numpy as np
 import tensorly as tl
-from tensorly.cp_tensor import cp_normalize, cp_flip_sign
+from scipy.linalg import solve as sp_solve
+from tensorly.cp_tensor import cp_flip_sign, cp_normalize
 from tensorly.tenalg import khatri_rao
-from .initialization import initialize_fac
-from .impute_helper import calcR2X
 from tqdm import tqdm
-from sklearn.linear_model import Ridge
+
+from .initialization import initialize_fac
+from .linesearch import Nesterov
+
+tl.set_backend("numpy")
 
 
-tl.set_backend('numpy')
+def ridge_solve_cholesky(X, y, alpha: float):
+    # w = inv(X^t X + alpha*Id) * X.T y
+    A = X.T @ X
+    Xy = X.T @ y
 
-def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) -> np.ndarray:
+    A.flat[:: X.shape[1] + 1] += alpha
+    return sp_solve(A, Xy, assume_a="pos", overwrite_a=True)
+
+
+def censored_lstsq(
+    A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None
+) -> np.ndarray:
     """Solves least squares problem subject to missing data.
     Note: uses a for loop over the missing patterns of B, leading to a
     slower but more numerically stable algorithm
@@ -27,6 +41,7 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) ->
     X (ndarray) : r x n matrix that minimizes norm(M*(AX - B))
     """
     X = np.empty((A.shape[1], B.shape[1]))
+
     # Missingness patterns
     if uniqueInfo is None:
         unique, uIDX = np.unique(np.isfinite(B), axis=1, return_inverse=True)
@@ -35,62 +50,76 @@ def censored_lstsq(A: np.ndarray, B: np.ndarray, uniqueInfo=None, alpha=None) ->
 
     for i in range(unique.shape[1]):
         uI = uIDX == i
-        uu = np.squeeze(unique[:, i])
+        uu = unique[:, i]
 
         Bx = B[uu, :]
 
         if alpha is None:
-            X[:, uI] = np.linalg.lstsq(A[uu, :], Bx[:, uI], rcond=-1)[0]
+            X[:, uI] = np.linalg.lstsq(A[uu, :], Bx[:, uI], rcond=None)[0]
         else:
-            clf = Ridge(alpha=alpha, fit_intercept=False)
-            clf.fit(A[uu, :], Bx[:, uI])
-            X[:, uI] = clf.coef_.T
+            X[:, uI] = ridge_solve_cholesky(A[uu, :], Bx[:, uI], alpha=alpha)
     return X.T
 
-  
-def perform_CLS(tOrig,
-                rank=6,
-                init=None, 
-                alpha=None,
-                tol=1e-6,
-                n_iter_max=50,
-                progress=False,
-                callback=None,
-                **kwargs
-)  -> tl.cp_tensor.CPTensor:
-    """ Perform CP decomposition. """
 
-    if init==None: tFac = initialize_fac(tOrig, rank)
+def perform_CLS(
+    tOrig: np.ndarray,
+    rank: int = 6,
+    init=None,
+    alpha=None,
+    tol=1e-6,
+    n_iter_max=50,
+    verbose=False,
+    callback=None,
+    **kwargs,
+) -> tl.cp_tensor.CPTensor:
+    """Perform CP decomposition."""
+
+    if init is None:
+        tFac = initialize_fac(tOrig, rank)
     else:
         tFac = init
-        tFac_last = init
-    
+
     # Pre-unfold
     unfolded = [tl.unfold(tOrig, i) for i in range(tOrig.ndim)]
     R2X_last = -np.inf
-    tFac.R2X = calcR2X(tFac, tOrig)
+
+    linesrc = Nesterov()
+    fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
+    tFac.factors = fac
 
     # Precalculate the missingness patterns
-    uniqueInfo = [np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded]
+    uniqueInfo = [
+        np.unique(np.isfinite(B.T), axis=1, return_inverse=True) for B in unfolded
+    ]
 
-    tq = tqdm(range(n_iter_max), disable=(not progress))
+    tq = tqdm(range(n_iter_max), disable=(not verbose))
     for _ in tq:
+        R2X_last = R2X
         # Solve on each mode
+        tFac_old = deepcopy(tFac)
         for m in range(len(tFac.factors)):
             kr = khatri_rao(tFac.factors, skip_matrix=m)
-            tFac.factors[m] = censored_lstsq(kr, unfolded[m].T, uniqueInfo[m], alpha=alpha)
-        
-        R2X_last = tFac.R2X
-        tFac.R2X = calcR2X(tFac, tOrig)
-        tq.set_postfix(R2X=tFac.R2X, delta=tFac.R2X - R2X_last, refresh=False)
+            tFac.factors[m] = censored_lstsq(
+                kr, unfolded[m].T, uniqueInfo[m], alpha=alpha
+            )
 
-        if callback: callback(tFac)
-        if tFac.R2X - R2X_last < tol:
+        if verbose is True:
+            print(len(fac))
+            print(fac[0].shape, fac[1].shape, fac[2].shape)
+
+        fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
+
+        if R2X - R2X_last < tol:
+            tFac = tFac_old
             break
 
+        tq.set_postfix(R2X=R2X, delta=R2X - R2X_last, jump=jump, refresh=False)
+
+        if callback:
+            callback(tFac)
 
     tFac = cp_normalize(tFac)
     tFac = cp_flip_sign(tFac)
-    tFac.R2X = calcR2X(tFac, tOrig)
+    tFac.R2X = R2X
 
     return tFac

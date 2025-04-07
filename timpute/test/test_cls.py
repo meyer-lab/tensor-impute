@@ -4,11 +4,11 @@ Unit test file.
 
 import numpy as np
 import tensorly as tl
-import warnings
-from ..method_CLS import perform_CLS, censored_lstsq
-from tensorly.tenalg import khatri_rao
-from ..initialization import initialize_fac
 from sklearn.linear_model import Ridge
+from tensorly.tenalg import khatri_rao
+
+from ..initialization import initialize_fac
+from ..method_CLS import censored_lstsq, perform_CLS
 
 
 def createCube(missing=0.0, size=(10, 20, 25)):
@@ -26,10 +26,6 @@ def test_cp():
     fac6 = perform_CLS(tensor, rank=6)
     assert fac3.R2X < fac6.R2X
     assert fac3.R2X > 0.0
-    if fac3.R2X < 0.67:
-        warnings.warn(
-            "CP (rank=3) with 20% missingness, R2X < 0.67 (expected)" + str(fac3.R2X)
-        )
 
     # test case where mode size < rank
     tensor2 = createCube(missing=0.2, size=(10, 4, 50))

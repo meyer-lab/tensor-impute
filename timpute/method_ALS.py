@@ -1,22 +1,24 @@
-import numpy as np
+from copy import deepcopy
 
+import numpy as np
 import tensorly as tl
-from tensorly.cp_tensor import (
-    cp_to_tensor,
-    CPTensor,
-)
+from tensorly.cp_tensor import cp_normalize, cp_to_tensor
 from tensorly.tenalg.core_tenalg.mttkrp import unfolding_dot_khatri_rao
+from tqdm import tqdm
+
+from .impute_helper import calcR2X
 from .initialization import initialize_fac
+from .linesearch import Nesterov
 
 
 def perform_ALS(
-    tensor,
+    tOrig,
     rank,
-    n_iter_max=100,
+    n_iter_max=50,
     init=None,
     tol=1e-6,
-    mask=None,
     callback=None,
+    progress=False,
 ) -> tl.cp_tensor.CPTensor:
     """CANDECOMP/PARAFAC decomposition via alternating least squares (ALS)
     Computes a rank-`rank` decomposition of `tensor` [1]_ such that:
@@ -38,11 +40,6 @@ def perform_ALS(
         (Default: 1e-6) Relative reconstruction error tolerance. The
         algorithm is considered to have found the global minimum when the
         reconstruction error is less than `tol`.
-    mask : ndarray
-        array of booleans with the same shape as ``tensor`` should be 0 where
-        the values are missing and 1 everywhere else. Note:  if tensor is
-        sparse, then mask should also be sparse with a fill value of 1 (or
-        True). Allows for missing values [2]_
 
     Returns
     -------
@@ -52,7 +49,8 @@ def perform_ALS(
           * all ones if normalize_factors is False (default)
           * weights of the (normalized) factors otherwise
 
-        * factors : List of factors of the CP decomposition element `i` is of shape ``(tensor.shape[i], rank)``
+        * factors : List of factors of the CP decomposition element `i`
+          is of shape ``(tensor.shape[i], rank)``
 
     errors : list
         A list of reconstruction errors at each iteration of the algorithms.
@@ -66,57 +64,55 @@ def perform_ALS(
     .. [3] R. Bro, "Multi-Way Analysis in the Food Industry: Models, Algorithms, and
            Applications", PhD., University of Amsterdam, 1998
     """
-    tensor = np.nan_to_num(tensor)
+    tensor = np.nan_to_num(tOrig)
+    mask = np.isfinite(tOrig)
 
     if init is None:
-        init = initialize_fac(tensor, rank, method="random")
+        tFac = initialize_fac(tensor, rank, method="random")
+    else:
+        tFac = init
 
-    weights, factors = init
+    linesrc = Nesterov()
+    fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
+    tFac.R2X = R2X
+    tFac.factors = fac
 
-    rec_errors = []
-    norm_tensor = tl.norm(tensor, 2)
+    tq = tqdm(range(n_iter_max), disable=(not progress))
+    for _ in tq:
+        # Update the tensor based on the mask
+        tFac_old = deepcopy(tFac)
+        low_rank_component = cp_to_tensor(tFac)
+        tensor = tensor * mask + low_rank_component * (1 - mask)
 
-    for iteration in range(n_iter_max):
         for mode in range(np.ndim(tensor)):
             pseudo_inverse = np.ones((rank, rank))
-            for i, factor in enumerate(factors):
+            for i, factor in enumerate(tFac.factors):
                 if i != mode:
                     pseudo_inverse = pseudo_inverse * np.dot(factor.T, factor)
-            pseudo_inverse = (
-                np.reshape(weights, (-1, 1))
-                * pseudo_inverse
-                * np.reshape(weights, (1, -1))
-            )
-            mttkrp = unfolding_dot_khatri_rao(tensor, (weights, factors), mode)
+
+            mttkrp = unfolding_dot_khatri_rao(tensor, tFac, mode)
 
             factor = np.linalg.solve(pseudo_inverse.T, mttkrp.T).T
-            factors[mode] = factor
+            tFac.factors[mode] = factor
 
-        # Calculate the current unnormalized error
-        low_rank_component = cp_to_tensor((weights, factors))
+        R2X_last = tFac.R2X
+        fac, R2X, jump = linesrc.perform(tFac.factors, tOrig)
 
-        # Update the tensor based on the mask
-        if mask is not None:
-            tensor = tensor * mask + low_rank_component * (1 - mask)
-            norm_tensor = tl.norm(tensor, 2)
+        if R2X - R2X_last < tol:
+            tFac = tFac_old
+            break
 
-        unnorml_rec_error = tl.norm(tensor - low_rank_component, 2)
+        tFac.R2X = R2X
+        tFac.factors = fac
 
-        if tol:
-            rec_error = unnorml_rec_error / norm_tensor
-            rec_errors.append(rec_error)
+        tq.set_postfix(
+            R2X=tFac.R2X, delta=tFac.R2X - R2X_last, jump=jump, refresh=False
+        )
 
-        if callback is not None:
-            cp_tensor = CPTensor((weights, factors))
-            callback(cp_tensor)
+        if callback:
+            callback(tFac)
 
-        if tol is not None:
-            if iteration >= 1:
-                rec_error_decrease = rec_errors[-2] - rec_errors[-1]
+    tFac = cp_normalize(tFac)
+    tFac.R2X = calcR2X(tFac, tOrig)
 
-                if abs(rec_error_decrease) < tol:
-                    break
-
-    cp_tensor = CPTensor((weights, factors))
-
-    return cp_tensor
+    return tFac

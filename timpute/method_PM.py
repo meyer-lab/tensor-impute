@@ -1,15 +1,15 @@
 import numpy as np
 import tensorly as tl
+from tensorly.cp_tensor import cp_normalize
+from tensorly.tenalg import khatri_rao
 from tqdm import tqdm
 
-from tensorly.tenalg import khatri_rao
-from .impute_helper import calcR2X
+from .impute_helper import calcR2X, reorient_factors
 from .initialization import initialize_fac
-from tensorly.cp_tensor import cp_normalize, cp_flip_sign
 
 
 def perform_PM(
-    tOrig: np.ndarray,
+    tOrig: np.ndarray = None,
     rank: int = 6,
     n_iter_max: int = 50,
     tol=1e-6,
@@ -124,7 +124,7 @@ def perform_PM(
         if tFac.R2X - R2X_last < tol:
             break
 
-        # % ------------STEP 3---------------
+    # % ------------STEP 3---------------
     # % post-processing to keep sign convention
     # [maxa, inda] = max(abs(A));
     # [maxb, indb] = max(abs(B));
@@ -139,7 +139,7 @@ def perform_PM(
     # C = C*diag(asign)*diag(bsign);
 
     tFac = cp_normalize(tFac)
-    tFac = cp_flip_sign(tFac)
+    tFac = reorient_factors(tFac)
     tFac.R2X = calcR2X(tFac, tOrig)
 
     return tFac

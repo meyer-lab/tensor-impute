@@ -1,46 +1,61 @@
 import os
+
 import numpy as np
+
 from ..decomposition import Decomposition
 from ..tracker import Tracker
 
 
-def runImputation(data:np.ndarray,
-                  max_rr:int,
-                  impType:str,
-                  savename:str, 
-                  method,
-                  callback = True,
-                  save = True,
-                  printRuntime = False,
-                  **kwargs):
-    assert impType == 'entry' or impType == 'chord'
-    decomposition = Decomposition(data, max_rr)
-    if callback is True:
-        tracker = Tracker(data)
-        tracker.begin()
-    else:
-        tracker = None
-    
-    # run method & save
-    # include **kwargs include: repeat=reps, drop=drop_perc, init=init_type, callback_r=max_rr
-    decomposition.imputation(type=impType, method=method, callback=tracker, printRuntime=printRuntime, **kwargs)
-    if tracker:
-        tracker.combine()
+def runImputation(
+    data: np.ndarray,
+    min_rr: int,
+    max_rr: int,
+    impType: str,
+    method,
+    dataname=None,
+    savename: str = None,
+    printRuntime: bool = False,
+    **kwargs,
+):
+    assert impType == "entry" or impType == "chord"
 
-    if save is True:
-        if os.path.isdir(savename) is False: os.makedirs(savename)
+    decomposition = Decomposition(
+        data=data, dataname=dataname, min_rr=min_rr, max_rr=max_rr
+    )
+    tracker = Tracker(data)
+    tracker.begin()
+
+    # run method & save
+    # include **kwargs include: repeat, drop, init, callback_r
+    decomposition.imputation(
+        imp_type=impType,
+        method=method,
+        callback=tracker,
+        printRuntime=printRuntime,
+        **kwargs,
+    )
+    tracker.combine()
+
+    if savename is not None:
+        if os.path.isdir(savename) is False:
+            os.makedirs(savename)
         decomposition.save(f"./{savename}{impType}-{method.__name__}.decomposition")
-        if tracker:
-            tracker.save(f"./{savename}{impType}-{method.__name__}.tracker")
+        tracker.save(f"./{savename}{impType}-{method.__name__}.tracker")
+
+        _, tmp = loadImputation(impType, method, savename)
+        print(tmp.total_array)
 
     return decomposition, tracker
 
 
-def loadImputation(impType, method, savename):
+def loadImputation(impType, method, savename, callback=True):
     decomposition = Decomposition()
-    tracker = Tracker()
-
     decomposition.load(f"./{savename}{impType}-{method.__name__}.decomposition")
-    tracker.load(f"./{savename}{impType}-{method.__name__}.tracker")
+
+    if callback is True:
+        tracker = Tracker()
+        tracker.load(f"./{savename}{impType}-{method.__name__}.tracker")
+    else:
+        tracker = None
 
     return decomposition, tracker
